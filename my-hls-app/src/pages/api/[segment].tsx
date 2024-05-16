@@ -1,6 +1,6 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import path from "path";
-import fs from "fs";
+import fs from "fs/promises";
 
 export default async function handler(
   req: NextApiRequest,
@@ -12,11 +12,8 @@ export default async function handler(
     req.query.segment as string
   );
 
-  fs.readFile(segmentPath, (err, data) => {
-    if (err) {
-      res.status(404).send("Segment not found");
-      return;
-    }
+  try {
+    const data = await fs.readFile(segmentPath);
     const extension = path.extname(segmentPath);
     let contentType = "application/octet-stream";
 
@@ -31,5 +28,7 @@ export default async function handler(
 
     res.setHeader("Content-Type", contentType);
     res.send(data);
-  });
+  } catch (error) {
+    res.status(404).send("Segment not found");
+  }
 }

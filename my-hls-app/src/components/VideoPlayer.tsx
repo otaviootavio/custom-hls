@@ -1,7 +1,11 @@
 import { useEffect, useRef } from "react";
 import Hls from "hls.js";
 
-const VideoPlayer: React.FC = () => {
+interface VideoPlayerProps {
+  secretWord: string;
+}
+
+const VideoPlayer: React.FC<VideoPlayerProps> = ({ secretWord }) => {
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
   useEffect(() => {
@@ -11,14 +15,11 @@ const VideoPlayer: React.FC = () => {
       if (Hls.isSupported()) {
         const hls = new Hls({
           xhrSetup: (xhr, url) => {
-            xhr.setRequestHeader("Custom-Header", "secretWord");
+            xhr.setRequestHeader("Custom-Header", secretWord);
           },
         });
         hls.loadSource("http://localhost:3000/api/playlist");
         hls.attachMedia(video);
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video.play();
-        });
       } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
         video.src = "http://localhost:3000/playlist.m3u8";
         video.addEventListener("canplay", () => {
@@ -26,7 +27,7 @@ const VideoPlayer: React.FC = () => {
         });
       }
     }
-  }, []);
+  }, [secretWord]);
 
   return (
     <div className="flex justify-center items-center h-screen bg-gray-900">

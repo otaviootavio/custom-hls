@@ -7,7 +7,7 @@ export function middleware(request: NextRequest) {
   if (customHeader !== "secretWord") {
     return NextResponse.json(
       { error: "Missing secretWord header" },
-      { status: 400 }
+      { status: 403 }
     );
   }
   return NextResponse.next();
