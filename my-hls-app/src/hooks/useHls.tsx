@@ -8,58 +8,60 @@ const useHls = (src: string, password: number) => {
 
   useEffect(() => {
     keyRef.current = password;
-  }, [password]);
+    const video = videoRef.current;
 
-  useEffect(() => {
-    if (videoRef.current) {
-      const video = videoRef.current;
+    if (!video) return;
 
-      if (Hls.isSupported()) {
-        const hls = new Hls({
-          xhrSetup: (xhr, url) => {
-            xhr.setRequestHeader("Password-Header", `${keyRef.current}`);
-            keyRef.current += 7;
-          },
-        });
+    // Cleanup existing HLS instance if it exists
+    if (hlsRef.current) {
+      hlsRef.current.destroy();
+      hlsRef.current = null;
+    }
 
-        hlsRef.current = hls; // Store the Hls instance
+    if (Hls.isSupported()) {
+      const hls = new Hls({
+        xhrSetup: (xhr) => {
+          xhr.setRequestHeader("Password-Header", `${keyRef.current}`);
+          keyRef.current += 7;
+        },
+      });
 
-        hls.loadSource(src);
-        hls.attachMedia(video);
+      hlsRef.current = hls; // Store the Hls instance
 
-        hls.on(Hls.Events.MANIFEST_PARSED, () => {
-          video
-            .play()
-            .catch((error) => console.error("Video play failed", error));
-        });
+      hls.loadSource(src);
+      hls.attachMedia(video);
 
-        hls.on(Hls.Events.ERROR, (event, data) => {
-          if (data.fatal) {
-            switch (data.type) {
-              case Hls.ErrorTypes.NETWORK_ERROR:
-                console.error("Network error encountered:", data);
-                hls.startLoad();
-                break;
-              case Hls.ErrorTypes.MEDIA_ERROR:
-                console.error("Media error encountered:", data);
-                hls.recoverMediaError();
-                break;
-              default:
-                hls.destroy();
-                hlsRef.current = null;
-                console.error("Unrecoverable error encountered:", data);
-                break;
-            }
+      hls.on(Hls.Events.MANIFEST_PARSED, () => {
+        video
+          .play()
+          .catch((error) => console.error("Video play failed", error));
+      });
+
+      hls.on(Hls.Events.ERROR, (event, data) => {
+        if (data.fatal) {
+          switch (data.type) {
+            case Hls.ErrorTypes.NETWORK_ERROR:
+              console.error("Network error encountered:", data);
+              hls.startLoad();
+              break;
+            case Hls.ErrorTypes.MEDIA_ERROR:
+              console.error("Media error encountered:", data);
+              hls.recoverMediaError();
+              break;
+            default:
+              hls.destroy();
+              console.error("Unrecoverable error encountered:", data);
+              break;
           }
-        });
-      } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
-        video.src = src;
-        video.addEventListener("canplay", () => {
-          video
-            .play()
-            .catch((error) => console.error("Video play failed", error));
-        });
-      }
+        }
+      });
+    } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+      video.src = src;
+      video.addEventListener("canplay", () => {
+        video
+          .play()
+          .catch((error) => console.error("Video play failed", error));
+      });
     }
 
     // return () => {
