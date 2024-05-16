@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Custom HLS</title>
+</head>
+<body>
+  <video id="video" controls></video>
+  <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+  <script>
+    if (Hls.isSupported()) {
+      var video = document.getElementById('video');
+      var hls = new Hls({
+        xhrSetup: function(xhr, url) {
+          xhr.setRequestHeader('Custom-Header', 'secretWord');
+        }
+      });
+      hls.loadSource('http://localhost:3000/playlist.m3u8');
+      hls.attachMedia(video);
+      hls.on(Hls.Events.MANIFEST_PARSED, function() {
+        video.play();
+      });
+    } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+      video.src = 'http://localhost:3000/playlist.m3u8';
+      video.addEventListener('canplay', function() {
+        video.play();
+      });
+    }
+  </script>
+</body>
+</html>
