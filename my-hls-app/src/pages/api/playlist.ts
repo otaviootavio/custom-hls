@@ -6,7 +6,7 @@ export default async function handler(
   req: NextApiRequest,
   res: NextApiResponse
 ) {
-  const playlistPath = path.join(process.cwd(), "hls-output", "playlist.m3u8");
+  const playlistPath = path.join(process.cwd(), "hls", "playlist.m3u8");
 
   try {
     const data = await fs.readFile(playlistPath);
