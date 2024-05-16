@@ -8,7 +8,7 @@ export default async function handler(
 ) {
   const segmentPath = path.join(
     process.cwd(),
-    "hls-output",
+    "hls",
     req.query.segment as string
   );
 
