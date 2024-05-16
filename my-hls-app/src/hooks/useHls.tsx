@@ -12,12 +12,6 @@ const useHls = (src: string, password: number) => {
 
     if (!video) return;
 
-    // Cleanup existing HLS instance if it exists
-    if (hlsRef.current) {
-      hlsRef.current.destroy();
-      hlsRef.current = null;
-    }
-
     if (Hls.isSupported()) {
       const hls = new Hls({
         xhrSetup: (xhr) => {
@@ -42,14 +36,14 @@ const useHls = (src: string, password: number) => {
           switch (data.type) {
             case Hls.ErrorTypes.NETWORK_ERROR:
               console.error("Network error encountered:", data);
-              hls.startLoad();
+              // hls.startLoad();
               break;
             case Hls.ErrorTypes.MEDIA_ERROR:
               console.error("Media error encountered:", data);
-              hls.recoverMediaError();
+              // hls.recoverMediaError();
               break;
             default:
-              hls.destroy();
+              // hls.destroy();
               console.error("Unrecoverable error encountered:", data);
               break;
           }
@@ -63,13 +57,6 @@ const useHls = (src: string, password: number) => {
           .catch((error) => console.error("Video play failed", error));
       });
     }
-
-    // return () => {
-    //   if (hlsRef.current) {
-    //     hlsRef.current.destroy();
-    //     hlsRef.current = null;
-    //   }
-    // };
   }, [src, password]);
 
   return videoRef;
