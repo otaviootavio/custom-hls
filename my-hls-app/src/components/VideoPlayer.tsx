@@ -14,7 +14,7 @@ const VideoPlayer: React.FC = () => {
             xhr.setRequestHeader("Custom-Header", "secretWord");
           },
         });
-        hls.loadSource("http://localhost:3000/playlist.m3u8");
+        hls.loadSource("http://localhost:3000/api/playlist");
         hls.attachMedia(video);
         hls.on(Hls.Events.MANIFEST_PARSED, () => {
           video.play();
