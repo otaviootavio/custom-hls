@@ -1,13 +1,13 @@
 import { useState } from "react";
 import { NextPage } from "next";
 import Head from "next/head";
-import VideoPlayer from "../components/VideoPlayer";
+import VideoPlayer from "@/components/VideoPlayer";
 
 const Home: NextPage = () => {
-  const [secretWord, setSecretWord] = useState("secretWord");
+  const [password, setPassword] = useState<number>(200);
 
   const handleInputChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setSecretWord(event.target.value);
+    setPassword(Number(event.target.value));
   };
 
   return (
@@ -20,19 +20,19 @@ const Home: NextPage = () => {
         <form className="mb-4">
           <label
             className="block text-gray-300 text-sm font-bold mb-2"
-            htmlFor="secretWord"
+            htmlFor="password"
           >
-            Secret Word:
+            Password
           </label>
           <input
-            type="text"
-            id="secretWord"
-            value={secretWord}
+            type="number"
+            id="password"
+            value={password}
             onChange={handleInputChange}
             className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
           />
         </form>
-        <VideoPlayer secretWord={secretWord} />
+        <VideoPlayer password={password} />
       </main>
     </div>
   );
