@@ -14,19 +14,7 @@ export default async function handler(
 
   try {
     const data = await fs.readFile(segmentPath);
-    const extension = path.extname(segmentPath);
-    let contentType = "application/octet-stream";
-
-    switch (extension) {
-      case ".ts":
-        contentType = "video/MP2T";
-        break;
-      case ".m3u8":
-        contentType = "application/vnd.apple.mpegurl";
-        break;
-    }
-
-    res.setHeader("Content-Type", contentType);
+    res.setHeader("Content-Type", "video/MP2T");
     res.send(data);
   } catch (error) {
     res.status(404).send("Segment not found");
