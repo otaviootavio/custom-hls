@@ -1,13 +1,15 @@
+// src/hooks/useHls.ts
+
 import { useEffect, useRef } from "react";
 import Hls from "hls.js";
+import { useHashChain } from "@/context/HashChainContext";
 
-const useHls = (src: string, password: number) => {
+const useHls = (src: string) => {
+  const { hashChain, popHash } = useHashChain();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const keyRef = useRef<number>(password);
   const hlsRef = useRef<Hls | null>(null);
 
   useEffect(() => {
-    keyRef.current = password;
     const video = videoRef.current;
 
     if (!video) return;
@@ -15,12 +17,23 @@ const useHls = (src: string, password: number) => {
     if (Hls.isSupported()) {
       const hls = new Hls({
         xhrSetup: (xhr) => {
-          xhr.setRequestHeader("Password-Header", `${keyRef.current}`);
-          keyRef.current += 7;
+          console.log(`hashChainRef: ${JSON.stringify(hashChain)}`);
+          if (hashChain.length === 0) {
+            console.error("Hash chain is empty");
+            return;
+          }
+          const currentHash = popHash();
+          console.log(
+            `Sending Payword-Header: ${currentHash}:${hashChain.length + 1}`
+          );
+          xhr.setRequestHeader(
+            "Payword-Header",
+            `${currentHash}:${hashChain.length + 1}`
+          );
         },
       });
 
-      hlsRef.current = hls; // Store the Hls instance
+      hlsRef.current = hls;
 
       hls.loadSource(src);
       hls.attachMedia(video);
@@ -57,7 +70,7 @@ const useHls = (src: string, password: number) => {
           .catch((error) => console.error("Video play failed", error));
       });
     }
-  }, [src, password]);
+  }, [src, hashChain[0]]);
 
   return videoRef;
 };

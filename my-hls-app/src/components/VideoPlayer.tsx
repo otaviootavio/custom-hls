@@ -1,14 +1,11 @@
+import React from "react";
 import useHls from "@/hooks/useHls";
 
-interface VideoPlayerProps {
-  password: number;
-}
-
-const VideoPlayer: React.FC<VideoPlayerProps> = ({ password }) => {
-  const videoRef = useHls("http://localhost:3000/api/playlist", password);
+const VideoPlayer: React.FC = () => {
+  const videoRef = useHls("http://localhost:3000/api/playlist");
 
   return (
-    <div className="flex justify-center items-center h-screen bg-gray-900">
+    <div className="flex items-center bg-gray-900">
       <video
         ref={videoRef}
         controls

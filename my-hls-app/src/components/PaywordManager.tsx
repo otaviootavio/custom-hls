@@ -1,0 +1,74 @@
+import React, { useEffect, useState } from "react";
+import usePayword from "@/hooks/usePayword";
+import SingleHashView from "./SingleHashView";
+
+const PaywordManager: React.FC = () => {
+  const { payword, error, loading, fetchPayword, updatePayword } = usePayword();
+  const [newHash, setNewHash] = useState("");
+  const [position, setPosition] = useState<number | undefined>();
+
+  useEffect(() => {
+    fetchPayword();
+  }, [fetchPayword]);
+
+  const handleUpdatePayword = () => {
+    if (newHash && position !== undefined) {
+      updatePayword(newHash, position);
+      setNewHash("");
+      setPosition(undefined);
+    }
+  };
+
+  return (
+    <div>
+      <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
+        <h1 className="text-sm font-bold mb-2 text-gray-700">
+          Payword Manager
+        </h1>
+        <h2 className="text-base font-semibold text-gray-800">
+          Current Payword
+        </h2>
+        {loading && <p className="text-xs text-gray-500">Loading...</p>}
+        {error && <p className="text-xs text-red-500">{error}</p>}
+        {payword && (
+          <div className="mb-4">
+            <p className="text-xs text-gray-700">
+              Last Hash: <SingleHashView hash={payword.lastHash} />
+            </p>
+            <p className="text-xs text-gray-700">
+              Chain Size: {payword.chainSize}
+            </p>
+          </div>
+        )}
+        <input
+          type="text"
+          value={newHash}
+          onChange={(e) => setNewHash(e.target.value)}
+          placeholder="Enter new hash"
+          className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
+        />
+        <input
+          type="number"
+          value={position !== undefined ? position : ""}
+          onChange={(e) => setPosition(parseInt(e.target.value))}
+          placeholder="Enter position in chain"
+          className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
+        />
+        <button
+          onClick={handleUpdatePayword}
+          className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
+        >
+          Update Payword
+        </button>
+        <button
+          onClick={fetchPayword}
+          className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
+        >
+          Refetch Payword
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default PaywordManager;
