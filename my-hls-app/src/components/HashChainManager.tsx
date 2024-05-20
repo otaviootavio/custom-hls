@@ -6,7 +6,7 @@ const HashChainManager: React.FC = () => {
   const [hashZero, setHashZero] = useState<string>("");
   const [numHashes, setNumHashes] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const { generateHashChain, hashChain } = useHashChain();
+  const { generateHashChain } = useHashChain();
 
   const handleGenerateHashChain = () => {
     try {
