@@ -1,13 +1,19 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Hls from "hls.js";
+import { useHashChain } from "@/context/HashChainContext";
 
-const useHls = (src: string, password: number) => {
+const useHls = (src: string) => {
+  const { hashChain } = useHashChain();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const keyRef = useRef<number>(password);
   const hlsRef = useRef<Hls | null>(null);
+  const [localHashChain, setLocalHashChain] = useState<string[]>([]);
 
   useEffect(() => {
-    keyRef.current = password;
+    // Initialize the local hash chain when the component mounts
+    setLocalHashChain([...hashChain]);
+  }, [hashChain]);
+
+  useEffect(() => {
     const video = videoRef.current;
 
     if (!video) return;
@@ -15,21 +21,34 @@ const useHls = (src: string, password: number) => {
     if (Hls.isSupported()) {
       const hls = new Hls({
         xhrSetup: (xhr) => {
-          xhr.setRequestHeader("Password-Header", `${keyRef.current}`);
-          keyRef.current += 7;
+          if (localHashChain.length === 0) {
+            console.error("Local hash chain is empty");
+            return;
+          }
+          const currentHash = localHashChain.pop();
+          setLocalHashChain([...localHashChain]);
+          // console.log(
+          //   `Sending Payword-Header: ${currentHash}:${
+          //     localHashChain.length + 1
+          //   }`
+          // );
+          xhr.setRequestHeader(
+            "Payword-Header",
+            `${currentHash}:${localHashChain.length + 1}`
+          );
         },
       });
 
-      hlsRef.current = hls; // Store the Hls instance
+      hlsRef.current = hls;
 
       hls.loadSource(src);
       hls.attachMedia(video);
 
-      hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        video
-          .play()
-          .catch((error) => console.error("Video play failed", error));
-      });
+      // hls.on(Hls.Events.MANIFEST_PARSED, () => {
+      //   video
+      //     .play()
+      //     .catch((error) => console.error("Video play failed", error));
+      // });
 
       hls.on(Hls.Events.ERROR, (event, data) => {
         if (data.fatal) {
@@ -51,13 +70,13 @@ const useHls = (src: string, password: number) => {
       });
     } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
       video.src = src;
-      video.addEventListener("canplay", () => {
-        video
-          .play()
-          .catch((error) => console.error("Video play failed", error));
-      });
+      // video.addEventListener("canplay", () => {
+      //   video
+      //     .play()
+      //     .catch((error) => console.error("Video play failed", error));
+      // });
     }
-  }, [src, password]);
+  }, [src, localHashChain[0]]);
 
   return videoRef;
 };
