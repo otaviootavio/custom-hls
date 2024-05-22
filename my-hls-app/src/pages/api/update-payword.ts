@@ -43,6 +43,8 @@ export default async function handler(
           clerkUserId: userId,
           lastHash: hash,
           chainSize: position,
+          mostRecentHash: hash,
+          mostRecentHashIndex: position,
         },
       });
     } else {
@@ -54,6 +56,8 @@ export default async function handler(
         data: {
           lastHash: hash,
           chainSize: position,
+          mostRecentHash: hash,
+          mostRecentHashIndex: position,
         },
       });
     }
