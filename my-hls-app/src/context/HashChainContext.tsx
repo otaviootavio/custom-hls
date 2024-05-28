@@ -26,7 +26,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     const chain = [currentHash];
     for (let i = 1; i < numHashes; i++) {
       currentHash = keccak("keccak256")
-        .update(Buffer.from(currentHash, "hex"))
+        .update(Buffer.from(currentHash, "utf-8"))
         .digest("hex");
       chain.push(currentHash);
     }

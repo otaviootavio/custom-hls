@@ -6,7 +6,7 @@ import keccak from "keccak";
 const prisma = new PrismaClient();
 
 const hashKeccak = (input: string): string => {
-  return keccak("keccak256").update(Buffer.from(input, "hex")).digest("hex");
+  return keccak("keccak256").update(Buffer.from(input, "utf-8")).digest("hex");
 };
 
 const verifyHashChain = (
