@@ -32,10 +32,13 @@ export const withPayword = (handler: NextApiHandler) => {
       return;
     }
 
-    const [hash, position] = (customHeader as string).split(":");
-    const positionNumber = parseInt(position);
+    const [incomingHash, incomingHashIndexHeader] = (
+      customHeader as string
+    ).split(":");
 
-    if (!hash || isNaN(positionNumber)) {
+    const incomingHashIndex = parseInt(incomingHashIndexHeader);
+
+    if (!incomingHash || isNaN(incomingHashIndex)) {
       res.status(403).json({ error: "Invalid payword header" });
       return;
     }
@@ -67,12 +70,19 @@ export const withPayword = (handler: NextApiHandler) => {
         return;
       }
 
+      if (incomingHashIndex === mostRecentHashIndex) {
+        res.status(403).json({
+          error: "Position number cannot be the most recent hash index",
+        });
+        return;
+      }
+
       if (
         !verifyHashChain(
-          hash,
+          incomingHash,
           mostRecentHash,
           mostRecentHashIndex,
-          positionNumber
+          incomingHashIndex
         )
       ) {
         res.status(403).json({ error: "Invalid hash" });
@@ -85,8 +95,8 @@ export const withPayword = (handler: NextApiHandler) => {
           clerkUserId: userId,
         },
         data: {
-          mostRecentHash: hash,
-          mostRecentHashIndex: positionNumber,
+          mostRecentHash: incomingHash,
+          mostRecentHashIndex: incomingHashIndex,
         },
       });
 
