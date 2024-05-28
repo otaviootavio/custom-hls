@@ -1,11 +1,13 @@
 import React, { useEffect, useState } from "react";
 import usePayword from "@/hooks/usePayword";
 import SingleHashView from "./SingleHashView";
+import { useUser } from "@clerk/nextjs";
 
 const PaywordManager: React.FC = () => {
   const { payword, error, loading, fetchPayword, updatePayword } = usePayword();
   const [newHash, setNewHash] = useState("");
   const [position, setPosition] = useState<number | undefined>();
+  const { user } = useUser();
 
   useEffect(() => {
     fetchPayword();
@@ -22,11 +24,9 @@ const PaywordManager: React.FC = () => {
   return (
     <div>
       <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
-        <h1 className="text-sm font-bold mb-2 text-gray-700">
-          Payword Manager
-        </h1>
+        <h1 className="text-sm font-bold mb-2 text-gray-700">Server Data</h1>
         <h2 className="text-base font-semibold text-gray-800">
-          Current Payword
+          {user?.firstName}&apos;s Payword
         </h2>
         {loading && <p className="text-xs text-gray-500">Loading...</p>}
         {error && <p className="text-xs text-red-500">{error}</p>}
@@ -37,6 +37,13 @@ const PaywordManager: React.FC = () => {
             </p>
             <p className="text-xs text-gray-700">
               Chain Size: {payword.chainSize}
+            </p>
+            <p className="text-xs text-gray-700">
+              Most recent hash:
+              <SingleHashView hash={payword.mostRecentHash} />
+            </p>
+            <p className="text-xs text-gray-700">
+              Index of most recent hash: {payword.mostRecentHashIndex}
             </p>
           </div>
         )}

@@ -43,33 +43,29 @@ const HashChainViewer: React.FC = () => {
     );
   }
 
-  const firstHash = hashChain[0];
-  const lastHash = hashChain[hashChain.length - 1];
-  const size = hashChain.length;
-
   return (
     <div className="p-4 bg-gray-100">
       <h3 className="text-lg font-semibold mb-2 text-gray-800">Hash Chain</h3>
       <div className="mb-4">
-        <p className="text-gray-700">Size: {size}</p>
+        <p className="text-gray-700">Size: {hashChain.length}</p>
         <p className="text-gray-700">
           First Hash:
           <span
             className="ml-1 cursor-pointer text-blue-500 hover:underline"
-            title={firstHash}
-            onClick={() => copyToClipboard(firstHash)}
+            title={hashChain.length.toString()}
+            onClick={() => copyToClipboard(hashChain.length.toString())}
           >
-            {cropHash(firstHash)}
+            {cropHash(hashChain[0])}
           </span>
         </p>
         <p className="text-gray-700">
           Last Hash:
           <span
             className="ml-1 cursor-pointer text-blue-500 hover:underline"
-            title={lastHash}
-            onClick={() => copyToClipboard(lastHash)}
+            title={hashChain[hashChain.length - 1]}
+            onClick={() => copyToClipboard(hashChain[hashChain.length - 1])}
           >
-            {cropHash(lastHash)}
+            {cropHash(hashChain[hashChain.length - 1])}
           </span>
         </p>
       </div>

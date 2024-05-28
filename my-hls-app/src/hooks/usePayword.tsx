@@ -4,6 +4,8 @@ import axios from "axios";
 interface Payword {
   lastHash: string;
   chainSize: number;
+  mostRecentHashIndex: number;
+  mostRecentHash: string;
 }
 
 const usePayword = () => {

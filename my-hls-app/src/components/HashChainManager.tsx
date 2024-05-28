@@ -24,9 +24,7 @@ const HashChainManager: React.FC = () => {
 
   return (
     <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
-      <h1 className="text-sm font-bold mb-2 text-gray-700">
-        Hash Chain Manager
-      </h1>
+      <h1 className="text-sm font-bold mb-2 text-gray-700">Browser Data</h1>
       <div className="mb-2">
         <label className="block text-xs text-gray-700">
           Initial Hash (Hash Zero):

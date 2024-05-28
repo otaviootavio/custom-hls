@@ -35,9 +35,12 @@ export default async function handler(
       return;
     }
 
-    res
-      .status(200)
-      .json({ lastHash: user.lastHash, chainSize: user.chainSize });
+    res.status(200).json({
+      lastHash: user.lastHash,
+      chainSize: user.chainSize,
+      mostRecentHash: user.mostRecentHash,
+      mostRecentHashIndex: user.mostRecentHashIndex,
+    });
   } catch (error) {
     console.error("Error retrieving payword:", error);
     res.status(500).json({ error: "Internal server error" });
