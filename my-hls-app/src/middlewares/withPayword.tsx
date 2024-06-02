@@ -6,7 +6,7 @@ import keccak from "keccak";
 const prisma = new PrismaClient();
 
 const hashKeccak = (input: string): string => {
-  return keccak("keccak256").update(Buffer.from(input, "hex")).digest("hex");
+  return keccak("keccak256").update(Buffer.from(input, "utf-8")).digest("hex");
 };
 
 const verifyHashChain = (
@@ -18,11 +18,7 @@ const verifyHashChain = (
   let currentHash = incomingHash;
   for (let i = position; i < chainSize; i++) {
     currentHash = hashKeccak(currentHash);
-    // console.log(`i:${i} currentHash:${currentHash}`);
   }
-  // console.log(`position: ${position}`);
-  // console.log(`incomingHash: ${incomingHash}`);
-  // console.log(`lastHash: ${lastHash}`);
   return currentHash === lastHash;
 };
 
@@ -36,10 +32,13 @@ export const withPayword = (handler: NextApiHandler) => {
       return;
     }
 
-    const [hash, position] = (customHeader as string).split(":");
-    const positionNumber = parseInt(position);
+    const [incomingHash, incomingHashIndexHeader] = (
+      customHeader as string
+    ).split(":");
 
-    if (!hash || isNaN(positionNumber)) {
+    const incomingHashIndex = parseInt(incomingHashIndexHeader);
+
+    if (!incomingHash || isNaN(incomingHashIndex)) {
       res.status(403).json({ error: "Invalid payword header" });
       return;
     }
@@ -54,7 +53,7 @@ export const withPayword = (handler: NextApiHandler) => {
     try {
       const user = await prisma.user.findUnique({
         where: {
-          clerkUserId: userId ?? undefined,
+          clerkUserId: userId,
         },
       });
 
@@ -63,23 +62,43 @@ export const withPayword = (handler: NextApiHandler) => {
         return;
       }
 
+      const mostRecentHash = user.mostRecentHash ?? "";
+      const mostRecentHashIndex = user.mostRecentHashIndex ?? 0;
+
+      if (mostRecentHash === "" || mostRecentHashIndex === 0) {
+        res.status(403).json({ error: "Invalid user hash chain" });
+        return;
+      }
+
+      if (incomingHashIndex === mostRecentHashIndex) {
+        res.status(403).json({
+          error: "Position number cannot be the most recent hash index",
+        });
+        return;
+      }
+
       if (
-        !verifyHashChain(hash, user.lastHash, user.chainSize, positionNumber)
+        !verifyHashChain(
+          incomingHash,
+          mostRecentHash,
+          mostRecentHashIndex,
+          incomingHashIndex
+        )
       ) {
         res.status(403).json({ error: "Invalid hash" });
         return;
       }
 
-      // Update the last hash and chain size
-      // await prisma.user.update({
-      //   where: {
-      //     clerkUserId: userId ?? undefined,
-      //   },
-      //   data: {
-      //     lastHash: hash,
-      //     chainSize: positionNumber - 1,
-      //   },
-      // });
+      // Update the most recent hash and its index
+      await prisma.user.update({
+        where: {
+          clerkUserId: userId,
+        },
+        data: {
+          mostRecentHash: incomingHash,
+          mostRecentHashIndex: incomingHashIndex,
+        },
+      });
 
       await handler(req, res);
     } catch (error) {
