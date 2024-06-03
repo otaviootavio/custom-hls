@@ -38,7 +38,8 @@ const useHls = (src: string) => {
 
     if (Hls.isSupported()) {
       const hls = new Hls({
-        xhrSetup: (xhr) => {
+        xhrSetup: (xhr, url) => {
+          xhr.open("GET", url, true);
           const computedHash = getNextHash();
 
           if (!computedHash) {
