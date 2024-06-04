@@ -1,10 +1,10 @@
 "use client";
 import React, { useEffect, useState } from "react";
-import useHls from "@/hooks/useHls";
+import useHlsPayword from "@/hooks/useHlsPayword";
 
 const VideoPlayer: React.FC = () => {
   const [playlistUrl, setPlaylistUrl] = useState("");
-  const videoRef = useHls(playlistUrl);
+  const videoRef = useHlsPayword(playlistUrl);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
