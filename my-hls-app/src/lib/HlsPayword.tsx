@@ -1,4 +1,4 @@
-import Hls from "hls.js";
+import Hls, { ErrorData, Events } from "hls.js";
 import keccak from "keccak";
 
 interface HlsPaywordProps {
@@ -29,58 +29,68 @@ export class HlsPayword {
     this.onSuccess = onSuccess;
 
     if (Hls.isSupported()) {
-      this.hls = new Hls({
-        debug: true,
-        xhrSetup: (xhr, url) => {
-          xhr.withCredentials = true;
-
-          xhr.open("GET", url, true);
-          const computedHash = this.getNextHash();
-
-          if (!computedHash) {
-            console.error("Hash chain is exhausted");
-            this.onError("Hash chain is exhausted");
-            return;
-          }
-          xhr.setRequestHeader(
-            "Payword-Header",
-            `${computedHash}:${this.currentHashIndex + 2}`
-          );
-        },
-      });
-
-      this.hls.on(Hls.Events.ERROR, (event, data) => {
-        if (data.fatal) {
-          let errorMessage = "An unrecoverable error occurred";
-          switch (data.type) {
-            case Hls.ErrorTypes.NETWORK_ERROR:
-              errorMessage = `Network error encountered: ${data.error}`;
-              break;
-            case Hls.ErrorTypes.MEDIA_ERROR:
-              errorMessage = `Media error encountered: ${data.details}`;
-              break;
-            default:
-              errorMessage = `An unknown error occurred: ${data.details}`;
-              break;
-          }
-          console.error(errorMessage, data);
-          this.onError(errorMessage);
-        } else {
-          console.warn("Non-fatal error encountered:", data);
-        }
-      });
-
-      this.hls.on(Hls.Events.MANIFEST_PARSED, () => {
-        this.onSuccess();
-      });
-
-      this.hls.loadSource(src);
-      this.hls.attachMedia(videoElement);
+      this.initializeHls(src, videoElement);
     } else if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
-      videoElement.src = src;
-      videoElement.addEventListener("loadedmetadata", () => {
-        this.onSuccess();
-      });
+      this.setupNativeHls(src, videoElement);
+    } else {
+      this.onError("HLS is not supported by this browser.");
+    }
+  }
+
+  private initializeHls(src: string, videoElement: HTMLVideoElement) {
+    this.hls = new Hls({
+      debug: true,
+      xhrSetup: (xhr, url) => {
+        this.setupXhr(xhr, url);
+      },
+    });
+
+    this.hls.on(Hls.Events.ERROR, this.handleHlsError.bind(this));
+    this.hls.on(Hls.Events.MANIFEST_PARSED, this.onSuccess);
+
+    this.hls.loadSource(src);
+    this.hls.attachMedia(videoElement);
+  }
+
+  private setupXhr(xhr: XMLHttpRequest, url: string) {
+    xhr.withCredentials = true;
+    xhr.open("GET", url, true);
+    const computedHash = this.getNextHash();
+
+    if (!computedHash) {
+      this.onError("Hash chain is exhausted");
+      return;
+    }
+
+    xhr.setRequestHeader(
+      "Payword-Header",
+      `${computedHash}:${this.currentHashIndex + 2}`
+    );
+  }
+
+  private setupNativeHls(src: string, videoElement: HTMLVideoElement) {
+    videoElement.src = src;
+    videoElement.addEventListener("loadedmetadata", this.onSuccess);
+  }
+
+  private handleHlsError(event: Events, data: ErrorData) {
+    if (data.fatal) {
+      let errorMessage = "An unrecoverable error occurred";
+      switch (data.type) {
+        case Hls.ErrorTypes.NETWORK_ERROR:
+          errorMessage = `Network error encountered: ${data.error}`;
+          break;
+        case Hls.ErrorTypes.MEDIA_ERROR:
+          errorMessage = `Media error encountered: ${data.details}`;
+          break;
+        default:
+          errorMessage = `An unknown error occurred: ${data.details}`;
+          break;
+      }
+      console.error(errorMessage, data);
+      this.onError(errorMessage);
+    } else {
+      console.warn("Non-fatal error encountered:", data);
     }
   }
 

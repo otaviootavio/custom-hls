@@ -9,25 +9,32 @@ const useHlsPayword = (src: string) => {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const video = videoRef.current;
+    const initializeHlsPayword = () => {
+      const video = videoRef.current;
+      if (video) {
+        hlsPaywordRef.current = new HlsPayword({
+          src,
+          videoElement: video,
+          hashChain,
+          onError: handleError,
+          onSuccess: handleSuccess,
+        });
+      }
+    };
 
-    if (video) {
-      hlsPaywordRef.current = new HlsPayword({
-        src,
-        videoElement: video,
-        hashChain,
-        onError: (errorMessage: string) => setError(errorMessage),
-        onSuccess: () => setError(null),
-      });
-    }
-
-    return () => {
+    const destroyHlsPayword = () => {
       if (hlsPaywordRef.current) {
         hlsPaywordRef.current.destroy();
         hlsPaywordRef.current = null;
       }
     };
-  }, [src, hashChain[0], hashChain.length]);
+
+    const handleError = (errorMessage: string) => setError(errorMessage);
+    const handleSuccess = () => setError(null);
+
+    initializeHlsPayword();
+    return destroyHlsPayword;
+  }, [src, hashChain]);
 
   return { videoRef, error };
 };

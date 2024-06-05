@@ -7,13 +7,17 @@ const VideoPlayer: React.FC = () => {
   const { videoRef, error } = useHlsPayword(playlistUrl);
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
-      setPlaylistUrl(`${window.location.origin}/api/playlist`);
-    }
+    const updatePlaylistUrl = () => {
+      if (typeof window !== "undefined") {
+        setPlaylistUrl(`${window.location.origin}/api/playlist`);
+      }
+    };
+
+    updatePlaylistUrl();
   }, []);
 
   return (
-    <div className="flex items-center justify-center bg-gray-900">
+    <div className="flex items-center justify-center bg-gray-900 ">
       {playlistUrl && (
         <div className="relative w-full max-w-4xl">
           <video ref={videoRef} controls className="w-full h-full" />
