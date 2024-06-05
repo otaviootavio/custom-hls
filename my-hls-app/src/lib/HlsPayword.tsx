@@ -58,7 +58,7 @@ export class HlsPayword {
     const computedHash = this.getNextHash();
 
     if (!computedHash) {
-      this.onError("Hash chain is exhausted");
+      // this.onError("Hash chain is exhausted");
       return;
     }
 
@@ -88,7 +88,7 @@ export class HlsPayword {
           break;
       }
       console.error(errorMessage, data);
-      this.onError(errorMessage);
+      // this.onError(errorMessage);
     } else {
       console.warn("Non-fatal error encountered:", data);
     }
