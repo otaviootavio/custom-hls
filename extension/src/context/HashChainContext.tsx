@@ -46,9 +46,9 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       try {
         const chains = await hashRepo.getAllHashChains();
         setHashChains(chains);
-        const selectedKey = await chrome.storage.local.get("selectedKey");
-        if (selectedKey.selectedKey) {
-          selectHashChain(selectedKey.selectedKey);
+        const selectedChain = await hashRepo.getSelectedHashChain();
+        if (selectedChain) {
+          setSelectedHashChain(selectedChain);
         }
       } catch (error) {
         setError("Error fetching hash chains.");
@@ -61,10 +61,15 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     fetchHashChains();
   }, []);
 
-  const selectHashChain = (key: string) => {
+  const selectHashChain = async (key: string) => {
     const chain = hashChains.find((chain) => chain.key === key);
     setSelectedHashChain(chain || null);
-    chrome.storage.local.set({ selectedKey: key });
+    try {
+      await hashRepo.setSelectedKey(key);
+    } catch (error) {
+      setError("Error setting selected hash chain.");
+      console.error("Error setting selected hash chain:", error);
+    }
   };
 
   const deleteHashChain = async (key: string) => {

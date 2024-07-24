@@ -110,6 +110,45 @@ class HashRepository {
       });
     });
   }
+
+  async setSelectedKey(key: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
+        let hashChains: HashObject[] = result[this.storageKey];
+
+        const existingIndex = hashChains.findIndex((obj) => obj.key === key);
+
+        if (existingIndex !== -1) {
+          chrome.storage.local.set({ selectedKey: key }, () => {
+            console.log(`Selected key set to ${key}`);
+            resolve();
+          });
+        } else {
+          const errorMessage = `Hash chain with key ${key} not found.`;
+          console.error(errorMessage);
+          reject(new Error(errorMessage));
+        }
+      });
+    });
+  }
+
+  async getSelectedHashChain(): Promise<HashObject | null> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(["selectedKey", this.storageKey], (result) => {
+        const selectedKey = result.selectedKey;
+        const hashChains: HashObject[] = result[this.storageKey];
+        const selectedHashChain = hashChains.find(
+          (chain) => chain.key === selectedKey
+        );
+
+        if (selectedHashChain) {
+          resolve(selectedHashChain);
+        } else {
+          resolve(null);
+        }
+      });
+    });
+  }
 }
 
 export { HashRepository };
