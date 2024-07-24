@@ -1,5 +1,8 @@
-import { createHashChain, addHash } from "./utils/UsefulFunctions";
+import { HashRepository } from "./repositories/HashRepository";
 import { HashObject } from "./utils/interfaces";
+import { createHashChain } from "./utils/UsefulFunctions";
+
+const hashRepo = new HashRepository();
 
 console.log("Background script loaded"); // Log when the background script is loaded
 
@@ -27,8 +30,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       tail: start_chain[start_chain.length - 1], // Set tail on creation
     };
 
-    addHash(hashChainData, key, sendResponse);
-    console.log("Hash created and stored");
+    hashRepo
+      .addHashChain(hashChainData)
+      .then(() => {
+        sendResponse({ status: "success", message: "Hash created and stored" });
+        console.log("Hash created and stored");
+      })
+      .catch((error) => {
+        sendResponse({ status: "error", message: error });
+        console.error("Error storing hash:", error);
+      });
   } else if (message.action === "Deliver_h(100)") {
     console.log("Handling Deliver_h(100) action"); // Log action handling
     chrome.storage.local.get("selectedKey", (result) => {
@@ -81,5 +92,36 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       });
     });
     return true; // Keeps the message channel open for async response
+  }
+});
+
+window.addEventListener("message", (event) => {
+  if (event.data.type === "Send_h(100)") {
+    chrome.runtime.sendMessage({ action: "Deliver_h(100)" }, (response) => {
+      if (response && response.data !== undefined) {
+        window.postMessage(
+          { type: "Recover_h(100)", data: response.data },
+          "*"
+        );
+        console.log("Enviou a pagina web", response.data);
+      } else {
+        window.postMessage(
+          { type: "Recover_h(100)", data: "No data found" },
+          "*"
+        );
+      }
+    });
+  } else if (event.data.type === "RequestHashChain") {
+    chrome.runtime.sendMessage({ action: "DeliverHashchain" }, (response) => {
+      console.log("Received response from background:", response);
+      if (response && response.data !== null) {
+        window.postMessage(
+          { type: "HashChain", data: response.data, index: response.index },
+          "*"
+        );
+      } else {
+        window.postMessage({ type: "HashChain", data: "No data found" }, "*");
+      }
+    });
   }
 });

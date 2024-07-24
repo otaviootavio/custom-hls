@@ -6,7 +6,7 @@ window.addEventListener("message", (event) => {
           { type: "Recover_h(100)", data: response.data },
           "*"
         );
-        console.log("Enviou a pagina web", response.data);
+        console.log("Sent to webpage", response.data);
       } else {
         window.postMessage(
           { type: "Recover_h(100)", data: "No data found" },

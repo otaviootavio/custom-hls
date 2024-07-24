@@ -5,7 +5,7 @@ import React, {
   useEffect,
   ReactNode,
 } from "react";
-import { HashObject } from "../utils/interfaces";
+import { type HashObject } from "../utils/interfaces";
 import { HashRepository } from "../repositories/HashRepository";
 import { createHashChain } from "../utils/UsefulFunctions";
 
@@ -75,6 +75,9 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       setHashChains((prevChains) =>
         prevChains.filter((chain) => chain.key !== key)
       );
+      if (selectedHashChain && selectedHashChain.key === key) {
+        setSelectedHashChain(null);
+      }
     } catch (error) {
       setError("Error deleting hash chain.");
       console.error("Error deleting hash chain:", error);
@@ -101,7 +104,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       tail: newChain[newChain.length - 1],
     };
     try {
-      await hashRepo.addOrUpdateHashChain(newHashObject);
+      await hashRepo.addHashChain(newHashObject);
       setHashChains((prevChains) => [...prevChains, newHashObject]);
     } catch (error) {
       setError("Error adding new hash chain.");
