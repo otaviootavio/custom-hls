@@ -1,11 +1,9 @@
-interface HashObject {
+export interface HashObject {
   address_contract: string;
   address_to: string;
   length: number;
-  hashchain: string[];
+  hashchain: `0x${string}`[];
   isValid: boolean;
   key: string;
-  tail: string;
+  tail: `0x${string}`;
 }
-
-export type { HashObject };

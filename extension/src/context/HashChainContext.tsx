@@ -6,12 +6,8 @@ import React, {
   ReactNode,
 } from "react";
 import { HashObject } from "../utils/interfaces";
-import {
-  getAllHashChains,
-  addHash,
-  createHashChain,
-} from "../utils/UsefulFunctions";
-
+import { HashRepository } from "../repositories/HashRepository";
+import { createHashChain } from "../utils/UsefulFunctions";
 interface HashChainContextType {
   hashChains: HashObject[];
   selectedHashChain: HashObject | null;
@@ -33,10 +29,16 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     null
   );
 
+  const hashRepo = new HashRepository(); // Initialize the repository
+
   const fetchHashChains = async () => {
     try {
-      const chains = await getAllHashChains();
+      const chains = await hashRepo.getAllHashChains();
       setHashChains(chains);
+      const selectedKey = await chrome.storage.local.get("selectedKey");
+      if (selectedKey.selectedKey) {
+        selectHashChain(selectedKey.selectedKey);
+      }
     } catch (error) {
       console.error("Error fetching hash chains:", error);
     }
@@ -50,7 +52,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
 
   const deleteHashChain = async (key: string) => {
     try {
-      await deleteHashChain(key);
+      await hashRepo.deleteHashChain(key);
       setHashChains((prevChains) =>
         prevChains.filter((chain) => chain.key !== key)
       );
@@ -59,7 +61,11 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const addNewHashChain = (secret: string, length: number, key: string) => {
+  const addNewHashChain = async (
+    secret: string,
+    length: number,
+    key: string
+  ) => {
     const newChain = createHashChain(secret, length);
     const newHashObject: HashObject = {
       address_contract: "",
@@ -70,9 +76,12 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       key,
       tail: newChain[newChain.length - 1],
     };
-    addHash(newHashObject, key, () => {
+    try {
+      await hashRepo.addOrUpdateHashChain(newHashObject);
       setHashChains((prevChains) => [...prevChains, newHashObject]);
-    });
+    } catch (error) {
+      console.error("Error adding new hash chain:", error);
+    }
   };
 
   useEffect(() => {

@@ -18,15 +18,23 @@ const HashManagement: React.FC = () => {
 
   return (
     <div className="max-w-lg mx-auto p-4 bg-gray-900 rounded-lg shadow-md">
-      <header>
-        <ul className="text-gray-300 mb-4">{selectedHashChain?.key}</ul>
-        <ul className="text-gray-300">
+      <div>
+        Selected Hash Chain:
+        <div className="cursor-pointer mt-2 bg-gray-800 rounded-lg text-center p-2">
+          {selectedHashChain?.key ?? "No Hash Chain Selected"}
+        </div>
+      </div>
+      <div className="mt-4">
+        List of Hash Chains:
+        <ul className="text-gray-300 min-h-max">
           {hashChains.length > 0 ? (
             hashChains.map((chain) => (
               <li
                 key={chain.key}
                 onClick={() => handleKeySelect(chain.key)}
-                className="cursor-pointer hover:text-indigo-400"
+                className={`cursor-pointer mt-2 hover:text-indigo-400 bg-gray-800 rounded-lg text-center p-2 ${
+                  chain.key === selectedHashChain?.key ? "bg-indigo-600" : ""
+                }`}
               >
                 {chain.key}
               </li>
@@ -35,7 +43,7 @@ const HashManagement: React.FC = () => {
             <li>No hash keys found</li>
           )}
         </ul>
-      </header>
+      </div>
     </div>
   );
 };
