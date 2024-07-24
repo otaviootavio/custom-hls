@@ -16,7 +16,7 @@ window.addEventListener("message", (event) => {
     });
   } else if (event.data.type === "RequestHashChain") {
     chrome.runtime.sendMessage({ action: "DeliverHashchain" }, (response) => {
-      console.log("Received response from background:", response);
+      console.log("Received response from service worker:", response);
       if (response && response.data !== null) {
         window.postMessage(
           { type: "HashChain", data: response.data, index: response.index },

@@ -4,7 +4,7 @@ import { createHashChain } from "./utils/UsefulFunctions";
 
 const hashRepo = new HashRepository();
 
-console.log("Background script loaded"); // Log when the background script is loaded
+console.log("Service worker script loaded"); // Log when the service worker script is loaded
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   console.log("Received message:", message); // Log the received message
@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
           console.log("Hash sent,", hashTail);
         } else {
           sendResponse({
-            data: "No more hashs are stored",
+            data: "No more hashes are stored",
           });
         }
       });
@@ -84,44 +84,22 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
             sendResponse({ data: hash, index: lastIndex });
           });
         } else {
-          console.log("Deu problema");
+          console.log("No more hashes are stored");
           sendResponse({
-            data: "No more hashs are stored",
+            data: "No more hashes are stored",
           });
         }
       });
     });
     return true; // Keeps the message channel open for async response
   }
+  return true; // Keeps the message channel open for async response in all cases
 });
 
-window.addEventListener("message", (event) => {
-  if (event.data.type === "Send_h(100)") {
-    chrome.runtime.sendMessage({ action: "Deliver_h(100)" }, (response) => {
-      if (response && response.data !== undefined) {
-        window.postMessage(
-          { type: "Recover_h(100)", data: response.data },
-          "*"
-        );
-        console.log("Enviou a pagina web", response.data);
-      } else {
-        window.postMessage(
-          { type: "Recover_h(100)", data: "No data found" },
-          "*"
-        );
-      }
-    });
-  } else if (event.data.type === "RequestHashChain") {
-    chrome.runtime.sendMessage({ action: "DeliverHashchain" }, (response) => {
-      console.log("Received response from background:", response);
-      if (response && response.data !== null) {
-        window.postMessage(
-          { type: "HashChain", data: response.data, index: response.index },
-          "*"
-        );
-      } else {
-        window.postMessage({ type: "HashChain", data: "No data found" }, "*");
-      }
-    });
-  }
+chrome.runtime.onStartup.addListener(() => {
+  console.log("Service worker startup");
+});
+
+chrome.runtime.onInstalled.addListener(() => {
+  console.log("Service worker installed");
 });
