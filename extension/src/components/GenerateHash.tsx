@@ -1,63 +1,98 @@
-import React, { useState } from "react";
+import React from "react";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import Input from "./Input";
 
-const GenerateHash = () => {
-  const [inputSecret, setInputSecret] = useState("");
-  const [inputLength, setInputLength] = useState<number | "">("");
-  const [inputKey, setInputKey] = useState("");
+const schema = z.object({
+  secret: z.string().min(1, "Secret is required"),
+  length: z
+    .string()
+    .refine((val) => !isNaN(Number(val)), {
+      message: "Length must be a number",
+    })
+    .transform((val) => Number(val))
+    .refine((val) => val >= 1, { message: "Length must be at least 1" }),
+  key: z.string().min(1, "Key is required"),
+});
 
-  const handleInputSecret = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputSecret(event.target.value);
-  };
+type FormData = z.infer<typeof schema>;
 
-  const handleInputLength = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputLength(event.target.value === "" ? "" : Number(event.target.value));
-  };
+const GenerateHash: React.FC = () => {
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm<FormData>({
+    resolver: zodResolver(schema),
+  });
 
-  const handleInputKey = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setInputKey(event.target.value);
-  };
-
-  const handleHashSubmit = (event: React.FormEvent) => {
-    event.preventDefault();
-    if (inputSecret && inputLength && inputKey) {
-      console.log("Comecou a enviar mensagem de criacao");
-      chrome.runtime.sendMessage(
-        {
-          action: "makeHashChain",
-          data: { secret: inputSecret, length: inputLength, key: inputKey },
-        },
-        (response) => {
-          console.log("Response from background:", response);
-          setInputSecret("");
-          setInputLength("");
-          setInputKey("");
-        }
-      );
-    }
+  const onSubmit = (data: FormData) => {
+    const length = Number(data.length);
+    console.log("Form data:", data);
+    chrome.runtime.sendMessage(
+      {
+        action: "makeHashChain",
+        data: { secret: data.secret, length: length, key: data.key },
+      },
+      (response) => {
+        console.log("Response from background:", response);
+        reset();
+      }
+    );
   };
 
   return (
-    <form onSubmit={handleHashSubmit}>
-      <input
-        type="text"
-        value={inputSecret}
-        onChange={handleInputSecret}
-        placeholder="Type the secret"
+    <form
+      onSubmit={handleSubmit(onSubmit)}
+      className="max-w-md mx-auto p-4 bg-gray-900 rounded-lg shadow-md"
+    >
+      <Controller
+        name="secret"
+        control={control}
+        render={({ field }) => (
+          <Input
+            label="Secret"
+            type="text"
+            value={field.value}
+            onChange={field.onChange}
+            error={errors.secret?.message}
+          />
+        )}
       />
-      <input
-        type="number"
-        value={inputLength}
-        onChange={handleInputLength}
-        placeholder="Type the length"
-        min="1"
+      <Controller
+        name="length"
+        control={control}
+        render={({ field }) => (
+          <Input
+            label="Length"
+            type="number"
+            value={field.value}
+            onChange={field.onChange}
+            error={errors.length?.message}
+          />
+        )}
       />
-      <input
-        type="text"
-        value={inputKey}
-        onChange={handleInputKey}
-        placeholder="Type the key"
+      <Controller
+        name="key"
+        control={control}
+        render={({ field }) => (
+          <Input
+            label="Key"
+            type="text"
+            value={field.value}
+            onChange={field.onChange}
+            error={errors.key?.message}
+          />
+        )}
       />
-      <button type="submit">Create hash chain</button>
+      <button
+        type="submit"
+        className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+      >
+        Create hash chain
+      </button>
     </form>
   );
 };
