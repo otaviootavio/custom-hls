@@ -3,6 +3,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Input from "./Input";
+import { useHashChain } from "../context/HashChainContext";
 
 const schema = z.object({
   secret: z.string().min(1, "Secret is required"),
@@ -19,6 +20,7 @@ const schema = z.object({
 type FormData = z.infer<typeof schema>;
 
 const GenerateHash: React.FC = () => {
+  const { addNewHashChain } = useHashChain();
   const {
     control,
     handleSubmit,
@@ -29,18 +31,8 @@ const GenerateHash: React.FC = () => {
   });
 
   const onSubmit = (data: FormData) => {
-    const length = Number(data.length);
-    console.log("Form data:", data);
-    chrome.runtime.sendMessage(
-      {
-        action: "makeHashChain",
-        data: { secret: data.secret, length: length, key: data.key },
-      },
-      (response) => {
-        console.log("Response from background:", response);
-        reset();
-      }
-    );
+    addNewHashChain(data.secret, Number(data.length), data.key);
+    reset();
   };
 
   return (
