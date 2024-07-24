@@ -27,6 +27,8 @@ class HashRepository {
     });
   }
 
+  //TODO
+  //Refactor this function to use split into two functions ( update and add )
   async addOrUpdateHashChain(hashObject: HashObject): Promise<void> {
     this.validateHashObject(hashObject);
 
@@ -58,6 +60,8 @@ class HashRepository {
     });
   }
 
+  //TODO
+  //Verify if the deleted hashchain is selected change the selected to empty
   async deleteHashChain(key: string): Promise<void> {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
