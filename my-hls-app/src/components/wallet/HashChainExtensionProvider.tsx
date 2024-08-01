@@ -9,8 +9,10 @@ import React, {
 interface HashChainContextType {
   hashChainElements: { data: string; index: number }[];
   h100: string;
+  fullHashChain: string[];
   fetchHashChain: () => void;
   sendH100Once: () => void;
+  fetchFullHashChain: () => void;
 }
 
 interface HashChainExtensionProviderProps {
@@ -28,6 +30,7 @@ export const HashChainExtensionProvider: React.FC<
     { data: string; index: number }[]
   >([]);
   const [h100, setH100] = useState<string>("");
+  const[fullHashChain, setFullHashChain] = useState<string[]>([]);
 
   const handleResponse = (event: MessageEvent) => {
     if (event.data.type === "HashChain") {
@@ -37,6 +40,8 @@ export const HashChainExtensionProvider: React.FC<
       ]);
     } else if (event.data.type === "Recover_h(100)") {
       setH100(event.data.data);
+    } else if (event.data.type === "fullHashChain"){
+      setFullHashChain(event.data.data);
     }
   };
 
@@ -53,9 +58,13 @@ export const HashChainExtensionProvider: React.FC<
     window.postMessage({ type: "Send_h(100)" }, "*");
   };
 
+  const fetchFullHashChain = () => {
+    window.postMessage({type: "RequestFullHashChain"}, "*");
+  }
+
   return (
     <HashChainContext.Provider
-      value={{ hashChainElements, h100, fetchHashChain, sendH100Once }}
+      value={{ hashChainElements, h100, fullHashChain, fetchHashChain, sendH100Once, fetchFullHashChain }}
     >
       {children}
     </HashChainContext.Provider>

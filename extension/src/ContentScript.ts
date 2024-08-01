@@ -26,5 +26,17 @@ window.addEventListener("message", (event) => {
         window.postMessage({ type: "HashChain", data: "No data found" }, "*");
       }
     });
+  } else if (event.data.type === "RequestFullHashChain") {
+    chrome.runtime.sendMessage({ action: "DeliverFullHashchain" }, (response) => {
+      console.log("Received response from service worker:", response);
+      if (response && response.data !== null) {
+        window.postMessage(
+          { type: "fullHashChain", data: response.data, index: response.index },
+          "*"
+        );
+      } else {
+        window.postMessage({ type: "fullHashChain", data: "No data found" }, "*");
+      }
+    });
   }
 });

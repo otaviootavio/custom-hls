@@ -2,7 +2,7 @@ import React from "react";
 import { useHashChain } from "./HashChainExtensionProvider";
 
 const HashChainElementsList: React.FC = () => {
-  const { hashChainElements, h100 } = useHashChain();
+  const { hashChainElements, h100, fullHashChain } = useHashChain();
 
   return (
     <div className="p-4">
@@ -23,6 +23,21 @@ const HashChainElementsList: React.FC = () => {
               className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow text-gray-900 dark:text-gray-100"
             >
               {element.index}: {element.data}
+            </li>
+          ))}
+        </ul>
+      </div>
+      <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
+        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+          Full Hash Chain:
+        </h2>
+        <ul className="space-y-2">
+          {fullHashChain.map((element, index) => (
+            <li
+              key={index}
+              className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow text-gray-900 dark:text-gray-100"
+            >
+              {element}
             </li>
           ))}
         </ul>
