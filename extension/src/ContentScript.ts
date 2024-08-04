@@ -49,12 +49,11 @@ window.addEventListener("message", (event) => {
     chrome.runtime.sendMessage(
       { action: "DeliverSecretLength" },
       (response) => {
-        if (response && response.secret && response.length !== null) {
+        if (response && response.data) {
           window.postMessage(
             {
               type: "SecretLength",
-              secret: response.secret,
-              length: response.length,
+              data: response.data,
             },
             "*"
           );

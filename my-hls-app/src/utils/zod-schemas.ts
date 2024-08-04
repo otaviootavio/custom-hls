@@ -24,6 +24,7 @@ export const StorageDataSchema = z.object({
 export const SecretLengthSchema = z.object({
   secret: z.string(),
   length: z.number(),
+  tail: z.string(),
 });
 
 export const HashChainContextSchema = z.object({

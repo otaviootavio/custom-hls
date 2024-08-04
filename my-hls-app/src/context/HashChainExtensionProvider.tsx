@@ -98,12 +98,16 @@ export const HashChainExtensionProvider: React.FC<
     try {
       const response = await createEventPromise<{
         type: string;
-        secret: string;
-        length: number;
+        data: {
+          secret: string;
+          length: number;
+          tail: string;
+        };
       }>("SecretLength");
       const validatedResponse = SecretLengthSchema.parse({
-        secret: response.secret,
-        length: response.length,
+        secret: response.data.secret,
+        length: response.data.length,
+        tail: response.data.tail,
       });
       setSecret(validatedResponse.secret);
       setLength(validatedResponse.length);
@@ -113,7 +117,6 @@ export const HashChainExtensionProvider: React.FC<
       throw error;
     }
   };
-
   const contextValue = HashChainContextSchema.parse({
     hashChainElements,
     h100,
