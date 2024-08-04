@@ -26,7 +26,7 @@ const usePayword = () => {
     }
   }, []);
 
-  const updatePayword = useCallback(
+  const sendTailToServer = useCallback(
     async (hash: string, position: number) => {
       setLoading(true);
       try {
@@ -42,7 +42,7 @@ const usePayword = () => {
     [fetchPayword]
   );
 
-  return { payword, error, loading, fetchPayword, updatePayword };
+  return { payword, error, loading, fetchPayword, sendTailToServer };
 };
 
 export default usePayword;
