@@ -1,8 +1,8 @@
 import React from "react";
-import { useHashChain } from "./HashChainExtensionProvider";
+import { useHashChainFromExtension } from "../../context/HashChainExtensionProvider";
 
 const HashChainElementsList: React.FC = () => {
-  const { hashChainElements, h100, fullHashChain } = useHashChain();
+  const { hashChainElements, h100, fullHashChain, secret, length } = useHashChainFromExtension();
 
   return (
     <div className="p-4">
@@ -41,6 +41,18 @@ const HashChainElementsList: React.FC = () => {
             </li>
           ))}
         </ul>
+      </div>
+      <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md mt-4">
+        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+          Secret:
+        </h2>
+        <ul className="text-gray-900 dark:text-gray-100">{secret}</ul>
+      </div>
+      <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
+        <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
+          Length:
+        </h2>
+        <ul className="text-gray-900 dark:text-gray-100">{length}</ul>
       </div>
     </div>
   );

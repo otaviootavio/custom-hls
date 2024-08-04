@@ -1,8 +1,8 @@
 import React from "react";
-import { useHashChain } from "./HashChainExtensionProvider";
+import { useHashChainFromExtension } from "../../context/HashChainExtensionProvider";
 
 const ControlButtons: React.FC = () => {
-  const { sendH100Once, fetchHashChain, fetchFullHashChain } = useHashChain();
+  const { sendH100Once, fetchHashChain, fetchFullHashChain, fetchSecretLength } = useHashChainFromExtension();
 
   return (
     <div className="flex flex-col space-y-4 sm:flex-row sm:space-y-0 sm:space-x-4 p-4">
@@ -23,6 +23,12 @@ const ControlButtons: React.FC = () => {
        className="bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-800 transition-colors"
        >
         Get full Hashchain
+      </button>
+      <button
+        onClick={fetchSecretLength}
+        className="bg-green-500 text-white py-2 px-4 rounded-lg shadow-md hover:bg-green-600 dark:bg-green-700 dark:hover:bg-green-800 transition-colors"
+      >
+        Get secret and length
       </button>
     </div>
   );

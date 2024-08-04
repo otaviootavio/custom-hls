@@ -1,6 +1,6 @@
 import ControlButtons from "@/components/wallet/ControlButtons";
 import HashChainElementsList from "@/components/wallet/HashChainElementsList";
-import { HashChainExtensionProvider } from "@/components/wallet/HashChainExtensionProvider";
+import { HashChainExtensionProvider } from "@/context/HashChainExtensionProvider";
 import React from "react";
 
 const Page: React.FC = () => {

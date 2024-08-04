@@ -6,18 +6,24 @@ import React, {
   ReactNode,
 } from "react";
 
+
+
 interface HashChainContextType {
   hashChainElements: { data: string; index: number }[];
   h100: string;
   fullHashChain: string[];
+  secret: string;
+  length: number;
   fetchHashChain: () => void;
   sendH100Once: () => void;
   fetchFullHashChain: () => void;
+  fetchSecretLength: () => void;
 }
 
 interface HashChainExtensionProviderProps {
   children: ReactNode;
 }
+
 
 const HashChainContext = createContext<HashChainContextType | undefined>(
   undefined
@@ -31,6 +37,8 @@ export const HashChainExtensionProvider: React.FC<
   >([]);
   const [h100, setH100] = useState<string>("");
   const[fullHashChain, setFullHashChain] = useState<string[]>([]);
+  const[secret,setSecret] = useState<string>("");
+  const[length,setLenght] = useState<number>(0);
 
   const handleResponse = (event: MessageEvent) => {
     if (event.data.type === "HashChain") {
@@ -42,6 +50,9 @@ export const HashChainExtensionProvider: React.FC<
       setH100(event.data.data);
     } else if (event.data.type === "fullHashChain"){
       setFullHashChain(event.data.data);
+    } else if (event.data.type === "SecretLenght"){
+      setSecret(event.data.secret);
+      setLenght(event.data.length);
     }
   };
 
@@ -60,18 +71,22 @@ export const HashChainExtensionProvider: React.FC<
 
   const fetchFullHashChain = () => {
     window.postMessage({type: "RequestFullHashChain"}, "*");
-  }
+  };
+
+  const fetchSecretLength = () => {
+    window.postMessage({type: "RequestSecretLength"}, "*");
+  };
 
   return (
     <HashChainContext.Provider
-      value={{ hashChainElements, h100, fullHashChain, fetchHashChain, sendH100Once, fetchFullHashChain }}
+      value={{ hashChainElements, h100, fullHashChain, secret, length, fetchHashChain, sendH100Once, fetchFullHashChain, fetchSecretLength}}
     >
       {children}
     </HashChainContext.Provider>
   );
 };
 
-export const useHashChain = () => {
+export const useHashChainFromExtension = () => {
   const context = useContext(HashChainContext);
   if (context === undefined) {
     throw new Error(
