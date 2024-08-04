@@ -1,17 +1,19 @@
 import React, { useState } from "react";
 import { useHashChain } from "@/context/HashChainContext";
 import HashChainViewer from "./HashChainViewer";
+import { generateHashChain } from "@/utils/HashChainUtils";
 
 const HashChainManager: React.FC = () => {
   const [hashZero, setHashZero] = useState<string>("");
   const [numHashes, setNumHashes] = useState<string>("");
   const [error, setError] = useState<string>("");
-  const { generateHashChain } = useHashChain();
+  const { setHashChain } = useHashChain();
 
   const handleGenerateHashChain = () => {
     try {
       const numHashesInt = parseInt(numHashes);
-      generateHashChain(hashZero, numHashesInt);
+      const chain = generateHashChain(hashZero, numHashesInt);
+      setHashChain(chain);
       setError("");
     } catch (err) {
       if (err instanceof Error) {

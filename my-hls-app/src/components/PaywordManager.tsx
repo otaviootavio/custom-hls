@@ -2,29 +2,81 @@ import React, { useEffect, useState } from "react";
 import usePayword from "@/hooks/usePayword";
 import SingleHashView from "./SingleHashView";
 import { useUser } from "@clerk/nextjs";
+import { useHashChainFromExtension } from "@/context/HashChainExtensionProvider";
+import { useHashChain } from "@/context/HashChainContext";
+import { generateHashChain } from "@/utils/HashChainUtils";
 
 const PaywordManager: React.FC = () => {
-  const { payword, error, loading, fetchPayword, updatePayword } = usePayword();
+  const { payword, error, loading, fetchPayword, sendTailToServer } =
+    usePayword();
   const [newHash, setNewHash] = useState("");
   const [position, setPosition] = useState<number | undefined>();
   const { user } = useUser();
+  const { fetchPaywordFromExtension } = useHashChainFromExtension();
+  const { setHashChain } = useHashChain();
+  const [extensionData, setExtensionData] = useState<{
+    secret: string;
+    length: number;
+    tail: string;
+  } | null>(null);
 
   useEffect(() => {
     fetchPayword();
   }, [fetchPayword]);
 
-  const handleUpdatePayword = () => {
+  const handleUpdatePayword = async () => {
     if (newHash && position !== undefined) {
-      updatePayword(newHash, position);
-      setNewHash("");
-      setPosition(undefined);
+      try {
+        await sendTailToServer(newHash, position);
+        await fetchPayword();
+        setNewHash("");
+        setPosition(undefined);
+      } catch (error) {
+        console.error("Error updating payword:", error);
+      }
     }
   };
 
+  const handleFetchPaywordFromExtension = async () => {
+    try {
+      const data = await fetchPaywordFromExtension();
+      setExtensionData(data);
+      setNewHash(data.tail);
+      setPosition(data.length);
+    } catch (error) {
+      console.error("Error fetching payword from extension:", error);
+    }
+  };
+
+  const setLocalHashChain = () => {
+    if (extensionData) {
+      const chain = generateHashChain(
+        extensionData.secret,
+        extensionData.length
+      );
+      setHashChain(chain.slice(0, -1));
+    } else {
+      console.error(
+        "Extension data not available. Fetch payword from extension first."
+      );
+    }
+  };
   return (
     <div>
       <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
         <h1 className="text-sm font-bold mb-2 text-gray-700">Server Data</h1>
+        <button
+          onClick={handleFetchPaywordFromExtension}
+          className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
+        >
+          Fetch Payword from Extension
+        </button>
+        <button
+          onClick={setLocalHashChain}
+          className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
+        >
+          Set Local Hash Chain
+        </button>
         <h2 className="text-base font-semibold text-gray-800">
           {user?.firstName}&apos;s Payword
         </h2>
@@ -68,7 +120,7 @@ const PaywordManager: React.FC = () => {
           Update Payword
         </button>
         <button
-          onClick={fetchPayword}
+          onClick={() => fetchPayword()}
           className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
         >
           Refetch Payword

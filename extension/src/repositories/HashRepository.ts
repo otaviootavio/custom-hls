@@ -9,6 +9,7 @@ const HashObjectSchema = z.object({
   hashchain: z.array(z.string().regex(/^0x[0-9a-fA-F]+$/)),
   isValid: z.boolean(),
   key: z.string(),
+  secret: z.string(),
   tail: z.string().regex(/^0x[0-9a-fA-F]+$/),
 });
 
