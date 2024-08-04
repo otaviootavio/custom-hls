@@ -35,7 +35,7 @@ const HashChainElementsList: React.FC = () => {
           Full Hash Chain:
         </h2>
         <ul className="space-y-2">
-          {fullHashChain.map((element, index) => (
+          {fullHashChain.map((element: string, index: number) => (
             <li
               key={index}
               className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow text-gray-900 dark:text-gray-100"
