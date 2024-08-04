@@ -1,11 +1,9 @@
 import React, { createContext, useState, useContext, ReactNode } from "react";
-import keccak from "keccak";
 
 // Interface for the context props
 interface HashChainContextProps {
   hashChain: string[];
   setHashChain: (hashChain: string[]) => void;
-  generateHashChain: (hashZero: string, numHashes: number) => void;
   popHash: () => string | null;
 }
 
@@ -20,19 +18,6 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
 }) => {
   const [hashChain, setHashChain] = useState<string[]>([]);
 
-  // Function to generate a new hash chain based on an initial hash and a specified number of hashes
-  const generateHashChain = (hashZero: string, numHashes: number) => {
-    let currentHash = hashZero;
-    const chain = [currentHash];
-    for (let i = 1; i < numHashes; i++) {
-      currentHash = keccak("keccak256")
-        .update(Buffer.from(currentHash, "utf-8"))
-        .digest("hex");
-      chain.push(currentHash);
-    }
-    setHashChain(chain);
-  };
-
   // Function to pop the last hash from the hash chain and return it
   const popHash = (): string | null => {
     if (hashChain.length === 0) {
@@ -44,9 +29,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <HashChainContext.Provider
-      value={{ hashChain, setHashChain, generateHashChain, popHash }}
-    >
+    <HashChainContext.Provider value={{ hashChain, setHashChain, popHash }}>
       {children}
     </HashChainContext.Provider>
   );

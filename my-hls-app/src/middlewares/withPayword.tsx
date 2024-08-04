@@ -1,26 +1,9 @@
 import { NextApiRequest, NextApiResponse, NextApiHandler } from "next";
 import { getAuth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
-import keccak from "keccak";
+import { verifyHashChain } from "@/utils/HashChainUtils";
 
 const prisma = new PrismaClient();
-
-const hashKeccak = (input: string): string => {
-  return keccak("keccak256").update(Buffer.from(input, "utf-8")).digest("hex");
-};
-
-const verifyHashChain = (
-  incomingHash: string,
-  lastHash: string,
-  chainSize: number,
-  position: number
-): boolean => {
-  let currentHash = incomingHash;
-  for (let i = position; i < chainSize; i++) {
-    currentHash = hashKeccak(currentHash);
-  }
-  return currentHash === lastHash;
-};
 
 export const withPayword = (handler: NextApiHandler) => {
   return async (req: NextApiRequest, res: NextApiResponse) => {

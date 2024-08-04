@@ -1,4 +1,3 @@
-import { generateHashChain } from "@/lib/HashChainUtils";
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { z } from "zod";
 import {
@@ -6,6 +5,7 @@ import {
   HashChainElementSchema,
   SecretLengthSchema,
 } from "@/utils/zod-schemas";
+import { generateHashChain } from "@/utils/HashChainUtils";
 
 type HashChainContextType = z.infer<typeof HashChainContextSchema>;
 

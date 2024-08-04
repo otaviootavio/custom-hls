@@ -3,8 +3,8 @@ import usePayword from "@/hooks/usePayword";
 import SingleHashView from "./SingleHashView";
 import { useUser } from "@clerk/nextjs";
 import { useHashChainFromExtension } from "@/context/HashChainExtensionProvider";
-import { generateHashChain } from "@/lib/HashChainUtils";
 import { useHashChain } from "@/context/HashChainContext";
+import { generateHashChain } from "@/utils/HashChainUtils";
 
 const PaywordManager: React.FC = () => {
   const { payword, error, loading, fetchPayword, sendTailToServer } =
