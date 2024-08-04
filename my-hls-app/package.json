@@ -16,7 +16,8 @@
     "keccak": "^3.0.4",
     "next": "14.2.3",
     "react": "^18",
-    "react-dom": "^18"
+    "react-dom": "^18",
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@types/keccak": "^3.0.4",
