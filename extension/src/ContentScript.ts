@@ -38,5 +38,15 @@ window.addEventListener("message", (event) => {
         window.postMessage({ type: "fullHashChain", data: "No data found" }, "*");
       }
     });
+  } else if (event.data.type === "RequestSecretLength") {
+    chrome.runtime.sendMessage({ action: "DeliverSecretLength"}, (response) => {
+      if(response && response.secret && response.length !== null) {
+        window.postMessage(
+          { type: "SecretLenght", secret: response.secret, length: response.length},"*"
+        );
+      } else {
+        window.postMessage({ type : "SecretLenght", secret: "No data found"}, "*");
+      }
+    });
   }
 });

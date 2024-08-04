@@ -107,6 +107,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       isValid: false,
       key,
       tail: newChain[newChain.length - 1],
+      secret: secret
     };
     try {
       await hashRepo.addHashChain(newHashObject);

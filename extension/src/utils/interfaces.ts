@@ -6,4 +6,5 @@ export interface HashObject {
   isValid: boolean;
   key: string;
   tail: `0x${string}`;
+  secret: string;
 }

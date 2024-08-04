@@ -27,6 +27,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       hashchain: start_chain,
       isValid: false,
       key: key,
+      secret : secret,
       tail: start_chain[start_chain.length - 1], // Set tail on creation
     };
 
@@ -106,6 +107,20 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
     })
     return true; // Keeps the message channel open for async response
+  } else if(message.action === "DeliverSecretLength") {
+    chrome.storage.local.get("selectedKey", (result) => {
+      const hash_key: string = result.selectedKey;
+      chrome.storage.local.get({ hashChains: [] }, (result) => {
+      const hashChains: HashObject[] = result.hashChains;
+      const hashObjectIndex = hashChains.findIndex(
+        (obj) => obj.key === hash_key
+      );
+      const hashObject = hashChains[hashObjectIndex];
+        sendResponse({secret:hashObject.secret, length:hashObject.length});
+      });
+
+    })
+    return true; // Keeps the message channel open ofr async response in all cases
   }
   return true; // Keeps the message channel open for async response in all cases
 });
