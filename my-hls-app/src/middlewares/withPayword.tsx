@@ -11,15 +11,23 @@ const hashKeccak = (input: string): string => {
 
 const verifyHashChain = (
   incomingHash: string,
-  lastHash: string,
-  chainSize: number,
-  position: number
+  incommingHashIndex: number,
+  lastHashReceived: string,
+  lastHashReceivedIndex: number
 ): boolean => {
-  let currentHash = incomingHash;
-  for (let i = position; i < chainSize; i++) {
-    currentHash = hashKeccak(currentHash);
+  let calculatedHash = incomingHash;
+  let numberOfInterations = lastHashReceivedIndex - incommingHashIndex;
+
+  for (let i = 0; i < numberOfInterations; i++) {
+    calculatedHash = hashKeccak(calculatedHash);
   }
-  return currentHash === lastHash;
+  console.log("calculatedHash", calculatedHash);
+  console.log("incomingHash", incomingHash);
+  console.log("incommingHashIndex", incommingHashIndex);
+  console.log("lastHashReceived", lastHashReceived);
+  console.log("lastHashReceivedIndex", lastHashReceivedIndex);
+
+  return calculatedHash === lastHashReceived;
 };
 
 export const withPayword = (handler: NextApiHandler) => {
@@ -62,17 +70,17 @@ export const withPayword = (handler: NextApiHandler) => {
         return;
       }
 
-      const mostRecentHash = user.mostRecentHash ?? "";
-      const mostRecentHashIndex = user.mostRecentHashIndex ?? 0;
+      const lastHashReceived = user.mostRecentHash ?? "";
+      const lastHashReceivedIndex = user.mostRecentHashIndex ?? 0;
 
-      if (mostRecentHash === "" || mostRecentHashIndex === 0) {
+      if (lastHashReceived === "" || lastHashReceivedIndex === 0) {
         res.status(403).json({ error: "Invalid user hash chain" });
         return;
       }
 
-      if (incomingHashIndex === mostRecentHashIndex) {
+      if (incomingHashIndex === lastHashReceivedIndex) {
         res.status(403).json({
-          error: "Position number cannot be the most recent hash index",
+          error: "Incoming hash index cannot be the last hash index received",
         });
         return;
       }
@@ -80,9 +88,9 @@ export const withPayword = (handler: NextApiHandler) => {
       if (
         !verifyHashChain(
           incomingHash,
-          mostRecentHash,
-          mostRecentHashIndex,
-          incomingHashIndex
+          incomingHashIndex,
+          lastHashReceived,
+          lastHashReceivedIndex
         )
       ) {
         res.status(403).json({ error: "Invalid hash" });
