@@ -4,47 +4,65 @@ import { createHashChain } from "./utils/UsefulFunctions";
 
 const hashRepo = new HashRepository();
 
+interface ResponseMessage {
+  status?: string;
+  message?: string;
+  data?: any;
+  error?: string;
+}
+
+interface StorageData {
+  selectedKey?: string;
+  hashChains?: HashObject[];
+}
+
 console.log("Service worker script loaded");
 
-chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
-  console.log("Received message:", message);
+chrome.runtime.onMessage.addListener(
+  (
+    message: any,
+    _sender,
+    sendResponse: (response: ResponseMessage) => void
+  ) => {
+    console.log("Received message:", message);
 
-  const handleMessage = async () => {
-    try {
-      switch (message.action) {
-        case "makeHashChain":
-          await handleMakeHashChain(message.data, sendResponse);
-          break;
-        case "Deliver_h(100)":
-          await handleDeliverH100(sendResponse);
-          break;
-        case "DeliverHashchain":
-          await handleDeliverHashchain(sendResponse);
-          break;
-        case "DeliverFullHashchain":
-          await handleDeliverFullHashchain(sendResponse);
-          break;
-        case "DeliverSecretLength":
-          await handleDeliverSecretLength(sendResponse);
-          break;
-        default:
-          sendResponse({ error: "Unknown action" });
+    const handleMessage = async () => {
+      try {
+        switch (message.action) {
+          case "makeHashChain":
+            await handleMakeHashChain(message.data, sendResponse);
+            break;
+          case "Deliver_h(100)":
+            await handleDeliverH100(sendResponse);
+            break;
+          case "DeliverHashchain":
+            await handleDeliverHashchain(sendResponse);
+            break;
+          case "DeliverFullHashchain":
+            await handleDeliverFullHashchain(sendResponse);
+            break;
+          case "DeliverSecretLength":
+            await handleDeliverSecretLength(sendResponse);
+            break;
+          default:
+            sendResponse({ error: "Unknown action" });
+        }
+      } catch (error) {
+        console.error("Error in message handler:", error);
+        sendResponse({
+          error: error instanceof Error ? error.message : String(error),
+        });
       }
-    } catch (error) {
-      console.error("Error in message handler:", error);
-      sendResponse({
-        error: error instanceof Error ? error.message : String(error),
-      });
-    }
-  };
+    };
 
-  handleMessage();
-  return true; // Indicates async response
-});
+    handleMessage();
+    return true; // Indicates async response
+  }
+);
 
 async function handleMakeHashChain(
   data: { secret: string; length: number; key: string },
-  sendResponse: (response: any) => void
+  sendResponse: (response: ResponseMessage) => void
 ) {
   console.log("Handling makeHashChain action");
   const { secret, length, key } = data;
@@ -76,12 +94,16 @@ async function handleMakeHashChain(
   }
 }
 
-async function handleDeliverH100(sendResponse: (response: any) => void) {
+async function handleDeliverH100(
+  sendResponse: (response: ResponseMessage) => void
+) {
   console.log("Handling Deliver_h(100) action");
-  const { selectedKey } = await chrome.storage.local.get("selectedKey");
-  const { hashChains = [] } = await chrome.storage.local.get({
+  const { selectedKey } = (await chrome.storage.local.get(
+    "selectedKey"
+  )) as StorageData;
+  const { hashChains = [] } = (await chrome.storage.local.get({
     hashChains: [],
-  });
+  })) as StorageData;
   const hashObject = hashChains.find(
     (obj: HashObject) => obj.key === selectedKey
   );
@@ -95,7 +117,9 @@ async function handleDeliverH100(sendResponse: (response: any) => void) {
   }
 }
 
-async function handleDeliverHashchain(sendResponse: (response: any) => void) {
+async function handleDeliverHashchain(
+  sendResponse: (response: ResponseMessage) => void
+) {
   console.log("Handling DeliverHashchain action");
   const { selectedKey } = await chrome.storage.local.get("selectedKey");
   const { hashChains = [] } = await chrome.storage.local.get({
@@ -121,7 +145,7 @@ async function handleDeliverHashchain(sendResponse: (response: any) => void) {
 
     hashChains[hashObjectIndex] = { ...hashObject, hashchain: newHashchain };
     await chrome.storage.local.set({ hashChains });
-    sendResponse({ data: hash, index: lastIndex });
+    sendResponse({ data: { hash, lastIndex } });
   } else {
     console.log("No more hashes are stored");
     sendResponse({ data: "No more hashes are stored" });
@@ -129,7 +153,7 @@ async function handleDeliverHashchain(sendResponse: (response: any) => void) {
 }
 
 async function handleDeliverFullHashchain(
-  sendResponse: (response: any) => void
+  sendResponse: (response: ResponseMessage) => void
 ) {
   const { selectedKey } = await chrome.storage.local.get("selectedKey");
   const { hashChains = [] } = await chrome.storage.local.get({
@@ -147,7 +171,7 @@ async function handleDeliverFullHashchain(
 }
 
 async function handleDeliverSecretLength(
-  sendResponse: (response: any) => void
+  sendResponse: (response: ResponseMessage) => void
 ) {
   const { selectedKey } = await chrome.storage.local.get("selectedKey");
   const { hashChains = [] } = await chrome.storage.local.get({
@@ -158,7 +182,9 @@ async function handleDeliverSecretLength(
   );
 
   if (hashObject) {
-    sendResponse({ secret: hashObject.secret, length: hashObject.length });
+    sendResponse({
+      data: { secret: hashObject.secret, length: hashObject.length },
+    });
   } else {
     sendResponse({ error: "Hash object not found" });
   }

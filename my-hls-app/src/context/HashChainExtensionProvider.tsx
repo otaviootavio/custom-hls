@@ -1,22 +1,13 @@
 import { generateHashChain } from "@/lib/HashChainUtils";
 import React, { createContext, useContext, useState, ReactNode } from "react";
+import { z } from "zod";
+import {
+  HashChainContextSchema,
+  HashChainElementSchema,
+  SecretLengthSchema,
+} from "@/utils/zod-schemas";
 
-interface HashChainContextType {
-  hashChainElements: { data: string; index: number }[];
-  h100: string;
-  fullHashChain: string[];
-  secret: string;
-  length: number;
-  fetchHashChain: () => Promise<{ data: string; index: number }>;
-  sendH100Once: () => Promise<string>;
-  fetchFullHashChain: () => Promise<string[]>;
-  fetchSecretLength: () => Promise<{ secret: string; length: number }>;
-  fetchPaywordFromExtension: () => Promise<{
-    secret: string;
-    length: number;
-    tail: string;
-  }>;
-}
+type HashChainContextType = z.infer<typeof HashChainContextSchema>;
 
 interface HashChainExtensionProviderProps {
   children: ReactNode;
@@ -30,7 +21,7 @@ export const HashChainExtensionProvider: React.FC<
   HashChainExtensionProviderProps
 > = ({ children }) => {
   const [hashChainElements, setHashChainElements] = useState<
-    { data: string; index: number }[]
+    z.infer<typeof HashChainElementSchema>[]
   >([]);
   const [h100, setH100] = useState<string>("");
   const [fullHashChain, setFullHashChain] = useState<string[]>([]);
@@ -49,14 +40,19 @@ export const HashChainExtensionProvider: React.FC<
     });
   };
 
-  const fetchHashChain = async (): Promise<{ data: string; index: number }> => {
+  const fetchHashChain = async (): Promise<
+    z.infer<typeof HashChainElementSchema>
+  > => {
     window.postMessage({ type: "RequestHashChain" }, "*");
     const response = await createEventPromise<{
       type: string;
       data: string;
       index: number;
     }>("HashChain");
-    const newElement = { data: response.data, index: response.index };
+    const newElement = HashChainElementSchema.parse({
+      data: response.data,
+      index: response.index,
+    });
     setHashChainElements((prev) => [...prev, newElement]);
     return newElement;
   };
@@ -95,10 +91,9 @@ export const HashChainExtensionProvider: React.FC<
     }
   };
 
-  const fetchSecretLength = async (): Promise<{
-    secret: string;
-    length: number;
-  }> => {
+  const fetchSecretLength = async (): Promise<
+    z.infer<typeof SecretLengthSchema>
+  > => {
     window.postMessage({ type: "RequestSecretLength" }, "*");
     try {
       const response = await createEventPromise<{
@@ -106,30 +101,34 @@ export const HashChainExtensionProvider: React.FC<
         secret: string;
         length: number;
       }>("SecretLength");
-      setSecret(response.secret);
-      setLength(response.length);
-      return { secret: response.secret, length: response.length };
+      const validatedResponse = SecretLengthSchema.parse({
+        secret: response.secret,
+        length: response.length,
+      });
+      setSecret(validatedResponse.secret);
+      setLength(validatedResponse.length);
+      return validatedResponse;
     } catch (error) {
       console.error("Error in fetchSecretLength:", error);
       throw error;
     }
   };
 
+  const contextValue = HashChainContextSchema.parse({
+    hashChainElements,
+    h100,
+    fullHashChain,
+    secret,
+    length,
+    fetchHashChain,
+    sendH100Once,
+    fetchFullHashChain,
+    fetchSecretLength,
+    fetchPaywordFromExtension,
+  });
+
   return (
-    <WalletHashChainContext.Provider
-      value={{
-        hashChainElements,
-        h100,
-        fullHashChain,
-        secret,
-        length,
-        fetchHashChain,
-        sendH100Once,
-        fetchFullHashChain,
-        fetchSecretLength,
-        fetchPaywordFromExtension,
-      }}
-    >
+    <WalletHashChainContext.Provider value={contextValue}>
       {children}
     </WalletHashChainContext.Provider>
   );
