@@ -1,3 +1,4 @@
+import { stringToBytes, toHex } from "viem";
 import { HashRepository } from "./repositories/HashRepository";
 import { HashObject } from "./utils/interfaces";
 import { createHashChain } from "./utils/UsefulFunctions";
@@ -62,18 +63,18 @@ async function handleMakeHashChain(
   console.log("Handling makeHashChain action");
   const { secret, length, key } = data;
 
-  const start_chain = createHashChain(secret, length);
+  const start_chain = createHashChain(stringToBytes(secret), length);
   console.log("Hash chain created", start_chain);
 
   const hashChainData: HashObject = {
     address_contract: "",
     address_to: "",
     length: length,
-    hashchain: start_chain,
+    hashchain: start_chain.map((hash) => toHex(hash)),
     isValid: false,
     key: key,
     secret: secret,
-    tail: start_chain[start_chain.length - 1],
+    tail: toHex(start_chain[start_chain.length - 1]),
   };
 
   try {

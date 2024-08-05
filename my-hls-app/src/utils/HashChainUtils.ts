@@ -1,30 +1,55 @@
-import keccak from "keccak";
+import { fromHex, keccak256, stringToBytes, toBytes, toHex } from "viem";
 
-export const generateHashChain = (hashZero: string, numHashes: number) => {
-  let currentHash = hashZero;
-  const chain = [];
-  for (let i = 0; i < numHashes; i++) {
-    currentHash = keccak("keccak256")
-      .update(Buffer.from(currentHash, "utf-8"))
-      .digest("hex");
-    chain.push(currentHash);
+export function generateHashChain(
+  secretString: string,
+  length: number
+): `0x${string}`[] {
+  const secret = toBytes(secretString);
+  let currentHash: Uint8Array = keccak256(secret, "bytes");
+  const hashChain: Uint8Array[] = [currentHash];
+
+  for (let i = 1; i < length; i++) {
+    currentHash = keccak256(currentHash, "bytes");
+    hashChain.push(currentHash);
   }
-  return chain;
-};
 
-export const hashKeccak = (input: string): string => {
-  return keccak("keccak256").update(Buffer.from(input, "utf-8")).digest("hex");
-};
+  return hashChain.map((hash) => toHex(hash));
+}
 
-export const verifyHashChain = (
-  incomingHash: string,
-  lastHash: string,
-  chainSize: number,
-  position: number
-): boolean => {
-  let currentHash = incomingHash;
-  for (let i = position; i < chainSize; i++) {
-    currentHash = hashKeccak(currentHash);
+export function verifyHashChain(
+  providedHash: `0x${string}`,
+  providedHashIndex: number,
+  targetHash: `0x${string}`,
+  targetHashIndex: number
+): boolean {
+  if (providedHashIndex < 0 || targetHashIndex < 0) {
+    throw new Error("Hash indices must be non-negative");
   }
-  return currentHash === lastHash;
-};
+
+  if (providedHashIndex >= targetHashIndex) {
+    throw new Error("Provided hash index must be less than target hash index");
+  }
+
+  if (!providedHash.startsWith("0x") || !targetHash.startsWith("0x")) {
+    throw new Error("Hashes must be in 0x-prefixed hex format");
+  }
+
+  try {
+    let currentHashBytes = fromHex(providedHash, "bytes");
+    const targetHashBytes = fromHex(targetHash, "bytes");
+
+    for (let i = providedHashIndex; i < targetHashIndex; i++) {
+      currentHashBytes = keccak256(currentHashBytes, "bytes");
+    }
+    console.log("providedHashBytes:", providedHash);
+    console.log(
+      "currentHash:",
+      toHex(keccak256(fromHex(providedHash, "bytes"), "bytes"))
+    );
+    console.log("targetHashBytes:", toHex(targetHashBytes));
+
+    return toHex(currentHashBytes) === toHex(targetHashBytes);
+  } catch (error: any) {
+    throw new Error(`Error during hash chain verification: ${error.message}`);
+  }
+}

@@ -2,8 +2,14 @@ import { NextApiRequest, NextApiResponse, NextApiHandler } from "next";
 import { getAuth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { verifyHashChain } from "@/utils/HashChainUtils";
+import { z } from "zod";
 
 const prisma = new PrismaClient();
+
+const PaywordHeaderSchema = z.object({
+  incomingHash: z.string().regex(/^0x[a-fA-F0-9]{64}$/),
+  incomingHashIndex: z.number().int().nonnegative(),
+});
 
 export const withPayword = (handler: NextApiHandler) => {
   return async (req: NextApiRequest, res: NextApiResponse) => {
@@ -59,13 +65,17 @@ export const withPayword = (handler: NextApiHandler) => {
         });
         return;
       }
+      const validatedData = PaywordHeaderSchema.parse({
+        incomingHash,
+        incomingHashIndex,
+      });
 
       if (
         !verifyHashChain(
-          incomingHash,
-          mostRecentHash,
-          mostRecentHashIndex,
-          incomingHashIndex
+          incomingHash as `0x${string}`,
+          incomingHashIndex,
+          mostRecentHash as `0x${string}`,
+          mostRecentHashIndex
         )
       ) {
         res.status(403).json({ error: "Invalid hash" });
@@ -85,6 +95,10 @@ export const withPayword = (handler: NextApiHandler) => {
 
       await handler(req, res);
     } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Invalid Payword header:", error.errors);
+        return res.status(400).json({ error: "Invalid Payword header" });
+      }
       console.error("Error verifying payword:", error);
       res.status(500).json({ error: "Internal server error" });
     }
