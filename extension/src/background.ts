@@ -113,16 +113,10 @@ async function handleDeliverHashchain(
 ) {
   console.log("Handling DeliverHashchain action");
   try {
-    const selectedHashChain = await hashRepo.getSelectedHashChain();
-    if (selectedHashChain && selectedHashChain.hashchain.length > 0) {
-      const newHashchain = [...selectedHashChain.hashchain];
-      const hash = newHashchain.pop();
-      const lastIndex = newHashchain.length;
-      console.log("Transmission started", hash);
-
-      selectedHashChain.hashchain = newHashchain;
-      await hashRepo.updateHashChain(selectedHashChain);
-      sendResponse({ data: { hash, lastIndex } });
+    const result = await hashRepo.popLastHashFromSelected();
+    if (result) {
+      console.log("Transmission started", result.hash);
+      sendResponse({ data: { hash: result.hash, index: result.index } });
     } else {
       console.log("No more hashes are stored");
       sendResponse({ data: "No more hashes are stored" });

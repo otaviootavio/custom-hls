@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const HashChainElementSchema = z.object({
-  data: z.string(),
+  hash: z.string(),
   index: z.number(),
 });
 
@@ -29,14 +29,16 @@ export const SecretLengthSchema = z.object({
 
 export const HashChainContextSchema = z.object({
   hashChainElements: z.array(HashChainElementSchema),
-  h100: z.string(),
+  tail: z.string(),
   fullHashChain: z.array(z.string()),
   secret: z.string(),
   length: z.number(),
-  fetchHashChain: z.function().returns(z.promise(HashChainElementSchema)),
-  sendH100Once: z.function().returns(z.promise(z.string())),
-  fetchFullHashChain: z.function().returns(z.promise(z.array(z.string()))),
-  fetchSecretLength: z.function().returns(z.promise(SecretLengthSchema)),
+  fetchAndPopHashFromHashChain: z
+    .function()
+    .returns(z.promise(HashChainElementSchema)),
+  fetchTail: z.function().returns(z.promise(z.string())),
+  fetchHashChain: z.function().returns(z.promise(z.array(z.string()))),
+  fetchSecretAndLength: z.function().returns(z.promise(SecretLengthSchema)),
   fetchPaywordFromExtension: z.function().returns(
     z.promise(
       z.object({

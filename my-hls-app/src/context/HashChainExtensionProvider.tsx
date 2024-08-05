@@ -23,7 +23,7 @@ export const HashChainExtensionProvider: React.FC<
   const [hashChainElements, setHashChainElements] = useState<
     z.infer<typeof HashChainElementSchema>[]
   >([]);
-  const [h100, setH100] = useState<string>("");
+  const [tail, setTail] = useState<string>("");
   const [fullHashChain, setFullHashChain] = useState<string[]>([]);
   const [secret, setSecret] = useState<string>("");
   const [length, setLength] = useState<number>(0);
@@ -40,33 +40,33 @@ export const HashChainExtensionProvider: React.FC<
     });
   };
 
-  const fetchHashChain = async (): Promise<
+  const fetchAndPopHashFromHashChain = async (): Promise<
     z.infer<typeof HashChainElementSchema>
   > => {
     window.postMessage({ type: "RequestHashChain" }, "*");
     const response = await createEventPromise<{
       type: string;
-      data: string;
-      index: number;
+      data: { hash: string; index: number };
     }>("HashChain");
+    console.log(response.data);
     const newElement = HashChainElementSchema.parse({
-      data: response.data,
-      index: response.index,
+      hash: response.data.hash,
+      index: response.data.index,
     });
     setHashChainElements((prev) => [...prev, newElement]);
     return newElement;
   };
 
-  const sendH100Once = async (): Promise<string> => {
+  const fetchTail = async (): Promise<string> => {
     window.postMessage({ type: "Send_h(100)" }, "*");
     const response = await createEventPromise<{ type: string; data: string }>(
       "Recover_h(100)"
     );
-    setH100(response.data);
+    setTail(response.data);
     return response.data;
   };
 
-  const fetchFullHashChain = async (): Promise<string[]> => {
+  const fetchHashChain = async (): Promise<string[]> => {
     window.postMessage({ type: "RequestFullHashChain" }, "*");
     const response = await createEventPromise<{ type: string; data: string[] }>(
       "fullHashChain"
@@ -81,7 +81,7 @@ export const HashChainExtensionProvider: React.FC<
     tail: string;
   }> => {
     try {
-      const { secret, length } = await fetchSecretLength();
+      const { secret, length } = await fetchSecretAndLength();
       const chain = generateHashChain(secret, length);
       const tail = chain[chain.length - 1];
       return { secret, length, tail };
@@ -91,7 +91,7 @@ export const HashChainExtensionProvider: React.FC<
     }
   };
 
-  const fetchSecretLength = async (): Promise<
+  const fetchSecretAndLength = async (): Promise<
     z.infer<typeof SecretLengthSchema>
   > => {
     window.postMessage({ type: "RequestSecretLength" }, "*");
@@ -119,14 +119,14 @@ export const HashChainExtensionProvider: React.FC<
   };
   const contextValue = HashChainContextSchema.parse({
     hashChainElements,
-    h100,
+    tail,
     fullHashChain,
     secret,
     length,
+    fetchAndPopHashFromHashChain,
+    fetchTail,
     fetchHashChain,
-    sendH100Once,
-    fetchFullHashChain,
-    fetchSecretLength,
+    fetchSecretAndLength,
     fetchPaywordFromExtension,
   });
 

@@ -2,7 +2,7 @@ import React from "react";
 import { useHashChainFromExtension } from "../../context/HashChainExtensionProvider";
 
 const HashChainElementsList: React.FC = () => {
-  const { hashChainElements, h100, fullHashChain, secret, length } =
+  const { hashChainElements, tail, fullHashChain, secret, length } =
     useHashChainFromExtension();
 
   return (
@@ -11,23 +11,21 @@ const HashChainElementsList: React.FC = () => {
         <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           Tail:
         </h2>
-        <ul className="text-gray-900 dark:text-gray-100">{h100}</ul>
+        <ul className="text-gray-900 dark:text-gray-100">{tail}</ul>
       </div>
       <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
         <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
           Hash Chain Elements:
         </h2>
         <ul className="space-y-2">
-          {hashChainElements.map(
-            (element: { index: number; data: string }, index: number) => (
-              <li
-                key={index}
-                className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow text-gray-900 dark:text-gray-100"
-              >
-                {element.index}: {element.data}
-              </li>
-            )
-          )}
+          {hashChainElements.map((element, index) => (
+            <li
+              key={index}
+              className="bg-white dark:bg-gray-700 p-2 rounded-lg shadow text-gray-900 dark:text-gray-100"
+            >
+              {element.index}: {element.hash}
+            </li>
+          ))}
         </ul>
       </div>
       <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md">
