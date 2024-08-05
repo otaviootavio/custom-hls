@@ -1,13 +1,36 @@
 import React, { createContext, useContext, useState, ReactNode } from "react";
 import { z } from "zod";
 import {
-  HashChainContextSchema,
   HashChainElementSchema,
   SecretLengthSchema,
 } from "@/utils/zod-schemas";
 import { generateHashChain } from "@/utils/HashChainUtils";
 
-type HashChainContextType = z.infer<typeof HashChainContextSchema>;
+interface HashChainElement {
+  hash: string;
+  index: number;
+}
+
+interface HashChainContextType {
+  hashChainElements: HashChainElement[];
+  tail: string;
+  fullHashChain: string[];
+  secret: string;
+  length: number;
+  fetchAndPopHashFromHashChain: () => Promise<HashChainElement>;
+  fetchTail: () => Promise<string>;
+  fetchHashChain: () => Promise<string[]>;
+  fetchSecretAndLength: () => Promise<{
+    secret: string;
+    length: number;
+    tail: string;
+  }>;
+  fetchPaywordFromExtension: () => Promise<{
+    secret: string;
+    length: number;
+    tail: string;
+  }>;
+}
 
 interface HashChainExtensionProviderProps {
   children: ReactNode;
@@ -117,7 +140,8 @@ export const HashChainExtensionProvider: React.FC<
       throw error;
     }
   };
-  const contextValue = HashChainContextSchema.parse({
+
+  const contextValue: HashChainContextType = {
     hashChainElements,
     tail,
     fullHashChain,
@@ -128,7 +152,7 @@ export const HashChainExtensionProvider: React.FC<
     fetchHashChain,
     fetchSecretAndLength,
     fetchPaywordFromExtension,
-  });
+  };
 
   return (
     <WalletHashChainContext.Provider value={contextValue}>
