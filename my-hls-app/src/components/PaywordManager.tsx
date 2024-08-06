@@ -5,6 +5,7 @@ import { useUser } from "@clerk/nextjs";
 import { useHashChainFromExtension } from "@/context/HashChainExtensionProvider";
 import { useHashChain } from "@/context/HashChainContext";
 import { generateHashChain } from "@/utils/HashChainUtils";
+import { z } from "zod";
 
 const PaywordManager: React.FC = () => {
   const { payword, error, loading, fetchPayword, sendTailToServer } =
@@ -40,11 +41,18 @@ const PaywordManager: React.FC = () => {
   const handleFetchPaywordFromExtension = async () => {
     try {
       const data = await fetchPaywordFromExtension();
+      console.log("Fetched payword data:", data);
       setExtensionData(data);
       setNewHash(data.tail);
       setPosition(data.length);
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
+      if (error instanceof z.ZodError) {
+        console.error("Zod validation errors:", error.errors);
+        error.errors.forEach((err, index) => {
+          console.error(`Error ${index + 1}:`, err.path, err.message);
+        });
+      }
     }
   };
 

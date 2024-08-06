@@ -13,14 +13,13 @@
     "@prisma/client": "^5.14.0",
     "axios": "^1.7.0",
     "hls.js": "^1.5.8",
-    "keccak": "^3.0.4",
     "next": "14.2.3",
     "react": "^18",
     "react-dom": "^18",
+    "viem": "^2.18.8",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/keccak": "^3.0.4",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

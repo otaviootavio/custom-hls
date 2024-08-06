@@ -8,6 +8,7 @@ import React, {
 import { type HashObject } from "../utils/interfaces";
 import { HashRepository } from "../repositories/HashRepository";
 import { createHashChain } from "../utils/UsefulFunctions";
+import { stringToBytes, toHex } from "viem";
 
 interface HashChainContextType {
   hashChains: HashObject[];
@@ -98,16 +99,16 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
   ) => {
     setIsLoading(true);
     setError(null);
-    const newChain = createHashChain(secret, length);
+    const newChain = createHashChain(stringToBytes(secret), length);
     const newHashObject: HashObject = {
       address_contract: "",
       address_to: "",
       length,
-      hashchain: newChain,
+      hashchain: newChain.map((hash) => toHex(hash)),
       isValid: false,
       key,
-      tail: newChain[newChain.length - 1],
-      secret: secret
+      tail: toHex(newChain[newChain.length - 1]),
+      secret: secret,
     };
     try {
       await hashRepo.addHashChain(newHashObject);

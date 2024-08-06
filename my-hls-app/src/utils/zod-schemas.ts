@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const HashChainElementSchema = z.object({
-  data: z.string(),
+  hash: z.string(),
   index: z.number(),
 });
 
@@ -24,25 +24,5 @@ export const StorageDataSchema = z.object({
 export const SecretLengthSchema = z.object({
   secret: z.string(),
   length: z.number(),
-});
-
-export const HashChainContextSchema = z.object({
-  hashChainElements: z.array(HashChainElementSchema),
-  h100: z.string(),
-  fullHashChain: z.array(z.string()),
-  secret: z.string(),
-  length: z.number(),
-  fetchHashChain: z.function().returns(z.promise(HashChainElementSchema)),
-  sendH100Once: z.function().returns(z.promise(z.string())),
-  fetchFullHashChain: z.function().returns(z.promise(z.array(z.string()))),
-  fetchSecretLength: z.function().returns(z.promise(SecretLengthSchema)),
-  fetchPaywordFromExtension: z.function().returns(
-    z.promise(
-      z.object({
-        secret: z.string(),
-        length: z.number(),
-        tail: z.string(),
-      })
-    )
-  ),
+  tail: z.string(),
 });

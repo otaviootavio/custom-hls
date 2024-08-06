@@ -150,6 +150,44 @@ class HashRepository {
       });
     });
   }
+
+  async popLastHashFromSelected(): Promise<{
+    index: number;
+    hash: string;
+  } | null> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(
+        ["selectedKey", this.storageKey],
+        async (result) => {
+          const selectedKey = result.selectedKey;
+          let hashChains: HashObject[] = result[this.storageKey];
+          const selectedIndex = hashChains.findIndex(
+            (chain) => chain.key === selectedKey
+          );
+
+          if (selectedIndex !== -1) {
+            const selectedChain = hashChains[selectedIndex];
+            if (selectedChain.hashchain.length > 0) {
+              const lastHash = selectedChain.hashchain.pop()!;
+              const index = selectedChain.hashchain.length;
+
+              // Update the hashchain in storage
+              await this.updateHashChain(selectedChain);
+
+              console.log(`Popped hash from chain with key ${selectedKey}`);
+              resolve({ index, hash: lastHash });
+            } else {
+              console.log(`No more hashes in chain with key ${selectedKey}`);
+              resolve(null);
+            }
+          } else {
+            console.log("No selected hashchain found");
+            resolve(null);
+          }
+        }
+      );
+    });
+  }
 }
 
 export { HashRepository };

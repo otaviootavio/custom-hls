@@ -1,5 +1,4 @@
 import Hls, { ErrorData, Events } from "hls.js";
-import keccak from "keccak";
 
 interface HlsPaywordProps {
   src: string;
@@ -94,24 +93,11 @@ export class HlsPayword {
     }
   }
 
-  private computeHash(hashIndex: number, hashZero: string): string {
-    let currentHash = hashZero;
-    for (let i = 0; i < hashIndex; i++) {
-      currentHash = keccak("keccak256")
-        .update(Buffer.from(currentHash, "utf-8"))
-        .digest("hex");
-    }
-    return currentHash;
-  }
-
   private getNextHash(): string | null {
     if (this.currentHashIndex < 0) {
       return null;
     }
-    const computedHash = this.computeHash(
-      this.currentHashIndex,
-      this.hashChain[0]
-    );
+    const computedHash = this.hashChain[this.currentHashIndex];
     this.currentHashIndex -= 1;
     return computedHash;
   }

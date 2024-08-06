@@ -1,30 +1,50 @@
-import keccak from "keccak";
+import {
+  InvalidHashFormatError,
+  InvalidHashIndexError,
+  NegativeHashIndexError,
+} from "@/errors";
+import { fromHex, keccak256, stringToBytes, toBytes, toHex } from "viem";
 
-export const generateHashChain = (hashZero: string, numHashes: number) => {
-  let currentHash = hashZero;
-  const chain = [];
-  for (let i = 0; i < numHashes; i++) {
-    currentHash = keccak("keccak256")
-      .update(Buffer.from(currentHash, "utf-8"))
-      .digest("hex");
-    chain.push(currentHash);
+export function generateHashChain(
+  secretString: string,
+  length: number
+): `0x${string}`[] {
+  const secret = toBytes(secretString);
+  let currentHash: Uint8Array = keccak256(secret, "bytes");
+  const hashChain: Uint8Array[] = [currentHash];
+
+  for (let i = 1; i < length; i++) {
+    currentHash = keccak256(currentHash, "bytes");
+    hashChain.push(currentHash);
   }
-  return chain;
-};
 
-export const hashKeccak = (input: string): string => {
-  return keccak("keccak256").update(Buffer.from(input, "utf-8")).digest("hex");
-};
+  return hashChain.map((hash) => toHex(hash));
+}
 
-export const verifyHashChain = (
-  incomingHash: string,
-  lastHash: string,
-  chainSize: number,
-  position: number
-): boolean => {
-  let currentHash = incomingHash;
-  for (let i = position; i < chainSize; i++) {
-    currentHash = hashKeccak(currentHash);
+export function verifyHashChain(
+  providedHash: `0x${string}`,
+  providedHashIndex: number,
+  targetHash: `0x${string}`,
+  targetHashIndex: number
+): boolean {
+  if (providedHashIndex < 0 || targetHashIndex < 0) {
+    throw new NegativeHashIndexError();
   }
-  return currentHash === lastHash;
-};
+
+  if (providedHashIndex >= targetHashIndex) {
+    throw new InvalidHashIndexError();
+  }
+
+  if (!providedHash.startsWith("0x") || !targetHash.startsWith("0x")) {
+    throw new InvalidHashFormatError();
+  }
+
+  let currentHashBytes = fromHex(providedHash, "bytes");
+  const targetHashBytes = fromHex(targetHash, "bytes");
+
+  for (let i = providedHashIndex; i < targetHashIndex; i++) {
+    currentHashBytes = keccak256(currentHashBytes, "bytes");
+  }
+
+  return toHex(currentHashBytes) === toHex(targetHashBytes);
+}

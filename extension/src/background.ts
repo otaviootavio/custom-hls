@@ -1,3 +1,4 @@
+import { stringToBytes, toHex } from "viem";
 import { HashRepository } from "./repositories/HashRepository";
 import { HashObject } from "./utils/interfaces";
 import { createHashChain } from "./utils/UsefulFunctions";
@@ -9,11 +10,6 @@ interface ResponseMessage {
   message?: string;
   data?: any;
   error?: string;
-}
-
-interface StorageData {
-  selectedKey?: string;
-  hashChains?: HashObject[];
 }
 
 console.log("Service worker script loaded");
@@ -67,22 +63,23 @@ async function handleMakeHashChain(
   console.log("Handling makeHashChain action");
   const { secret, length, key } = data;
 
-  const start_chain = createHashChain(secret, length);
+  const start_chain = createHashChain(stringToBytes(secret), length);
   console.log("Hash chain created", start_chain);
 
   const hashChainData: HashObject = {
     address_contract: "",
     address_to: "",
     length: length,
-    hashchain: start_chain,
+    hashchain: start_chain.map((hash) => toHex(hash)),
     isValid: false,
     key: key,
     secret: secret,
-    tail: start_chain[start_chain.length - 1],
+    tail: toHex(start_chain[start_chain.length - 1]),
   };
 
   try {
     await hashRepo.addHashChain(hashChainData);
+    await hashRepo.setSelectedKey(key);
     sendResponse({ status: "success", message: "Hash created and stored" });
     console.log("Hash created and stored");
   } catch (error) {
@@ -98,22 +95,17 @@ async function handleDeliverH100(
   sendResponse: (response: ResponseMessage) => void
 ) {
   console.log("Handling Deliver_h(100) action");
-  const { selectedKey } = (await chrome.storage.local.get(
-    "selectedKey"
-  )) as StorageData;
-  const { hashChains = [] } = (await chrome.storage.local.get({
-    hashChains: [],
-  })) as StorageData;
-  const hashObject = hashChains.find(
-    (obj: HashObject) => obj.key === selectedKey
-  );
-  const hashTail = hashObject ? hashObject.tail : "";
-
-  if (hashTail !== "") {
-    sendResponse({ data: hashTail });
-    console.log("Hash sent,", hashTail);
-  } else {
-    sendResponse({ data: "No more hashes are stored" });
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.tail });
+      console.log("Hash sent:", selectedHashChain.tail);
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverH100:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
   }
 }
 
@@ -121,72 +113,56 @@ async function handleDeliverHashchain(
   sendResponse: (response: ResponseMessage) => void
 ) {
   console.log("Handling DeliverHashchain action");
-  const { selectedKey } = await chrome.storage.local.get("selectedKey");
-  const { hashChains = [] } = await chrome.storage.local.get({
-    hashChains: [],
-  });
-  const hashObjectIndex = hashChains.findIndex(
-    (obj: HashObject) => obj.key === selectedKey
-  );
-
-  if (hashObjectIndex === -1) {
-    sendResponse({ error: "Hash object not found" });
-    return;
-  }
-
-  const hashObject = { ...hashChains[hashObjectIndex] };
-  console.log(hashObject);
-
-  if (hashObject.hashchain.length > 0) {
-    const newHashchain = [...hashObject.hashchain];
-    const hash = newHashchain.pop();
-    const lastIndex = newHashchain.length;
-    console.log("Transmission started", hash);
-
-    hashChains[hashObjectIndex] = { ...hashObject, hashchain: newHashchain };
-    await chrome.storage.local.set({ hashChains });
-    sendResponse({ data: { hash, lastIndex } });
-  } else {
-    console.log("No more hashes are stored");
-    sendResponse({ data: "No more hashes are stored" });
+  try {
+    const result = await hashRepo.popLastHashFromSelected();
+    if (result) {
+      console.log("Transmission started", result.hash);
+      sendResponse({ data: { hash: result.hash, index: result.index } });
+    } else {
+      console.log("No more hashes are stored");
+      sendResponse({ data: "No more hashes are stored" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverHashchain:", error);
+    sendResponse({ error: "Failed to retrieve or update hash chain" });
   }
 }
 
 async function handleDeliverFullHashchain(
   sendResponse: (response: ResponseMessage) => void
 ) {
-  const { selectedKey } = await chrome.storage.local.get("selectedKey");
-  const { hashChains = [] } = await chrome.storage.local.get({
-    hashChains: [],
-  });
-  const hashObject = hashChains.find(
-    (obj: HashObject) => obj.key === selectedKey
-  );
-
-  if (hashObject) {
-    sendResponse({ data: hashObject.hashchain });
-  } else {
-    sendResponse({ error: "Hash object not found" });
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.hashchain });
+    } else {
+      sendResponse({ error: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverFullHashchain:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
   }
 }
 
 async function handleDeliverSecretLength(
   sendResponse: (response: ResponseMessage) => void
 ) {
-  const { selectedKey } = await chrome.storage.local.get("selectedKey");
-  const { hashChains = [] } = await chrome.storage.local.get({
-    hashChains: [],
-  });
-  const hashObject = hashChains.find(
-    (obj: HashObject) => obj.key === selectedKey
-  );
-
-  if (hashObject) {
-    sendResponse({
-      data: { secret: hashObject.secret, length: hashObject.length },
-    });
-  } else {
-    sendResponse({ error: "Hash object not found" });
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({
+        data: {
+          secret: selectedHashChain.secret,
+          length: selectedHashChain.length,
+          tail: selectedHashChain.tail,
+        },
+      });
+    } else {
+      sendResponse({ error: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverSecretLength:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
   }
 }
 
