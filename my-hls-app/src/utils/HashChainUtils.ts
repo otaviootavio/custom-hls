@@ -41,12 +41,6 @@ export function verifyHashChain(
     for (let i = providedHashIndex; i < targetHashIndex; i++) {
       currentHashBytes = keccak256(currentHashBytes, "bytes");
     }
-    console.log("providedHashBytes:", providedHash);
-    console.log(
-      "currentHash:",
-      toHex(keccak256(fromHex(providedHash, "bytes"), "bytes"))
-    );
-    console.log("targetHashBytes:", toHex(targetHashBytes));
 
     return toHex(currentHashBytes) === toHex(targetHashBytes);
   } catch (error: any) {
