@@ -1,3 +1,8 @@
+import {
+  InvalidHashFormatError,
+  InvalidHashIndexError,
+  NegativeHashIndexError,
+} from "@/errors";
 import { fromHex, keccak256, stringToBytes, toBytes, toHex } from "viem";
 
 export function generateHashChain(
@@ -23,27 +28,23 @@ export function verifyHashChain(
   targetHashIndex: number
 ): boolean {
   if (providedHashIndex < 0 || targetHashIndex < 0) {
-    throw new Error("Hash indices must be non-negative");
+    throw new NegativeHashIndexError();
   }
 
   if (providedHashIndex >= targetHashIndex) {
-    throw new Error("Provided hash index must be less than target hash index");
+    throw new InvalidHashIndexError();
   }
 
   if (!providedHash.startsWith("0x") || !targetHash.startsWith("0x")) {
-    throw new Error("Hashes must be in 0x-prefixed hex format");
+    throw new InvalidHashFormatError();
   }
 
-  try {
-    let currentHashBytes = fromHex(providedHash, "bytes");
-    const targetHashBytes = fromHex(targetHash, "bytes");
+  let currentHashBytes = fromHex(providedHash, "bytes");
+  const targetHashBytes = fromHex(targetHash, "bytes");
 
-    for (let i = providedHashIndex; i < targetHashIndex; i++) {
-      currentHashBytes = keccak256(currentHashBytes, "bytes");
-    }
-
-    return toHex(currentHashBytes) === toHex(targetHashBytes);
-  } catch (error: any) {
-    throw new Error(`Error during hash chain verification: ${error.message}`);
+  for (let i = providedHashIndex; i < targetHashIndex; i++) {
+    currentHashBytes = keccak256(currentHashBytes, "bytes");
   }
+
+  return toHex(currentHashBytes) === toHex(targetHashBytes);
 }
