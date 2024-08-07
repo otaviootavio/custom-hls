@@ -1,10 +1,10 @@
 "use client";
+import useHlsHashchain from "@/hooks/useHlsHashchain";
 import React, { useEffect, useState } from "react";
-import useHlsPayword from "@/hooks/useHlsPayword";
 
 const VideoPlayer: React.FC = () => {
   const [playlistUrl, setPlaylistUrl] = useState("");
-  const { videoRef, error } = useHlsPayword(playlistUrl);
+  const { videoRef, error } = useHlsHashchain(playlistUrl);
 
   useEffect(() => {
     const updatePlaylistUrl = () => {

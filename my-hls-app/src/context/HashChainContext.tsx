@@ -36,10 +36,12 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
 };
 
 // Hook to use the HashChainContext
-export const useHashChain = (): HashChainContextProps => {
+export const useHashChainContext = (): HashChainContextProps => {
   const context = useContext(HashChainContext);
   if (!context) {
-    throw new Error("useHashChain must be used within a HashChainProvider");
+    throw new Error(
+      "useHashChainContext must be used within a HashChainProvider"
+    );
   }
   return context;
 };

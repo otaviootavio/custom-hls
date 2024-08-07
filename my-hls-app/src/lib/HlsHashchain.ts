@@ -1,6 +1,6 @@
 import Hls, { ErrorData, Events } from "hls.js";
 
-interface HlsPaywordProps {
+interface HlsHashchainProps {
   src: string;
   videoElement: HTMLVideoElement;
   hashChain: string[];
@@ -8,7 +8,7 @@ interface HlsPaywordProps {
   onSuccess: () => void;
 }
 
-export class HlsPayword {
+export class HlsHashchain {
   private hls: Hls | null = null;
   private currentHashIndex: number;
   private hashChain: string[];
@@ -21,7 +21,7 @@ export class HlsPayword {
     hashChain,
     onError,
     onSuccess,
-  }: HlsPaywordProps) {
+  }: HlsHashchainProps) {
     this.currentHashIndex = hashChain.length - 1;
     this.hashChain = hashChain;
     this.onError = onError;
