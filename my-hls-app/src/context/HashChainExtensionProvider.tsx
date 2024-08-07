@@ -4,14 +4,13 @@ import {
   HashChainElementSchema,
   SecretLengthSchema,
 } from "@/utils/zod-schemas";
-import { generateHashChain } from "@/utils/HashChainUtils";
 
 interface HashChainElement {
   hash: string;
   index: number;
 }
 
-interface HashChainContextType {
+interface HashChainExtensionContextType {
   hashChainElements: HashChainElement[];
   tail: string;
   fullHashChain: string[];
@@ -25,20 +24,15 @@ interface HashChainContextType {
     length: number;
     tail: string;
   }>;
-  fetchPaywordFromExtension: () => Promise<{
-    secret: string;
-    length: number;
-    tail: string;
-  }>;
 }
 
 interface HashChainExtensionProviderProps {
   children: ReactNode;
 }
 
-const WalletHashChainContext = createContext<HashChainContextType | undefined>(
-  undefined
-);
+const HashchainFromExtensionContext = createContext<
+  HashChainExtensionContextType | undefined
+>(undefined);
 
 export const HashChainExtensionProvider: React.FC<
   HashChainExtensionProviderProps
@@ -98,22 +92,6 @@ export const HashChainExtensionProvider: React.FC<
     return response.data;
   };
 
-  const fetchPaywordFromExtension = async (): Promise<{
-    secret: string;
-    length: number;
-    tail: string;
-  }> => {
-    try {
-      const { secret, length } = await fetchSecretAndLength();
-      const chain = generateHashChain(secret, length);
-      const tail = chain[chain.length - 1];
-      return { secret, length, tail };
-    } catch (error) {
-      console.error("Error fetching payword from extension:", error);
-      throw error;
-    }
-  };
-
   const fetchSecretAndLength = async (): Promise<
     z.infer<typeof SecretLengthSchema>
   > => {
@@ -141,7 +119,7 @@ export const HashChainExtensionProvider: React.FC<
     }
   };
 
-  const contextValue: HashChainContextType = {
+  const contextValue: HashChainExtensionContextType = {
     hashChainElements,
     tail,
     fullHashChain,
@@ -151,21 +129,20 @@ export const HashChainExtensionProvider: React.FC<
     fetchTail,
     fetchHashChain,
     fetchSecretAndLength,
-    fetchPaywordFromExtension,
   };
 
   return (
-    <WalletHashChainContext.Provider value={contextValue}>
+    <HashchainFromExtensionContext.Provider value={contextValue}>
       {children}
-    </WalletHashChainContext.Provider>
+    </HashchainFromExtensionContext.Provider>
   );
 };
 
 export const useHashChainFromExtension = () => {
-  const context = useContext(WalletHashChainContext);
+  const context = useContext(HashchainFromExtensionContext);
   if (context === undefined) {
     throw new Error(
-      "useHashChain must be used within a HashChainExtensionProvider"
+      "useHashChainFromExtension must be used within a HashChainExtensionProvider"
     );
   }
   return context;

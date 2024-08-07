@@ -1,20 +1,25 @@
 import React, { useEffect, useState } from "react";
-import usePayword from "@/hooks/usePayword";
+import useHaschchainFromServer from "@/hooks/useHashchainFromServer";
 import SingleHashView from "./SingleHashView";
 import { useUser } from "@clerk/nextjs";
 import { useHashChainFromExtension } from "@/context/HashChainExtensionProvider";
-import { useHashChain } from "@/context/HashChainContext";
+import { useHashChainContext } from "@/context/HashChainContext";
 import { generateHashChain } from "@/utils/HashChainUtils";
 import { z } from "zod";
 
-const PaywordManager: React.FC = () => {
-  const { payword, error, loading, fetchPayword, sendTailToServer } =
-    usePayword();
+const HashchainManager: React.FC = () => {
+  const {
+    hashchainFromServer,
+    error,
+    loading,
+    fetchHashchainFromServer,
+    sendTailToServer,
+  } = useHaschchainFromServer();
   const [newHash, setNewHash] = useState("");
-  const [position, setPosition] = useState<number | undefined>();
+  const [hashIndex, setHashIndex] = useState<number | undefined>();
   const { user } = useUser();
-  const { fetchPaywordFromExtension } = useHashChainFromExtension();
-  const { setHashChain } = useHashChain();
+  const { fetchSecretAndLength } = useHashChainFromExtension();
+  const { setHashChain } = useHashChainContext();
   const [extensionData, setExtensionData] = useState<{
     secret: string;
     length: number;
@@ -22,29 +27,28 @@ const PaywordManager: React.FC = () => {
   } | null>(null);
 
   useEffect(() => {
-    fetchPayword();
-  }, [fetchPayword]);
+    fetchHashchainFromServer();
+  }, [fetchHashchainFromServer]);
 
-  const handleUpdatePayword = async () => {
-    if (newHash && position !== undefined) {
+  const handleUpdateHashchainFromServer = async () => {
+    if (newHash && hashIndex !== undefined) {
       try {
-        await sendTailToServer(newHash, position);
-        await fetchPayword();
+        await sendTailToServer(newHash, hashIndex);
+        await fetchHashchainFromServer();
         setNewHash("");
-        setPosition(undefined);
+        setHashIndex(undefined);
       } catch (error) {
         console.error("Error updating payword:", error);
       }
     }
   };
 
-  const handleFetchPaywordFromExtension = async () => {
+  const handleFetchHashchainFromExtension = async () => {
     try {
-      const data = await fetchPaywordFromExtension();
-      console.log("Fetched payword data:", data);
+      const data = await fetchSecretAndLength();
       setExtensionData(data);
       setNewHash(data.tail);
-      setPosition(data.length);
+      setHashIndex(data.length);
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
       if (error instanceof z.ZodError) {
@@ -56,7 +60,7 @@ const PaywordManager: React.FC = () => {
     }
   };
 
-  const setLocalHashChain = () => {
+  const setContextHashchainFromExtension = () => {
     if (extensionData) {
       const chain = generateHashChain(
         extensionData.secret,
@@ -74,13 +78,13 @@ const PaywordManager: React.FC = () => {
       <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
         <h1 className="text-sm font-bold mb-2 text-gray-700">Server Data</h1>
         <button
-          onClick={handleFetchPaywordFromExtension}
+          onClick={handleFetchHashchainFromExtension}
           className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
         >
           Fetch Payword from Extension
         </button>
         <button
-          onClick={setLocalHashChain}
+          onClick={setContextHashchainFromExtension}
           className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
         >
           Set Local Hash Chain
@@ -90,20 +94,21 @@ const PaywordManager: React.FC = () => {
         </h2>
         {loading && <p className="text-xs text-gray-500">Loading...</p>}
         {error && <p className="text-xs text-red-500">{error}</p>}
-        {payword && (
+        {hashchainFromServer && (
           <div className="mb-4">
             <p className="text-xs text-gray-700">
-              Last Hash: <SingleHashView hash={payword.lastHash} />
+              Last Hash: <SingleHashView hash={hashchainFromServer.lastHash} />
             </p>
             <p className="text-xs text-gray-700">
-              Chain Size: {payword.chainSize}
+              Chain Size: {hashchainFromServer.chainSize}
             </p>
             <p className="text-xs text-gray-700">
               Most recent hash:
-              <SingleHashView hash={payword.mostRecentHash} />
+              <SingleHashView hash={hashchainFromServer.mostRecentHash} />
             </p>
             <p className="text-xs text-gray-700">
-              Index of most recent hash: {payword.mostRecentHashIndex}
+              Index of most recent hash:{" "}
+              {hashchainFromServer.mostRecentHashIndex}
             </p>
           </div>
         )}
@@ -116,19 +121,19 @@ const PaywordManager: React.FC = () => {
         />
         <input
           type="number"
-          value={position !== undefined ? position : ""}
-          onChange={(e) => setPosition(parseInt(e.target.value))}
+          value={hashIndex !== undefined ? hashIndex : ""}
+          onChange={(e) => setHashIndex(parseInt(e.target.value))}
           placeholder="Enter position in chain"
           className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
         />
         <button
-          onClick={handleUpdatePayword}
+          onClick={handleUpdateHashchainFromServer}
           className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
         >
           Update Payword
         </button>
         <button
-          onClick={() => fetchPayword()}
+          onClick={() => fetchHashchainFromServer()}
           className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
         >
           Refetch Payword
@@ -138,4 +143,4 @@ const PaywordManager: React.FC = () => {
   );
 };
 
-export default PaywordManager;
+export default HashchainManager;

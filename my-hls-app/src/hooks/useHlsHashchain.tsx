@@ -1,18 +1,18 @@
-import { useHashChain } from "@/context/HashChainContext";
-import { HlsPayword } from "@/lib/HlsPayword";
+import { useHashChainContext } from "@/context/HashChainContext";
+import { HlsHashchain } from "@/lib/HlsHashchain";
 import { useEffect, useRef, useState } from "react";
 
-const useHlsPayword = (src: string) => {
-  const { hashChain } = useHashChain();
+const useHlsHashchain = (src: string) => {
+  const { hashChain } = useHashChainContext();
   const videoRef = useRef<HTMLVideoElement | null>(null);
-  const hlsPaywordRef = useRef<HlsPayword | null>(null);
+  const hlsHashchainRef = useRef<HlsHashchain | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const initializeHlsPayword = () => {
+    const initializeHlsHashchain = () => {
       const video = videoRef.current;
       if (video) {
-        hlsPaywordRef.current = new HlsPayword({
+        hlsHashchainRef.current = new HlsHashchain({
           src,
           videoElement: video,
           hashChain,
@@ -23,20 +23,20 @@ const useHlsPayword = (src: string) => {
     };
 
     const destroyHlsPayword = () => {
-      if (hlsPaywordRef.current) {
-        hlsPaywordRef.current.destroy();
-        hlsPaywordRef.current = null;
+      if (hlsHashchainRef.current) {
+        hlsHashchainRef.current.destroy();
+        hlsHashchainRef.current = null;
       }
     };
 
     const handleError = (errorMessage: string) => setError(errorMessage);
     const handleSuccess = () => setError(null);
 
-    initializeHlsPayword();
+    initializeHlsHashchain();
     return destroyHlsPayword;
   }, [src, hashChain]);
 
   return { videoRef, error };
 };
 
-export default useHlsPayword;
+export default useHlsHashchain;
