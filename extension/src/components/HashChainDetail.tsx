@@ -36,12 +36,21 @@ const HashChainDetail: React.FC = () => {
       <p className="text-gray-300">
         Address To: {selectedHashChain.address_to}
       </p>
-      <p className="text-gray-300">Length: {selectedHashChain.length}</p>
+      <p className="text-gray-300">
+        Length: {selectedHashChain.originalLength}
+      </p>
       <p className="text-gray-300">
         Tail:{" "}
         <span className="break-words">
           {selectedHashChain.tail.substring(0, 8)}...
         </span>
+      </p>
+      <p className="text-gray-300">
+        Last Not Used Hash Index: {selectedHashChain.lastNotUsedHashIndex}
+      </p>
+      <p className="text-gray-300">Value: {selectedHashChain.value}</p>
+      <p className="text-gray-300">
+        Blockchain Id: {selectedHashChain.blockchainId}
       </p>
       <button
         onClick={() => selectHashChain(selectedHashChain.key)}

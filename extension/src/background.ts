@@ -28,9 +28,6 @@ chrome.runtime.onMessage.addListener(
           case "makeHashChain":
             await handleMakeHashChain(message.data, sendResponse);
             break;
-          case "Deliver_h(100)":
-            await handleDeliverH100(sendResponse);
-            break;
           case "DeliverHashchain":
             await handleDeliverHashchain(sendResponse);
             break;
@@ -39,6 +36,15 @@ chrome.runtime.onMessage.addListener(
             break;
           case "DeliverSecretLength":
             await handleDeliverSecretLength(sendResponse);
+            break;
+          case "UpdateLastNotUsedHashIndex":
+            await handleUpdateLastNotUsedHashIndex(message.data, sendResponse);
+            break;
+          case "AddBlockchainDataFromApp":
+            await handleAddBlockchainDataFromApp(message.data, sendResponse);
+            break;
+          case "DeliverTailandOriginalLength":
+            await handleDeliverTailAndOriginalLength(sendResponse);
             break;
           default:
             sendResponse({ error: "Unknown action" });
@@ -69,12 +75,15 @@ async function handleMakeHashChain(
   const hashChainData: HashObject = {
     address_contract: "",
     address_to: "",
-    length: length,
+    originalLength: length,
+    lastNotUsedHashIndex: length,
     hashchain: start_chain.map((hash) => toHex(hash)),
     isValid: false,
     key: key,
     secret: secret,
     tail: toHex(start_chain[start_chain.length - 1]),
+    value: 0,
+    blockchainId: 0,
   };
 
   try {
@@ -91,15 +100,24 @@ async function handleMakeHashChain(
   }
 }
 
-async function handleDeliverH100(
+async function handleDeliverTailAndOriginalLength(
   sendResponse: (response: ResponseMessage) => void
 ) {
-  console.log("Handling Deliver_h(100) action");
+  console.log("Handling tail and original length action");
   try {
     const selectedHashChain = await hashRepo.getSelectedHashChain();
     if (selectedHashChain) {
-      sendResponse({ data: selectedHashChain.tail });
-      console.log("Hash sent:", selectedHashChain.tail);
+      sendResponse({
+        data: {
+          tail: selectedHashChain.tail,
+          originalLength: selectedHashChain.originalLength,
+        },
+      });
+      console.log(
+        "Tail and original length sent:",
+        selectedHashChain.tail,
+        selectedHashChain.originalLength
+      );
     } else {
       sendResponse({ data: "No hash chain selected" });
     }
@@ -134,7 +152,13 @@ async function handleDeliverFullHashchain(
   try {
     const selectedHashChain = await hashRepo.getSelectedHashChain();
     if (selectedHashChain) {
-      sendResponse({ data: selectedHashChain.hashchain });
+      sendResponse({
+        data: {
+          hashchain: selectedHashChain.hashchain,
+          originalLength: selectedHashChain.originalLength,
+          lastNotUsedHashIndex: selectedHashChain.lastNotUsedHashIndex,
+        },
+      });
     } else {
       sendResponse({ error: "No hash chain selected" });
     }
@@ -153,8 +177,8 @@ async function handleDeliverSecretLength(
       sendResponse({
         data: {
           secret: selectedHashChain.secret,
-          length: selectedHashChain.length,
-          tail: selectedHashChain.tail,
+          length: selectedHashChain.originalLength,
+          lastNotUsedHashIndex: selectedHashChain.lastNotUsedHashIndex,
         },
       });
     } else {
@@ -163,6 +187,59 @@ async function handleDeliverSecretLength(
   } catch (error) {
     console.error("Error in handleDeliverSecretLength:", error);
     sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleAddBlockchainDataFromApp(
+  data: {
+    address_contract: string;
+    address_to: string;
+    value: number;
+    blockchainId: number;
+  },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  console.log("Handling ChangeContractAddress action");
+  const { address_contract, address_to, value, blockchainId } = data;
+
+  try {
+    await hashRepo.addBlockchainDataFromApp(
+      address_contract,
+      address_to,
+      value,
+      blockchainId
+    );
+    sendResponse({ status: "success", message: "Blockchain data added" });
+    console.log("Blockchain data added");
+  } catch (error) {
+    sendResponse({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+    console.error("Error changing blockchain contract information:", error);
+  }
+}
+
+async function handleUpdateLastNotUsedHashIndex(
+  data: { index: number },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  console.log("Handling UpdateLastNotUsedHashIndex action");
+  const { index } = data;
+
+  try {
+    await hashRepo.updateLastNotUsedHashIndex(index);
+    sendResponse({
+      status: "success",
+      message: "LastNotUsedHashIndex updated",
+    });
+    console.log("LastNotUsedHashIndex updated");
+  } catch (error) {
+    sendResponse({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+    console.error("Error updating LastNotUsedHashIndex:", error);
   }
 }
 

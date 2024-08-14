@@ -2,9 +2,6 @@ window.addEventListener("message", handleMessage);
 
 function handleMessage(event: MessageEvent) {
   switch (event.data.type) {
-    case "Send_h(100)":
-      handleSendH100();
-      break;
     case "RequestHashChain":
       handleRequestHashChain();
       break;
@@ -14,20 +11,16 @@ function handleMessage(event: MessageEvent) {
     case "RequestSecretLength":
       handleRequestSecretLength();
       break;
+    case "SendBlockchainData":
+      handleAddBlockchainDataFromApp(event.data.data);
+      break;
+    case "UpdateLastNotUsedHashIndex":
+      handleUpdateLastNotUsedHashIndex(event.data.data);
+      break;
+    case "RequestTailAndOriginalLength":
+      handleRequestTailAndOriginalLength();
+      break;
   }
-}
-
-function handleSendH100() {
-  chrome.runtime.sendMessage({ action: "Deliver_h(100)" }, (response) => {
-    if (response && response.data !== undefined) {
-      window.postMessage({ type: "Recover_h(100)", data: response.data }, "*");
-    } else {
-      window.postMessage(
-        { type: "Recover_h(100)", data: "No data found" },
-        "*"
-      );
-    }
-  });
 }
 
 function handleRequestHashChain() {
@@ -56,6 +49,25 @@ function handleRequestFullHashChain() {
   });
 }
 
+function handleRequestTailAndOriginalLength() {
+  chrome.runtime.sendMessage(
+    { action: "DeliverTailandOriginalLength" },
+    (response) => {
+      if (response && response.data !== null) {
+        window.postMessage(
+          { type: "TailAndOriginalLength", data: response.data },
+          "*"
+        );
+      } else {
+        window.postMessage(
+          { type: "TailAndOriginalLength", data: "No data found" },
+          "*"
+        );
+      }
+    }
+  );
+}
+
 function handleRequestSecretLength() {
   chrome.runtime.sendMessage({ action: "DeliverSecretLength" }, (response) => {
     if (response && response.data) {
@@ -73,4 +85,57 @@ function handleRequestSecretLength() {
       );
     }
   });
+}
+
+function handleAddBlockchainDataFromApp(data: {
+  tail: string;
+  address_contract: string;
+  address_to: string;
+  value: number;
+  blockchainId: number;
+}) {
+  chrome.runtime.sendMessage(
+    { action: "AddBlockchainDataFromApp", data },
+    (response) => {
+      if (response && response.status === "success") {
+        window.postMessage(
+          { type: "BlockchainDataAdded", data: "Blockchain data added" },
+          "*"
+        );
+      } else {
+        window.postMessage(
+          { type: "BlockchainDataAdded", data: "Blockchain data not added" },
+          "*"
+        );
+      }
+    }
+  );
+}
+
+function handleUpdateLastNotUsedHashIndex(data: {
+  tail: string;
+  index: number;
+}) {
+  chrome.runtime.sendMessage(
+    { action: "UpdateLastNotUsedHashIndex", data },
+    (response) => {
+      if (response && response.status === "success") {
+        window.postMessage(
+          {
+            type: "LastNotUsedHashIndexUpdated",
+            data: "LastNotUsedHashIndex updated",
+          },
+          "*"
+        );
+      } else {
+        window.postMessage(
+          {
+            type: "LastNotUsedHashIndexUpdated",
+            data: "LastNotUsedHashIndex not updated",
+          },
+          "*"
+        );
+      }
+    }
+  );
 }

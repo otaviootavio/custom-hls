@@ -103,12 +103,15 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     const newHashObject: HashObject = {
       address_contract: "",
       address_to: "",
-      length,
+      originalLength: length,
       hashchain: newChain.map((hash) => toHex(hash)),
       isValid: false,
       key,
       tail: toHex(newChain[newChain.length - 1]),
       secret: secret,
+      blockchainId: 0,
+      lastNotUsedHashIndex: length,
+      value: 0,
     };
     try {
       await hashRepo.addHashChain(newHashObject);
