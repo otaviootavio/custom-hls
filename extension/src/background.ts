@@ -40,6 +40,9 @@ chrome.runtime.onMessage.addListener(
           case "DeliverSecretLength":
             await handleDeliverSecretLength(sendResponse);
             break;
+          case "DeliverSyncLastHashSendIndex":
+            await handleSyncLastHashSendIndex(message.data.data, sendResponse);
+            break;
           default:
             sendResponse({ error: "Unknown action" });
         }
@@ -75,6 +78,7 @@ async function handleMakeHashChain(
     key: key,
     secret: secret,
     tail: toHex(start_chain[start_chain.length - 1]),
+    indexOfLastHashSend: length,
   };
 
   try {
@@ -162,6 +166,27 @@ async function handleDeliverSecretLength(
     }
   } catch (error) {
     console.error("Error in handleDeliverSecretLength:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleSyncLastHashSendIndex(
+  data: { lastHashSendIndex: number },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.syncLastHashSendFromSelected(
+      data.lastHashSendIndex
+    );
+    if (selectedHashChain) {
+      sendResponse({
+        data: selectedHashChain.indexOfLastHashSend,
+      });
+    } else {
+      sendResponse({ error: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleSyncLastHashSendIndex:", error);
     sendResponse({ error: "Failed to retrieve hash chain" });
   }
 }

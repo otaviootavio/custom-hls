@@ -24,6 +24,7 @@ interface HashChainExtensionContextType {
     length: number;
     tail: string;
   }>;
+  syncLastHashSendIndex: (lastHashSendIndex: number) => Promise<number>;
 }
 
 interface HashChainExtensionProviderProps {
@@ -119,6 +120,19 @@ export const HashChainExtensionProvider: React.FC<
     }
   };
 
+  const syncLastHashSendIndex = async (lastHashSendIndex: number) => {
+    window.postMessage(
+      { type: "RequestSyncLastHashSendIndex", data: { lastHashSendIndex } },
+      "*"
+    );
+    console.log("Syncing last hash send index");
+    const response = await createEventPromise<{
+      type: string;
+      data: { lastHashSendIndex: number };
+    }>("SyncLastHashSendIndex");
+    return response.data.lastHashSendIndex;
+  };
+
   const contextValue: HashChainExtensionContextType = {
     hashChainElements,
     tail,
@@ -129,6 +143,7 @@ export const HashChainExtensionProvider: React.FC<
     fetchTail,
     fetchHashChain,
     fetchSecretAndLength,
+    syncLastHashSendIndex,
   };
 
   return (

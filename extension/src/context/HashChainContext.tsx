@@ -15,7 +15,7 @@ interface HashChainContextType {
   selectedHashChain: HashObject | null;
   isLoading: boolean;
   error: string | null;
-  selectHashChain: (key: string) => void;
+  selectHashChain: (key: string) => Promise<void>;
   deleteHashChain: (key: string) => Promise<void>;
   addNewHashChain: (
     secret: string,
@@ -109,6 +109,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       key,
       tail: toHex(newChain[newChain.length - 1]),
       secret: secret,
+      indexOfLastHashSend: length,
     };
     try {
       await hashRepo.addHashChain(newHashObject);

@@ -18,7 +18,8 @@ const HashchainManager: React.FC = () => {
   const [newHash, setNewHash] = useState("");
   const [hashIndex, setHashIndex] = useState<number | undefined>();
   const { user } = useUser();
-  const { fetchSecretAndLength } = useHashChainFromExtension();
+  const { fetchSecretAndLength, syncLastHashSendIndex } =
+    useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
   const [extensionData, setExtensionData] = useState<{
     secret: string;
@@ -57,6 +58,16 @@ const HashchainManager: React.FC = () => {
           console.error(`Error ${index + 1}:`, err.path, err.message);
         });
       }
+    }
+  };
+
+  const handleSyncLastHashSendIndex = async () => {
+    if (hashchainFromServer) {
+      await syncLastHashSendIndex(hashchainFromServer.mostRecentHashIndex);
+    } else {
+      console.error(
+        "Extension data not available. Fetch payword from extension first."
+      );
     }
   };
 
@@ -138,6 +149,14 @@ const HashchainManager: React.FC = () => {
         >
           Refetch Payword
         </button>
+        {!!hashchainFromServer && (
+          <button
+            onClick={handleSyncLastHashSendIndex}
+            className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
+          >
+            Sync Last Hash Send Index
+          </button>
+        )}
       </div>
     </div>
   );

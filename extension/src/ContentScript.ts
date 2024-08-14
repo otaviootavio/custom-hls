@@ -1,6 +1,7 @@
 window.addEventListener("message", handleMessage);
 
 function handleMessage(event: MessageEvent) {
+  console.log("Handling message:", event);
   switch (event.data.type) {
     case "Send_h(100)":
       handleSendH100();
@@ -14,6 +15,11 @@ function handleMessage(event: MessageEvent) {
     case "RequestSecretLength":
       handleRequestSecretLength();
       break;
+    case "RequestSyncLastHashSendIndex":
+      handleSyncLastHashSendIndex(event);
+      break;
+    default:
+      console.error("Unknown message type:", event.data.type);
   }
 }
 
@@ -73,4 +79,24 @@ function handleRequestSecretLength() {
       );
     }
   });
+}
+
+function handleSyncLastHashSendIndex(event: MessageEvent) {
+  console.log("Handling SyncLastHashSendIndex action");
+  chrome.runtime.sendMessage(
+    { action: "DeliverSyncLastHashSendIndex", data: { ...event.data } },
+    (response) => {
+      if (response && response.data !== undefined) {
+        window.postMessage(
+          { type: "SyncLastHashSendIndex", data: response.data },
+          "*"
+        );
+      } else {
+        window.postMessage(
+          { type: "SyncLastHashSendIndex", data: "No data found" },
+          "*"
+        );
+      }
+    }
+  );
 }
