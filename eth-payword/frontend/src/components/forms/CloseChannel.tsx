@@ -76,7 +76,9 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
   const handleFetchHashChain = async () => {
     const hashChain = await fetchHashChain();
     setFullHashChain(hashChain);
-    setBigIntValue(BigInt(hashChain.length - 1));
+    const firstHashToWithdraw = 1;
+    setBigIntValue(BigInt(firstHashToWithdraw));
+    setHexValue(hashChain[hashChain.length - 1 - firstHashToWithdraw]);
   };
 
   return (
@@ -98,6 +100,8 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
         <HashchainInput
           setBigIntValue={setBigIntValue}
           setHexValue={setHexValue}
+          bigIntValue={bigIntValue}
+          hexValue={hexValue}
           fullHashChain={fullHashChain}
         />
         <input

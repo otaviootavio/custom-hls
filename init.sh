@@ -57,6 +57,8 @@ install_dependencies() {
 # Install dependencies in each relevant directory
 install_dependencies "extension"
 install_dependencies "my-hls-app"
+install_dependencies "eth-payword/frontend"
+install_dependencies "eth-payword/hardhat"
 
 echo "Setting up the project..."
 
