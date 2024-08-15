@@ -18,7 +18,7 @@ const DeployContract = () => {
     setNumberOfTokens(hashChain.length);
   };
   return (
-    <div className="p-6   bg-white rounded-xl shadow-md space-y-4">
+    <div className="p-6 bg-white  shadow-md space-y-4">
       <div className="flex flex-col gap-1">
         <div className="flex flex-row gap-1 justify-between">
           <h2 className="text-2xl font-bold text-gray-900">

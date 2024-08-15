@@ -6,7 +6,7 @@ const QuerySmartContract = () => {
   const [address, setAddress] = useState<Address>();
 
   return (
-    <div className="p-6 flex flex-row w-full bg-white rounded-xl shadow-md space-y-4">
+    <div className="p-6 flex flex-row w-full bg-white shadow-md space-y-4">
       <div className="flex flex-col w-full ">
         <h1 className="text-2xl w-max font-bold text-gray-900 mb-4">
           Enter Contract Address
