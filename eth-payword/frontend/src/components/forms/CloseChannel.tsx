@@ -129,7 +129,7 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
       <p className="text-gray-900 font-bold">
         Write Status: <span className="font-normal">{statusWrite}</span>
       </p>
-      <p className="text-red-500">{errorWrite?.message}</p>
+      <p className="text-red-500 max-w-md break-words">{errorWrite?.message}</p>
     </div>
   );
 };
