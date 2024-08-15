@@ -62,49 +62,44 @@ const ContractInfo: React.FC<ContractInfoProps> = ({ address }) => {
 
   if (channelRecipient !== account?.address) {
     return (
-      <div className=" w-full gap-2 bg-white ">
-        <p className="p-2 text-red-700  break-words w-full bg-red-200 border rounded-lg border-red-300 ">
+      <div className="p-2 gap-2 bg-red-200 rounded-lg shadow-sm border-red-300 border text-red-700 space-y-4 ">
+        <p className=" break-words max-w-md ">
           You are not the recipient of this contract. Please, connect with the
-          address {channelRecipient}
+          account address: {channelRecipient}
         </p>
       </div>
     );
   }
 
   return (
-    <div className="p-6 mx-auto bg-white space-y-4 max-w-2xl">
-      <h2 className="text-2xl font-bold text-gray-900">Contract Info</h2>
-      {channelRecipient !== account?.address ? (
-        <>
-          <p className="text-red-700 break-words max-w-md">
-            You are not the recipient of this contract. Please, connect with the
-            address {channelRecipient}
+    <div className="mx-auto bg-white space-y-4">
+      <div className="flex flex-col gap-2 w-max-lg">
+        <h2 className="text-2xl font-bold text-gray-900">Contract Info</h2>
+        <div className="text-gray-700">
+          <span className="font-semibold">Channel recipient:</span>{" "}
+          <p>{channelRecipient}</p>
+        </div>
+        <div className="text-gray-700">
+          <span className="font-semibold">Channel tip:</span>{" "}
+          <p className="break-words">
+            {channelTip?.toString().slice(0, 10)}...
+            {channelTip?.toString().slice(60, channelTip?.toString().length)}
           </p>
-        </>
-      ) : (
-        <>
-          <p className="text-gray-700">
-            <span className="font-semibold">Channel recipient:</span>{" "}
-            {channelRecipient}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-semibold">Channel tip:</span> {channelTip}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-semibold">Channel sender:</span>{" "}
-            {channelSender}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-semibold">Total word count:</span>{" "}
-            {totalWordCount?.toString()}
-          </p>
-          <p className="text-gray-700">
-            <span className="font-semibold">Balance:</span>{" "}
-            {formatEther(balance?.value || 0n)}
-          </p>
-          <CloseChannel address={address} />
-        </>
-      )}
+        </div>
+        <div className="text-gray-700">
+          <span className="font-semibold">Channel sender:</span>{" "}
+          <p className="break-words">{channelSender}</p>
+        </div>
+        <div className="text-gray-700">
+          <span className="font-semibold">Total word count:</span>{" "}
+          <p className="break-words">{totalWordCount?.toString()}</p>
+        </div>
+        <div className="text-gray-700 break-words">
+          <span className="font-semibold">Balance:</span>{" "}
+          <p>{formatEther(balance?.value || 0n)}</p>
+        </div>
+      </div>
+      <CloseChannel address={address} />
     </div>
   );
 };

@@ -152,42 +152,57 @@ const SmartContractInput: React.FC<SmartConractProps> = ({
   }
 
   return (
-    <div className="grid gap-x-8 gap-y-4 grid-cols-3">
-      <div>
-        <button
-          className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition"
-          onClick={compileSourceCode}
-        >
-          Compile
-        </button>
-      </div>
-      <div>
-        {isCompiling ? (
-          <div className="flex flex-row gap-2 justify-between items-center">
-            <div className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-blue-700 transition">
-              Compiling...
+    <div className="flex flex-col gap-2 w-full">
+      <div className="flex flex-row w-full justify-between items-center">
+        <div>
+          <button
+            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-700 transition"
+            onClick={compileSourceCode}
+          >
+            Compile
+          </button>
+        </div>
+        <div>
+          {isCompiling ? (
+            <div className="flex flex-row gap-2 justify-between items-center">
+              <div className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-blue-700 transition">
+                Compiling...
+              </div>
             </div>
-          </div>
-        ) : (
-          !!byteCode && (
+          ) : (
             <button
-              className="px-4 py-2 bg-red-500 text-white rounded hover:bg-blue-700 transition"
+              className={
+                byteCode
+                  ? `px-4 py-2 bg-red-500 text-white rounded hover:bg-red-700 transition`
+                  : `px-4 py-2 bg-gray-500 text-white rounded  transition`
+              }
               onClick={deployContract}
             >
               Deploy!
             </button>
-          )
-        )}
+          )}
+        </div>
       </div>
-      {status === "pending" && (
-        <div className="text-gray-900">Deploying...</div>
-      )}
-      {status === "success" && !!contractAddress && (
-        <div className="text-gray-900">{contractAddress}</div>
-      )}
-      {status === "error" && (
-        <div className="text-red-500">{error?.message}</div>
-      )}
+      <div className="flex flex-col max-w-lg justify-start items-start">
+        <div className="word-break w-full">
+          {status === "pending" && (
+            <div className="text-gray-900">Deploying...</div>
+          )}
+          {status === "success" && !!contractAddress && (
+            <div>
+              <p className="text-gray-600">
+                Smart contract is avaliable at address:
+              </p>
+              <p className="text-green-900 p-2 bg-green-100 rounded-lg border border-green-500">
+                {contractAddress}
+              </p>
+            </div>
+          )}
+          {status === "error" && (
+            <div className="text-red-500">{error?.message}</div>
+          )}
+        </div>
+      </div>
     </div>
   );
 };
