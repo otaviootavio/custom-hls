@@ -3,7 +3,7 @@ import { parseEther, stringToBytes, keccak256, bytesToHex } from "viem";
 
 export const hashM = 100;
 const chainSize: number = 1000;
-const secret: Uint8Array = stringToBytes("segredo");
+const secret: Uint8Array = stringToBytes("segredo", { size: 32 });
 const ammount: bigint = parseEther("1");
 
 export function createHashchain(

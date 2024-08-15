@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import useHaschchainFromServer from "@/hooks/useHashchainFromServer";
 import SingleHashView from "./SingleHashView";
-import { useUser } from "@clerk/nextjs";
 import { useHashChainFromExtension } from "@/context/HashChainExtensionProvider";
 import { useHashChainContext } from "@/context/HashChainContext";
 import { generateHashChain } from "@/utils/HashChainUtils";
 import { z } from "zod";
+import { stringToBytes, toBytes } from "viem";
 
 const HashchainManager: React.FC = () => {
   const {
@@ -16,8 +16,9 @@ const HashchainManager: React.FC = () => {
     sendTailToServer,
   } = useHaschchainFromServer();
   const [newHash, setNewHash] = useState("");
-  const [hashIndex, setHashIndex] = useState<number | undefined>();
-  const { user } = useUser();
+  const [newHashChainSize, setNewHashChainSize] = useState<
+    number | undefined
+  >();
   const { fetchSecretAndLength, syncLastHashSendIndex } =
     useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
@@ -25,6 +26,7 @@ const HashchainManager: React.FC = () => {
     secret: string;
     length: number;
     tail: string;
+    lastHashSendIndex: number;
   } | null>(null);
 
   useEffect(() => {
@@ -32,12 +34,12 @@ const HashchainManager: React.FC = () => {
   }, [fetchHashchainFromServer]);
 
   const handleUpdateHashchainFromServer = async () => {
-    if (newHash && hashIndex !== undefined) {
+    if (newHash && newHashChainSize !== undefined) {
       try {
-        await sendTailToServer(newHash, hashIndex);
+        await sendTailToServer(newHash, newHashChainSize);
         await fetchHashchainFromServer();
         setNewHash("");
-        setHashIndex(undefined);
+        setNewHashChainSize(undefined);
       } catch (error) {
         console.error("Error updating payword:", error);
       }
@@ -49,7 +51,7 @@ const HashchainManager: React.FC = () => {
       const data = await fetchSecretAndLength();
       setExtensionData(data);
       setNewHash(data.tail);
-      setHashIndex(data.length);
+      setNewHashChainSize(data.length);
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
       if (error instanceof z.ZodError) {
@@ -63,7 +65,20 @@ const HashchainManager: React.FC = () => {
 
   const handleSyncLastHashSendIndex = async () => {
     if (hashchainFromServer) {
-      await syncLastHashSendIndex(hashchainFromServer.mostRecentHashIndex);
+      const lastHashSendIndex = hashchainFromServer.mostRecentHashIndex;
+      await syncLastHashSendIndex(lastHashSendIndex);
+      const extenstionData = await fetchSecretAndLength();
+      const hashchain = generateHashChain(
+        stringToBytes(extenstionData.secret, { size: 32 }),
+        lastHashSendIndex - 1
+      );
+      console.log(
+        generateHashChain(
+          stringToBytes(extenstionData.secret, { size: 32 }),
+          lastHashSendIndex
+        )
+      );
+      setHashChain(hashchain);
     } else {
       console.error(
         "Extension data not available. Fetch payword from extension first."
@@ -72,12 +87,13 @@ const HashchainManager: React.FC = () => {
   };
 
   const setContextHashchainFromExtension = () => {
-    if (extensionData) {
-      const chain = generateHashChain(
-        extensionData.secret,
-        extensionData.length
+    if (newHashChainSize) {
+      const hashchain = generateHashChain(
+        toBytes(newHash, { size: 32 }),
+        newHashChainSize - 1
       );
-      setHashChain(chain.slice(0, -1));
+      setHashChain(hashchain);
+      console.log(hashchain);
     } else {
       console.error(
         "Extension data not available. Fetch payword from extension first."
@@ -85,9 +101,9 @@ const HashchainManager: React.FC = () => {
     }
   };
   return (
-    <div>
-      <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
-        <h1 className="text-sm font-bold mb-2 text-gray-700">Server Data</h1>
+    <div className="flex flex-col items-start justify-start p-2 bg-gray-200 gap-10">
+      <div>
+        <p>Extension Control Button</p>
         <button
           onClick={handleFetchHashchainFromExtension}
           className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
@@ -100,9 +116,9 @@ const HashchainManager: React.FC = () => {
         >
           Set Local Hash Chain
         </button>
-        <h2 className="text-base font-semibold text-gray-800">
-          {user?.firstName}&apos;s Payword
-        </h2>
+      </div>
+      <div>
+        <p> Data stored on server</p>
         {loading && <p className="text-xs text-gray-500">Loading...</p>}
         {error && <p className="text-xs text-red-500">{error}</p>}
         {hashchainFromServer && (
@@ -118,11 +134,21 @@ const HashchainManager: React.FC = () => {
               <SingleHashView hash={hashchainFromServer.mostRecentHash} />
             </p>
             <p className="text-xs text-gray-700">
-              Index of most recent hash:{" "}
+              Index of most recent hash:
               {hashchainFromServer.mostRecentHashIndex}
             </p>
           </div>
         )}
+        <button
+          onClick={() => fetchHashchainFromServer()}
+          className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
+        >
+          Refetch Payword
+        </button>
+      </div>
+      <div>
+        <p>Forms to update server data</p>
+        <p>Enter tail:</p>
         <input
           type="text"
           value={newHash}
@@ -130,10 +156,11 @@ const HashchainManager: React.FC = () => {
           placeholder="Enter new hash"
           className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
         />
+        <p>Enter chain size:</p>
         <input
           type="number"
-          value={hashIndex !== undefined ? hashIndex : ""}
-          onChange={(e) => setHashIndex(parseInt(e.target.value))}
+          value={newHashChainSize !== undefined ? newHashChainSize : ""}
+          onChange={(e) => setNewHashChainSize(parseInt(e.target.value))}
           placeholder="Enter position in chain"
           className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
         />
@@ -143,12 +170,9 @@ const HashchainManager: React.FC = () => {
         >
           Update Payword
         </button>
-        <button
-          onClick={() => fetchHashchainFromServer()}
-          className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
-        >
-          Refetch Payword
-        </button>
+      </div>
+      <div>
+        <p>Player Control Button</p>
         {!!hashchainFromServer && (
           <button
             onClick={handleSyncLastHashSendIndex}

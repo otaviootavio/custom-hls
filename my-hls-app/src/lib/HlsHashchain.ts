@@ -63,7 +63,7 @@ export class HlsHashchain {
 
     xhr.setRequestHeader(
       "Payword-Header",
-      `${computedHash}:${this.currentHashIndex + 2}`
+      `${computedHash}:${this.currentHashIndex + 1}`
     );
   }
 

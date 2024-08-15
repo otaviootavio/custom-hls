@@ -25,4 +25,5 @@ export const SecretLengthSchema = z.object({
   secret: z.string(),
   length: z.number(),
   tail: z.string(),
+  lastHashSendIndex: z.number(),
 });

@@ -1,7 +1,7 @@
 import { stringToBytes, toHex } from "viem";
 import { HashRepository } from "./repositories/HashRepository";
 import { HashObject } from "./utils/interfaces";
-import { createHashChain } from "./utils/UsefulFunctions";
+import { createHashChainFromSecretAndMaxIndex } from "./utils/UsefulFunctions";
 
 const hashRepo = new HashRepository();
 
@@ -66,7 +66,10 @@ async function handleMakeHashChain(
   console.log("Handling makeHashChain action");
   const { secret, length, key } = data;
 
-  const start_chain = createHashChain(stringToBytes(secret), length);
+  const start_chain = createHashChainFromSecretAndMaxIndex(
+    stringToBytes(secret, { size: 32 }),
+    length - 1
+  );
   console.log("Hash chain created", start_chain);
 
   const hashChainData: HashObject = {
@@ -159,6 +162,7 @@ async function handleDeliverSecretLength(
           secret: selectedHashChain.secret,
           length: selectedHashChain.length,
           tail: selectedHashChain.tail,
+          lastHashSendIndex: selectedHashChain.indexOfLastHashSend,
         },
       });
     } else {

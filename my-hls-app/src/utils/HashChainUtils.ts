@@ -3,17 +3,16 @@ import {
   InvalidHashIndexError,
   NegativeHashIndexError,
 } from "@/errors";
-import { fromHex, keccak256, stringToBytes, toBytes, toHex } from "viem";
+import { fromHex, keccak256, toHex } from "viem";
 
 export function generateHashChain(
-  secretString: string,
-  length: number
+  secret: Uint8Array,
+  maxIndex: number
 ): `0x${string}`[] {
-  const secret = toBytes(secretString);
   let currentHash: Uint8Array = keccak256(secret, "bytes");
   const hashChain: Uint8Array[] = [currentHash];
 
-  for (let i = 1; i < length; i++) {
+  for (let i = 1; i <= maxIndex; i++) {
     currentHash = keccak256(currentHash, "bytes");
     hashChain.push(currentHash);
   }
@@ -42,7 +41,7 @@ export function verifyHashChain(
   let currentHashBytes = fromHex(providedHash, "bytes");
   const targetHashBytes = fromHex(targetHash, "bytes");
 
-  for (let i = providedHashIndex; i < targetHashIndex; i++) {
+  for (let i = providedHashIndex + 1; i <= targetHashIndex; i++) {
     currentHashBytes = keccak256(currentHashBytes, "bytes");
   }
 
