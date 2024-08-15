@@ -1,8 +1,8 @@
 import { useAccount } from "wagmi";
-import AccountInfo from "./components/AccountInfo";
 import DeployContract from "./components/DeployContract";
 import QuerySmartContract from "./components/QuerySmartContract";
 import { HashChainExtensionProvider } from "./contexts/wallet/HashChainExtensionProvider";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
 
 function App() {
   const { address } = useAccount();
@@ -13,14 +13,18 @@ function App() {
           <div className="text-blue-500 text-2xl font-bold bg-white">
             buyHashchain
           </div>
+          <ConnectButton />
         </header>
-        <main className="flex-grow flex flex-col items-start justify-start p-4 gap-10 pt-12">
+        <main className="flex-grow flex flex-col items-start justify-start gap-10 my-10">
           <HashChainExtensionProvider>
-            <AccountInfo />
             {address && (
               <>
-                <DeployContract />
-                <QuerySmartContract />
+                <div className="w-full">
+                  <DeployContract />
+                </div>
+                <div className="w-full">
+                  <QuerySmartContract />
+                </div>
               </>
             )}
           </HashChainExtensionProvider>

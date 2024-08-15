@@ -51,7 +51,7 @@ const HashChainElementsList: React.FC = () => {
       </div>
       <div className="bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-md mb-4">
         <h2 className="text-xl font-bold mb-2 text-gray-900 dark:text-gray-100">
-          Length:
+          Hashchain length ( including the tail ):
         </h2>
         <ul className="text-gray-900 dark:text-gray-100">{length}</ul>
       </div>

@@ -32,7 +32,7 @@ const SmartContractInput: React.FC<SmartConractProps> = ({
     const newTxHash: Hash = await deployContractAsync({
       abi: abi,
       bytecode: `0x${byteCode}`,
-      args: [toAddress, numersOfToken, tail],
+      args: [toAddress, numersOfToken - 1, tail],
       value: parseEther(amountEth.toString()),
     });
 

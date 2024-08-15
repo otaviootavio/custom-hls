@@ -79,6 +79,7 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
     const firstHashToWithdraw = 1;
     setBigIntValue(BigInt(firstHashToWithdraw));
     setHexValue(hashChain[hashChain.length - 1 - firstHashToWithdraw]);
+    console.log(hashChain);
   };
 
   return (
