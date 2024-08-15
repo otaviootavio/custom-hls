@@ -13,6 +13,10 @@ import { RainbowKitProvider } from "@rainbow-me/rainbowkit";
 
 globalThis.Buffer = Buffer;
 
+import { initializeScrollBehavior } from "./utils/scrollBehavior";
+
+initializeScrollBehavior();
+
 const queryClient = new QueryClient();
 
 ReactDOM.createRoot(document.getElementById("root")!).render(
