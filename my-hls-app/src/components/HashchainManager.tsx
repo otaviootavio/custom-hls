@@ -7,6 +7,7 @@ import { stringToBytes, toBytes } from "viem";
 import { Navbar } from "./manager/NavBar";
 import { UserMode } from "./manager/UserMode";
 import { AdminMode } from "./manager/AdminMode";
+import { toast } from "react-toastify";
 
 const HashchainManager: React.FC = () => {
   const [mode, setMode] = useState<"user" | "admin">("user");
@@ -24,12 +25,6 @@ const HashchainManager: React.FC = () => {
   const { fetchSecretAndLength, syncLastHashSendIndex } =
     useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
-  const [extensionData, setExtensionData] = useState<{
-    secret: string;
-    length: number;
-    tail: string;
-    lastHashSendIndex: number;
-  } | null>(null);
 
   useEffect(() => {
     fetchHashchainFromServer();
@@ -38,38 +33,58 @@ const HashchainManager: React.FC = () => {
   const handleUpdateHashchainFromServer = async () => {
     if (newHash && newHashChainSize !== undefined) {
       try {
+        toast.info("Updating hashchain on server...");
         await sendTailToServer(newHash, newHashChainSize);
         await fetchHashchainFromServer();
         setNewHash("");
         setNewHashChainSize(undefined);
+        toast.success("Hashchain updated successfully!");
       } catch (error) {
         console.error("Error updating payword:", error);
+        toast.error("Error updating hashchain. Please try again.", {
+          autoClose: 3000,
+        });
       }
     }
   };
 
   const handleFetchHashchainFromExtension = async () => {
     try {
+      toast.info("Fetching payword from extension...");
       const data = await fetchSecretAndLength();
-      setExtensionData(data);
       setNewHash(data.tail);
       setNewHashChainSize(data.length);
+      toast.success("Payword fetched successfully!");
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
+      toast.error("Error fetching payword from extension. Please try again.");
     }
   };
 
   const handleSyncLastHashSendIndex = async () => {
-    fetchHashchainFromServer();
-    if (hashchainFromServer) {
-      const lastHashSendIndex = hashchainFromServer.mostRecentHashIndex;
-      await syncLastHashSendIndex(lastHashSendIndex);
-      const extenstionData = await fetchSecretAndLength();
-      const hashchain = generateHashChain(
-        stringToBytes(extenstionData.secret, { size: 32 }),
-        lastHashSendIndex - 1
-      );
-      setHashChain(hashchain);
+    //TODO
+    //How to verify if the hashchin is already synced?
+    try {
+      toast.info("Fetching hashchain from server...");
+      await fetchHashchainFromServer();
+      if (hashchainFromServer) {
+        const lastHashSendIndex = hashchainFromServer.mostRecentHashIndex;
+        toast.info("Syncing last hash send index...");
+        await syncLastHashSendIndex(lastHashSendIndex);
+        const extenstionData = await fetchSecretAndLength();
+        const hashchain = generateHashChain(
+          stringToBytes(extenstionData.secret, { size: 32 }),
+          lastHashSendIndex - 1
+        );
+
+        setHashChain(hashchain);
+        toast.success("Sync completed successfully!");
+      }
+    } catch (error) {
+      console.error("Error syncing last hash send index:", error);
+      toast.error("Error syncing last hash send index. Please try again.", {
+        autoClose: 3000,
+      });
     }
   };
 

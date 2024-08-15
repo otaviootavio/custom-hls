@@ -1,17 +1,11 @@
 import { Hashchain } from "@/hooks/useHashchainFromServer";
 import SingleHashView from "../SingleHashView";
-import { UpdateServerForm } from "./UpdateServerForm";
 
 export const AdminMode = ({
   hashchainFromServer,
   loading,
   error,
   onRefetch,
-  onUpdate,
-  newHash,
-  setNewHash,
-  newHashChainSize,
-  setNewHashChainSize,
 }: {
   hashchainFromServer: Hashchain | null;
   loading: boolean;
@@ -49,12 +43,5 @@ export const AdminMode = ({
     >
       Refetch Payword
     </button>
-    <UpdateServerForm
-      onUpdate={onUpdate}
-      newHash={newHash}
-      setNewHash={setNewHash}
-      newHashChainSize={newHashChainSize}
-      setNewHashChainSize={setNewHashChainSize}
-    />
   </div>
 );
