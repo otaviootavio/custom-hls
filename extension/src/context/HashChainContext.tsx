@@ -7,15 +7,15 @@ import React, {
 } from "react";
 import { type HashObject } from "../utils/interfaces";
 import { HashRepository } from "../repositories/HashRepository";
-import { createHashChain } from "../utils/UsefulFunctions";
-import { stringToBytes, toHex } from "viem";
+import { createHashChainFromSecretAndMaxIndex } from "../utils/UsefulFunctions";
+import { stringToBytes } from "viem";
 
 interface HashChainContextType {
   hashChains: HashObject[];
   selectedHashChain: HashObject | null;
   isLoading: boolean;
   error: string | null;
-  selectHashChain: (key: string) => void;
+  selectHashChain: (key: string) => Promise<void>;
   deleteHashChain: (key: string) => Promise<void>;
   addNewHashChain: (
     secret: string,
@@ -99,16 +99,21 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
   ) => {
     setIsLoading(true);
     setError(null);
-    const newChain = createHashChain(stringToBytes(secret), length);
+    const newChain = createHashChainFromSecretAndMaxIndex(
+      stringToBytes(secret, { size: 32 }),
+      length - 1
+    );
+    console.log(newChain);
     const newHashObject: HashObject = {
       address_contract: "",
       address_to: "",
       length,
-      hashchain: newChain.map((hash) => toHex(hash)),
+      hashchain: newChain,
       isValid: false,
       key,
-      tail: toHex(newChain[newChain.length - 1]),
+      tail: newChain[newChain.length - 1],
       secret: secret,
+      indexOfLastHashSend: length,
     };
     try {
       await hashRepo.addHashChain(newHashObject);

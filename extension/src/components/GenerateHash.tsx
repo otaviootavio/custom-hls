@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Input from "./Input";
 import { useHashChain } from "../context/HashChainContext";
+import { useNavigate } from "react-router-dom";
 
 const schema = z.object({
   secret: z.string().min(1, "Secret is required"),
@@ -29,10 +30,12 @@ const GenerateHash: React.FC = () => {
   } = useForm<FormData>({
     resolver: zodResolver(schema),
   });
+  const navigate = useNavigate();
 
   const onSubmit = (data: FormData) => {
     addNewHashChain(data.secret, Number(data.length), data.key);
     reset();
+    navigate("/manage");
   };
 
   return (

@@ -1,7 +1,7 @@
 import { useState, useCallback } from "react";
 import axios from "axios";
 
-interface Hashchain {
+export interface Hashchain {
   lastHash: string;
   chainSize: number;
   mostRecentHashIndex: number;
@@ -28,10 +28,10 @@ const useHaschchainFromServer = () => {
   }, []);
 
   const sendTailToServer = useCallback(
-    async (hash: string, position: number) => {
+    async (hash: string, hashchainSize: number) => {
       setLoading(true);
       try {
-        await axios.post("/api/update-payword", { hash, position });
+        await axios.post("/api/update-payword", { hash, hashchainSize });
         await fetchHashchainFromServer();
         setError(null);
       } catch (err) {

@@ -20,6 +20,13 @@ const HashChainDetail: React.FC = () => {
     }
   };
 
+  const handleSelect = async () => {
+    if (key) {
+      await selectHashChain(key);
+      navigate("/manage");
+    }
+  };
+
   if (!selectedHashChain) {
     return <div className="text-center text-gray-400">Loading...</div>;
   }
@@ -43,8 +50,12 @@ const HashChainDetail: React.FC = () => {
           {selectedHashChain.tail.substring(0, 8)}...
         </span>
       </p>
+      <p className="text-gray-300">
+        Index of last hash send: {selectedHashChain.indexOfLastHashSend}
+      </p>
+      <p className="text-gray-300">Secret {selectedHashChain.secret}</p>
       <button
-        onClick={() => selectHashChain(selectedHashChain.key)}
+        onClick={handleSelect}
         className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-4"
       >
         Select this hash chain

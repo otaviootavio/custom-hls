@@ -1,15 +1,18 @@
-import { keccak256 } from "viem";
+import { keccak256, toHex } from "viem";
 
-function createHashChain(secret: Uint8Array, length: number): Uint8Array[] {
+function createHashChainFromSecretAndMaxIndex(
+  secret: Uint8Array,
+  maxIndex: number
+): `0x${string}`[] {
   let currentHash: Uint8Array = keccak256(secret, "bytes");
   const hashChain: Uint8Array[] = [currentHash];
 
-  for (let i = 1; i < length; i++) {
+  for (let i = 1; i <= maxIndex; i++) {
     currentHash = keccak256(currentHash, "bytes");
     hashChain.push(currentHash);
   }
 
-  return hashChain;
+  return hashChain.map((hash) => toHex(hash));
 }
 
-export { createHashChain };
+export { createHashChainFromSecretAndMaxIndex };

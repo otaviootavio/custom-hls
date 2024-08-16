@@ -1,13 +1,16 @@
-import React, { useEffect, useState } from "react";
+import React, { useState, useEffect } from "react";
 import useHaschchainFromServer from "@/hooks/useHashchainFromServer";
-import SingleHashView from "./SingleHashView";
-import { useUser } from "@clerk/nextjs";
 import { useHashChainFromExtension } from "@/context/HashChainExtensionProvider";
 import { useHashChainContext } from "@/context/HashChainContext";
 import { generateHashChain } from "@/utils/HashChainUtils";
-import { z } from "zod";
+import { stringToBytes, toBytes } from "viem";
+import { Navbar } from "./manager/NavBar";
+import { UserMode } from "./manager/UserMode";
+import { AdminMode } from "./manager/AdminMode";
+import { toast } from "react-toastify";
 
 const HashchainManager: React.FC = () => {
+  const [mode, setMode] = useState<"user" | "admin">("user");
   const {
     hashchainFromServer,
     error,
@@ -16,129 +19,102 @@ const HashchainManager: React.FC = () => {
     sendTailToServer,
   } = useHaschchainFromServer();
   const [newHash, setNewHash] = useState("");
-  const [hashIndex, setHashIndex] = useState<number | undefined>();
-  const { user } = useUser();
-  const { fetchSecretAndLength } = useHashChainFromExtension();
+  const [newHashChainSize, setNewHashChainSize] = useState<
+    number | undefined
+  >();
+  const { fetchSecretAndLength, syncLastHashSendIndex } =
+    useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
-  const [extensionData, setExtensionData] = useState<{
-    secret: string;
-    length: number;
-    tail: string;
-  } | null>(null);
 
   useEffect(() => {
     fetchHashchainFromServer();
   }, [fetchHashchainFromServer]);
 
   const handleUpdateHashchainFromServer = async () => {
-    if (newHash && hashIndex !== undefined) {
+    if (newHash && newHashChainSize !== undefined) {
       try {
-        await sendTailToServer(newHash, hashIndex);
+        toast.info("Updating hashchain on server...");
+        await sendTailToServer(newHash, newHashChainSize);
         await fetchHashchainFromServer();
         setNewHash("");
-        setHashIndex(undefined);
+        setNewHashChainSize(undefined);
+        toast.success("Hashchain updated successfully!");
       } catch (error) {
         console.error("Error updating payword:", error);
+        toast.error("Error updating hashchain. Please try again.", {
+          autoClose: 3000,
+        });
       }
     }
   };
 
   const handleFetchHashchainFromExtension = async () => {
     try {
+      toast.info("Fetching payword from extension...");
       const data = await fetchSecretAndLength();
-      setExtensionData(data);
       setNewHash(data.tail);
-      setHashIndex(data.length);
+      setNewHashChainSize(data.length);
+      toast.success("Payword fetched successfully!");
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
-      if (error instanceof z.ZodError) {
-        console.error("Zod validation errors:", error.errors);
-        error.errors.forEach((err, index) => {
-          console.error(`Error ${index + 1}:`, err.path, err.message);
-        });
-      }
+      toast.error("Error fetching payword from extension. Please try again.");
     }
   };
 
-  const setContextHashchainFromExtension = () => {
-    if (extensionData) {
-      const chain = generateHashChain(
-        extensionData.secret,
-        extensionData.length
-      );
-      setHashChain(chain.slice(0, -1));
-    } else {
-      console.error(
-        "Extension data not available. Fetch payword from extension first."
-      );
+  const handleSyncLastHashSendIndex = async () => {
+    //TODO
+    //How to verify if the hashchin is already synced?
+    try {
+      toast.info("Fetching hashchain from server...");
+      await fetchHashchainFromServer();
+      if (hashchainFromServer) {
+        const lastHashSendIndex = hashchainFromServer.mostRecentHashIndex;
+        toast.info("Syncing last hash send index...");
+        await syncLastHashSendIndex(lastHashSendIndex);
+        const extenstionData = await fetchSecretAndLength();
+        const hashchain = generateHashChain(
+          stringToBytes(extenstionData.secret, { size: 32 }),
+          lastHashSendIndex - 1
+        );
+
+        setHashChain(hashchain);
+        toast.success("Sync completed successfully!");
+      }
+    } catch (error) {
+      console.error("Error syncing last hash send index:", error);
+      toast.error("Error syncing last hash send index. Please try again.", {
+        autoClose: 3000,
+      });
     }
   };
+
   return (
-    <div>
-      <div className="max-w-sm mx-auto p-4 bg-gray-100 shadow-sm rounded-sm">
-        <h1 className="text-sm font-bold mb-2 text-gray-700">Server Data</h1>
-        <button
-          onClick={handleFetchHashchainFromExtension}
-          className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
-        >
-          Fetch Payword from Extension
-        </button>
-        <button
-          onClick={setContextHashchainFromExtension}
-          className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
-        >
-          Set Local Hash Chain
-        </button>
-        <h2 className="text-base font-semibold text-gray-800">
-          {user?.firstName}&apos;s Payword
-        </h2>
-        {loading && <p className="text-xs text-gray-500">Loading...</p>}
-        {error && <p className="text-xs text-red-500">{error}</p>}
-        {hashchainFromServer && (
-          <div className="mb-4">
-            <p className="text-xs text-gray-700">
-              Last Hash: <SingleHashView hash={hashchainFromServer.lastHash} />
-            </p>
-            <p className="text-xs text-gray-700">
-              Chain Size: {hashchainFromServer.chainSize}
-            </p>
-            <p className="text-xs text-gray-700">
-              Most recent hash:
-              <SingleHashView hash={hashchainFromServer.mostRecentHash} />
-            </p>
-            <p className="text-xs text-gray-700">
-              Index of most recent hash:{" "}
-              {hashchainFromServer.mostRecentHashIndex}
-            </p>
-          </div>
-        )}
-        <input
-          type="text"
-          value={newHash}
-          onChange={(e) => setNewHash(e.target.value)}
-          placeholder="Enter new hash"
-          className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
+    <div className="bg-gray-200 p-4 max-w-2xl">
+      <Navbar setMode={setMode} currentMode={mode} />
+      {mode === "user" ? (
+        <UserMode
+          onFetch={handleFetchHashchainFromExtension}
+          onSync={handleSyncLastHashSendIndex}
+          hashchainFromServer={hashchainFromServer}
+          onUpdate={handleUpdateHashchainFromServer}
+          newHash={newHash}
+          setNewHash={setNewHash}
+          newHashChainSize={newHashChainSize}
+          setNewHashChainSize={setNewHashChainSize}
         />
-        <input
-          type="number"
-          value={hashIndex !== undefined ? hashIndex : ""}
-          onChange={(e) => setHashIndex(parseInt(e.target.value))}
-          placeholder="Enter position in chain"
-          className="w-full p-2 border rounded-sm mt-2 text-xs text-gray-700"
+      ) : (
+        <AdminMode
+          hashchainFromServer={hashchainFromServer}
+          loading={loading}
+          error={error}
+          onRefetch={fetchHashchainFromServer}
+          onUpdate={handleUpdateHashchainFromServer}
+          newHash={newHash}
+          setNewHash={setNewHash}
+          newHashChainSize={newHashChainSize}
+          setNewHashChainSize={setNewHashChainSize}
         />
-        <button
-          onClick={handleUpdateHashchainFromServer}
-          className="bg-blue-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-blue-600 mt-2 w-full"
-        >
-          Update Payword
-        </button>
-        <button
-          onClick={() => fetchHashchainFromServer()}
-          className="bg-green-500 text-white text-xs px-2 py-1 rounded-sm hover:bg-green-600 mt-2 w-full"
-        >
-          Refetch Payword
-        </button>
-      </div>
+      )}
     </div>
   );
 };

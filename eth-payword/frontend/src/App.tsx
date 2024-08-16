@@ -1,32 +1,59 @@
+import { useState } from "react";
 import { useAccount } from "wagmi";
-import AccountInfo from "./components/AccountInfo";
+import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { HashChainExtensionProvider } from "./contexts/wallet/HashChainExtensionProvider";
 import DeployContract from "./components/DeployContract";
 import QuerySmartContract from "./components/QuerySmartContract";
-import { HashChainExtensionProvider } from "./contexts/wallet/HashChainExtensionProvider";
 
 function App() {
   const { address } = useAccount();
+  const [currentPage, setCurrentPage] = useState<"open" | "close">("open");
+
+  const renderPage = () => {
+    switch (currentPage) {
+      case "open":
+        return <DeployContract />;
+      case "close":
+        return <QuerySmartContract />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <>
-      <div className="min-h-screen bg-gray-100 flex flex-col items-center">
-        <header className="bg-white w-full shadow-md p-4 flex justify-between items-center">
-          <div className="text-blue-500 text-2xl font-bold bg-white">
-            buyHashchain
+    <div className="min-h-screen bg-gray-100 flex flex-col ">
+      <header className="bg-white w-full shadow-md p-4 flex justify-between items-center">
+        <div className="text-blue-500 text-2xl font-bold">buyHashchain</div>
+        <ConnectButton />
+      </header>
+      <main className="my-10 flex flex-col w-full justify-center items-center">
+        <HashChainExtensionProvider>
+          <div className="max-w-3xl w-full">
+            <nav className="bg-white shadow-sm w-full">
+              <ul className="flex">
+                <li>
+                  <button
+                    className={`px-4 py-2 ${currentPage === "open" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
+                    onClick={() => setCurrentPage("open")}
+                  >
+                    Open Channel
+                  </button>
+                </li>
+                <li>
+                  <button
+                    className={`px-4 py-2 ${currentPage === "close" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
+                    onClick={() => setCurrentPage("close")}
+                  >
+                    Close Channel
+                  </button>
+                </li>
+              </ul>
+            </nav>
+            {address && <div>{renderPage()}</div>}
           </div>
-        </header>
-        <main className="flex-grow flex flex-col items-start justify-start p-4 gap-10 pt-12">
-          <HashChainExtensionProvider>
-            <AccountInfo />
-            {address && (
-              <>
-                <DeployContract />
-                <QuerySmartContract />
-              </>
-            )}
-          </HashChainExtensionProvider>
-        </main>
-      </div>
-    </>
+        </HashChainExtensionProvider>
+      </main>
+    </div>
   );
 }
 

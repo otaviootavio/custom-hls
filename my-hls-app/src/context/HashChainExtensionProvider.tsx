@@ -16,6 +16,7 @@ interface HashChainExtensionContextType {
   fullHashChain: string[];
   secret: string;
   length: number;
+  lastHashSendIndex: number;
   fetchAndPopHashFromHashChain: () => Promise<HashChainElement>;
   fetchTail: () => Promise<string>;
   fetchHashChain: () => Promise<string[]>;
@@ -23,7 +24,9 @@ interface HashChainExtensionContextType {
     secret: string;
     length: number;
     tail: string;
+    lastHashSendIndex: number;
   }>;
+  syncLastHashSendIndex: (lastHashSendIndex: number) => Promise<number>;
 }
 
 interface HashChainExtensionProviderProps {
@@ -44,6 +47,7 @@ export const HashChainExtensionProvider: React.FC<
   const [fullHashChain, setFullHashChain] = useState<string[]>([]);
   const [secret, setSecret] = useState<string>("");
   const [length, setLength] = useState<number>(0);
+  const [lastHashSendIndex, setLastHashSendIndex] = useState<number>(0);
 
   const createEventPromise = <T,>(eventType: string): Promise<T> => {
     return new Promise((resolve) => {
@@ -103,20 +107,36 @@ export const HashChainExtensionProvider: React.FC<
           secret: string;
           length: number;
           tail: string;
+          lastHashSendIndex: number;
         };
       }>("SecretLength");
       const validatedResponse = SecretLengthSchema.parse({
         secret: response.data.secret,
         length: response.data.length,
         tail: response.data.tail,
+        lastHashSendIndex: response.data.lastHashSendIndex,
       });
       setSecret(validatedResponse.secret);
       setLength(validatedResponse.length);
+      setLastHashSendIndex(validatedResponse.lastHashSendIndex);
       return validatedResponse;
     } catch (error) {
       console.error("Error in fetchSecretLength:", error);
       throw error;
     }
+  };
+
+  const syncLastHashSendIndex = async (lastHashSendIndex: number) => {
+    window.postMessage(
+      { type: "RequestSyncLastHashSendIndex", data: { lastHashSendIndex } },
+      "*"
+    );
+    console.log("Syncing last hash send index");
+    const response = await createEventPromise<{
+      type: string;
+      data: { lastHashSendIndex: number };
+    }>("SyncLastHashSendIndex");
+    return response.data.lastHashSendIndex;
   };
 
   const contextValue: HashChainExtensionContextType = {
@@ -125,10 +145,12 @@ export const HashChainExtensionProvider: React.FC<
     fullHashChain,
     secret,
     length,
+    lastHashSendIndex,
     fetchAndPopHashFromHashChain,
     fetchTail,
     fetchHashChain,
     fetchSecretAndLength,
+    syncLastHashSendIndex,
   };
 
   return (

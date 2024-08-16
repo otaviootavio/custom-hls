@@ -11,6 +11,7 @@ const HashObjectSchema = z.object({
   key: z.string(),
   secret: z.string(),
   tail: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  indexOfLastHashSend: z.number(),
 });
 
 class HashRepository {
@@ -148,6 +149,39 @@ class HashRepository {
           resolve(null);
         }
       });
+    });
+  }
+
+  async syncLastHashSendFromSelected(
+    lastHashSendIndex: number
+  ): Promise<HashObject | null> {
+    return new Promise((resolve) => {
+      chrome.storage.local.get(
+        ["selectedKey", this.storageKey],
+        async (result) => {
+          const selectedKey = result.selectedKey;
+          let hashChains: HashObject[] = result[this.storageKey];
+          const selectedIndex = hashChains.findIndex(
+            (chain) => chain.key === selectedKey
+          );
+
+          if (selectedIndex !== -1) {
+            const selectedChain = hashChains[selectedIndex];
+            selectedChain.indexOfLastHashSend = lastHashSendIndex;
+
+            // Update the hashchain in storage
+            await this.updateHashChain(selectedChain);
+
+            console.log(
+              `Last hash send index updated to ${lastHashSendIndex} for chain with key ${selectedKey}`
+            );
+            resolve(selectedChain);
+          } else {
+            console.log("No selected hashchain found");
+            resolve(null);
+          }
+        }
+      );
     });
   }
 

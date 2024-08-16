@@ -21,9 +21,9 @@ export default async function handler(
     return;
   }
 
-  const { hash, position } = req.body;
+  const { hash, hashchainSize } = req.body;
 
-  if (!hash || typeof position !== "number") {
+  if (!hash || typeof hashchainSize !== "number") {
     res.status(400).json({ error: "Invalid input" });
     return;
   }
@@ -42,9 +42,9 @@ export default async function handler(
         data: {
           clerkUserId: userId,
           lastHash: hash,
-          chainSize: position,
+          chainSize: hashchainSize,
           mostRecentHash: hash,
-          mostRecentHashIndex: position,
+          mostRecentHashIndex: hashchainSize - 1,
         },
       });
     } else {
@@ -55,9 +55,9 @@ export default async function handler(
         },
         data: {
           lastHash: hash,
-          chainSize: position,
+          chainSize: hashchainSize,
           mostRecentHash: hash,
-          mostRecentHashIndex: position,
+          mostRecentHashIndex: hashchainSize - 1,
         },
       });
     }

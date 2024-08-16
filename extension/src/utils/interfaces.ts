@@ -7,4 +7,5 @@ export interface HashObject {
   key: string;
   tail: `0x${string}`;
   secret: string;
+  indexOfLastHashSend: number;
 }
