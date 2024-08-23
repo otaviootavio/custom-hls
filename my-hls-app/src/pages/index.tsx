@@ -20,7 +20,7 @@ const Home: NextPage = () => {
               content="width=device-width, initial-scale=1.0"
             />
           </Head>
-          <main className="flex flex-wrap justify-center h-screen bg-gray-900 gap-8">
+          <main className="w-full h-screen bg-gray-900 ">
             <ToastContainer
               position="bottom-left"
               autoClose={5000}
@@ -33,11 +33,13 @@ const Home: NextPage = () => {
               pauseOnHover
               theme="colored"
             />
-            <div className="max-w-96">
-              <VideoPlayer />
-            </div>
-            <div>
-              <HashchainManager />
+            <div className="flex flex-row gap-10 p-10">
+              <div className="w-full">
+                <VideoPlayer />
+              </div>
+              <div className="w-full">
+                <HashchainManager />
+              </div>
             </div>
           </main>
         </div>
