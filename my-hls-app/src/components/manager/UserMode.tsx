@@ -20,28 +20,25 @@ export const UserMode = ({
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (
-  <div className="p-4">
-    <h2 className="text-xl font-bold ">User Mode</h2>
+  <div className="p-4 w-full">
     <div className="flex-col flex">
-      <div>
-        <button
-          onClick={onFetch}
-          className="bg-blue-500 text-white px-4 py-2 rounded mr-2"
-        >
-          Fetch Payword from Extension
-        </button>
-      </div>
-      {hashchainFromServer && (
+      <div className="flex flex-row gap-2 justify-between items-center">
         <div>
           <button
-            onClick={onSync}
-            className="bg-green-500 text-white px-4 py-2 rounded mt-4"
+            onClick={onFetch}
+            className="bg-blue-500 text-white px-4 py-2 rounded "
           >
-            Sync Last Hash Send Index
+            Fetch from Extension
           </button>
         </div>
-      )}
-      {/* Add a status indicating the curret step of the sync process */}
+        <button
+          onClick={onSync}
+          className="bg-green-500 text-white px-4 py-2 rounded"
+        >
+          Sync Extension
+        </button>
+      </div>
+
       <UpdateServerForm
         onUpdate={onUpdate}
         newHash={newHash}

@@ -17,8 +17,7 @@ export const AdminMode = ({
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (
-  <div className="p-4">
-    <h2 className="text-xl font-bold mb-4">Admin Mode</h2>
+  <div className="p-4 w-full">
     {loading && <p>Loading...</p>}
     {error && <p className="text-red-500">{error}</p>}
     {hashchainFromServer && (
@@ -41,7 +40,7 @@ export const AdminMode = ({
       onClick={onRefetch}
       className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
     >
-      Refetch Payword
+      Refetch
     </button>
   </div>
 );

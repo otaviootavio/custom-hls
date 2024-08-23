@@ -89,7 +89,7 @@ const HashchainManager: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-200 p-4 max-w-2xl">
+    <div className="bg-gray-200 p-4 w-full">
       <Navbar setMode={setMode} currentMode={mode} />
       {mode === "user" ? (
         <UserMode

@@ -12,7 +12,7 @@ export const UpdateServerForm = ({
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (
   <div className="mt-4 flex flex-col">
-    <h3 className="font-bold">Update Server Data:</h3>
+    <h3 className="font-bold">Send tail to server:</h3>
     <div className="gap-2 flex flex-col">
       <input
         type="text"
@@ -32,7 +32,7 @@ export const UpdateServerForm = ({
         onClick={onUpdate}
         className="bg-green-500 text-white px-4 py-2 rounded"
       >
-        Update Payword
+        Send
       </button>
     </div>
   </div>
