@@ -13,6 +13,7 @@ const HashChainDetail: React.FC = () => {
       selectHashChain(key);
     }
   }, [key, selectHashChain]);
+
   const handleDelete = async () => {
     if (key) {
       await deleteHashChain(key);
@@ -31,29 +32,34 @@ const HashChainDetail: React.FC = () => {
     return <div className="text-center text-gray-400">Loading...</div>;
   }
 
+  const renderField = (label: string, value: string | number) => (
+    <p className="text-gray-300 mb-2">
+      {label}:
+      <div className="p-1 bg-gray-800 border border-gray-700 shadow rounded-md mt-1">
+        {typeof value === "string" && value.startsWith("0x") ? (
+          <span className="break-all">{value}</span>
+        ) : (
+          value
+        )}
+      </div>
+    </p>
+  );
+
   return (
-    <div className="max-w-lg mx-auto p-4 bg-gray-900 rounded-lg shadow-md">
+    <div className="w-full p-4 bg-gray-900 rounded-lg shadow-md">
       <h1 className="text-2xl font-bold text-gray-200 mb-4">
-        Hash Chain Detail
+        Hash chain detail
       </h1>
-      <p className="text-gray-300">Key: {selectedHashChain.key}</p>
-      <p className="text-gray-300">
-        Address Contract: {selectedHashChain.address_contract}
-      </p>
-      <p className="text-gray-300">
-        Address To: {selectedHashChain.address_to}
-      </p>
-      <p className="text-gray-300">Length: {selectedHashChain.length}</p>
-      <p className="text-gray-300">
-        Tail:{" "}
-        <span className="break-words">
-          {selectedHashChain.tail.substring(0, 8)}...
-        </span>
-      </p>
-      <p className="text-gray-300">
-        Index of last hash send: {selectedHashChain.indexOfLastHashSend}
-      </p>
-      <p className="text-gray-300">Secret {selectedHashChain.secret}</p>
+      {renderField("Key", selectedHashChain.key)}
+      {renderField("Address Contract", selectedHashChain.address_contract)}
+      {renderField("Address To", selectedHashChain.address_to)}
+      {renderField("Length", selectedHashChain.length)}
+      {renderField("Tail", `${selectedHashChain.tail}`)}
+      {renderField(
+        "Index of last hash send",
+        selectedHashChain.indexOfLastHashSend
+      )}
+      {renderField("Secret", selectedHashChain.secret)}
       <button
         onClick={handleSelect}
         className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-4"
