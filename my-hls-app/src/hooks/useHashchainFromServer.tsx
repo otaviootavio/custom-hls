@@ -38,16 +38,26 @@ const useHaschchainFromServer = () => {
     ) => {
       setLoading(true);
       try {
-        await axios.post("/api/update-payword", {
-          hash,
-          hashchainSize,
-          chainId,
-          smartContractAddress,
-        });
-        await fetchHashchainFromServer();
-        setError(null);
+        await axios
+          .post("/api/update-payword", {
+            hash,
+            hashchainSize,
+            chainId,
+            smartContractAddress,
+          })
+          .catch((err) => {
+            console.error("Error updating payword:", err);
+            setError("Failed to update payword");
+            setLoading(false);
+            throw err;
+          })
+          .finally(() => {
+            setLoading(false);
+            setError(null);
+          });
       } catch (err) {
         setError("Failed to update payword");
+        throw err;
       } finally {
         setLoading(false);
       }

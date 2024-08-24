@@ -1,6 +1,7 @@
 import { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
+import { validatePaywordContractByAddressAndChainId } from "@/lib/readPayWord";
 
 const prisma = new PrismaClient();
 
@@ -40,6 +41,29 @@ export default async function handler(
         clerkUserId: userId,
       },
     });
+
+    // Verify if the provided data really exists on the blockchain
+
+    // TODO
+    // Get the expected channel recipient from env
+    // const expectedChannelRecipient = process.env.EXPECTED_CHANNEL_RECIPIENT;
+    // if (!expectedChannelRecipient) {
+    //   res.status(500).json({ error: "Expected channel recipient not set" });
+    //   return;
+    // }
+    const isValid = await validatePaywordContractByAddressAndChainId(
+      chainId,
+      smartContractAddress,
+      BigInt(hashchainSize),
+      // expectedChannelRecipient,
+      // expectedChannelSender,
+      hash
+    );
+
+    if (!isValid) {
+      res.status(400).json({ error: "Invalid smart contract data" });
+      return;
+    }
 
     // If the user does not exist, create a new user
     if (!user) {
