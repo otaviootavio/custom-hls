@@ -34,6 +34,11 @@ export const AdminMode = ({
         <p>
           Index of Most Recent Hash: {hashchainFromServer.mostRecentHashIndex}
         </p>
+        <p>Chain Id: {hashchainFromServer.chainId}</p>
+        <p>
+          Smart Contract Address:{" "}
+          <SingleHashView hash={hashchainFromServer.smartContractAddress} />
+        </p>
       </div>
     )}
     <button

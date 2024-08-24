@@ -40,6 +40,8 @@ export default async function handler(
       chainSize: user.chainSize,
       mostRecentHash: user.mostRecentHash,
       mostRecentHashIndex: user.mostRecentHashIndex,
+      chainId: user.chainId,
+      smartContractAddress: user.smartContractAddress,
     });
   } catch (error) {
     console.error("Error retrieving payword:", error);

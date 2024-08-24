@@ -6,6 +6,8 @@ export interface Hashchain {
   chainSize: number;
   mostRecentHashIndex: number;
   mostRecentHash: string;
+  chainId: number;
+  smartContractAddress: string;
 }
 
 const useHaschchainFromServer = () => {
@@ -28,10 +30,20 @@ const useHaschchainFromServer = () => {
   }, []);
 
   const sendTailToServer = useCallback(
-    async (hash: string, hashchainSize: number) => {
+    async (
+      hash: string,
+      hashchainSize: number,
+      chainId: number,
+      smartContractAddress: string
+    ) => {
       setLoading(true);
       try {
-        await axios.post("/api/update-payword", { hash, hashchainSize });
+        await axios.post("/api/update-payword", {
+          hash,
+          hashchainSize,
+          chainId,
+          smartContractAddress,
+        });
         await fetchHashchainFromServer();
         setError(null);
       } catch (err) {

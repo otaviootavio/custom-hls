@@ -9,10 +9,12 @@ datasource db {
 }
 
 model User {
-  id                  Int    @id @default(autoincrement())
-  clerkUserId         String @unique
-  lastHash            String
-  chainSize           Int
-  mostRecentHash      String
-  mostRecentHashIndex Int
+  id                   Int    @id @default(autoincrement())
+  clerkUserId          String @unique
+  lastHash             String
+  chainSize            Int
+  mostRecentHash       String
+  mostRecentHashIndex  Int
+  chainId              Int
+  smartContractAddress String
 }

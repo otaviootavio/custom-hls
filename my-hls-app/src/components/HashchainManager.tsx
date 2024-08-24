@@ -22,9 +22,15 @@ const HashchainManager: React.FC = () => {
   const [newHashChainSize, setNewHashChainSize] = useState<
     number | undefined
   >();
-  const { fetchSecretAndLength, syncLastHashSendIndex } =
-    useHashChainFromExtension();
+  const {
+    fetchSecretAndLength,
+    syncLastHashSendIndex,
+    fetchSmartContractAddress,
+    fetchChainId,
+  } = useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
+  const [newSmartContractAddress, setNewSmartContractAddress] = useState("");
+  const [newChainId, setNewChainId] = useState<number | undefined>();
 
   useEffect(() => {
     fetchHashchainFromServer();
@@ -34,7 +40,18 @@ const HashchainManager: React.FC = () => {
     if (newHash && newHashChainSize !== undefined) {
       try {
         toast.info("Updating hashchain on server...");
-        await sendTailToServer(newHash, newHashChainSize);
+
+        if (!newChainId || !newSmartContractAddress) {
+          toast.error("Chain id or smart contract address not set");
+          throw new Error("Chain id or smart contract address not set");
+        }
+
+        await sendTailToServer(
+          newHash,
+          newHashChainSize,
+          newChainId,
+          newSmartContractAddress
+        );
         await fetchHashchainFromServer();
         setNewHash("");
         setNewHashChainSize(undefined);
@@ -51,9 +68,16 @@ const HashchainManager: React.FC = () => {
   const handleFetchHashchainFromExtension = async () => {
     try {
       toast.info("Fetching payword from extension...");
-      const data = await fetchSecretAndLength();
-      setNewHash(data.tail);
-      setNewHashChainSize(data.length);
+      const { tail, length } = await fetchSecretAndLength();
+      setNewHash(tail);
+      setNewHashChainSize(length);
+
+      const smartContractAddress = await fetchSmartContractAddress();
+      setNewSmartContractAddress(smartContractAddress);
+
+      const chainId = await fetchChainId();
+      setNewChainId(chainId);
+
       toast.success("Payword fetched successfully!");
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
@@ -95,12 +119,15 @@ const HashchainManager: React.FC = () => {
         <UserMode
           onFetch={handleFetchHashchainFromExtension}
           onSync={handleSyncLastHashSendIndex}
-          hashchainFromServer={hashchainFromServer}
           onUpdate={handleUpdateHashchainFromServer}
           newHash={newHash}
           setNewHash={setNewHash}
           newHashChainSize={newHashChainSize}
           setNewHashChainSize={setNewHashChainSize}
+          newSmartContractAddress={newSmartContractAddress}
+          setNewSmartContractAddress={setNewSmartContractAddress}
+          newChainId={newChainId}
+          setNewChainId={setNewChainId}
         />
       ) : (
         <AdminMode

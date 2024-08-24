@@ -4,15 +4,23 @@ export const UpdateServerForm = ({
   setNewHash,
   newHashChainSize,
   setNewHashChainSize,
+  newSmartContractAddress,
+  setNewSmartContractAddress,
+  newChainId,
+  setNewChainId,
 }: {
   onUpdate: () => void;
   newHash: string;
   setNewHash: React.Dispatch<React.SetStateAction<string>>;
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
+  newSmartContractAddress: string;
+  setNewSmartContractAddress: React.Dispatch<React.SetStateAction<string>>;
+  newChainId: number | undefined;
+  setNewChainId: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (
   <div className="mt-4 flex flex-col">
-    <h3 className="font-bold">Send tail to server:</h3>
+    <h3 className="font-bold">Send data to server:</h3>
     <div className="gap-2 flex flex-col">
       <input
         type="text"
@@ -26,6 +34,20 @@ export const UpdateServerForm = ({
         value={newHashChainSize !== undefined ? newHashChainSize : ""}
         onChange={(e) => setNewHashChainSize(parseInt(e.target.value))}
         placeholder="Enter chain size"
+        className="border p-2 mr-2"
+      />
+      <input
+        type="text"
+        value={newSmartContractAddress}
+        onChange={(e) => setNewSmartContractAddress(e.target.value)}
+        placeholder="Enter smart contract address"
+        className="border p-2 mr-2"
+      />
+      <input
+        type="number"
+        value={newChainId !== undefined ? newChainId : ""}
+        onChange={(e) => setNewChainId(parseInt(e.target.value))}
+        placeholder="Enter chain id"
         className="border p-2 mr-2"
       />
       <button

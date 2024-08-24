@@ -23,6 +23,9 @@ function handleMessage(event: MessageEvent) {
     case "RequestSmartContractAddress":
       handleRequestSmartContractAddress();
       break;
+    case "RequestChainId":
+      handleRequstChainId();
+      break;
     // It will listen to all messages from all extensions
     // default:
     //   console.error("Unknown message type:", event.data.type);
@@ -141,4 +144,20 @@ function handleRequestSmartContractAddress() {
       }
     }
   );
+}
+
+function handleRequstChainId() {
+  chrome.runtime.sendMessage({ action: "DeliverChainId" }, (response) => {
+    if (response && response.data !== null) {
+      window.postMessage(
+        {
+          type: "ChainId",
+          data: response.data,
+        },
+        "*"
+      );
+    } else {
+      window.postMessage({ type: "ChainId", data: "No data found" }, "*");
+    }
+  });
 }

@@ -21,9 +21,15 @@ export default async function handler(
     return;
   }
 
-  const { hash, hashchainSize } = req.body;
+  const { hash, hashchainSize, chainId, smartContractAddress } = req.body;
 
-  if (!hash || typeof hashchainSize !== "number") {
+  console.log(req.body);
+  if (
+    !hash ||
+    typeof hashchainSize !== "number" ||
+    !chainId ||
+    !smartContractAddress
+  ) {
     res.status(400).json({ error: "Invalid input" });
     return;
   }
@@ -45,6 +51,8 @@ export default async function handler(
           chainSize: hashchainSize,
           mostRecentHash: hash,
           mostRecentHashIndex: hashchainSize - 1,
+          chainId: chainId,
+          smartContractAddress: smartContractAddress,
         },
       });
     } else {
@@ -58,6 +66,8 @@ export default async function handler(
           chainSize: hashchainSize,
           mostRecentHash: hash,
           mostRecentHashIndex: hashchainSize - 1,
+          chainId,
+          smartContractAddress,
         },
       });
     }

@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, ReactNode } from "react";
-import { z } from "zod";
 import {
   HashChainElementSchema,
   SecretLengthSchema,
 } from "@/utils/zod-schemas";
+import React, { createContext, useContext, useState, ReactNode } from "react";
+import { z } from "zod";
 
 interface HashChainElement {
   hash: string;
@@ -27,6 +27,15 @@ interface HashChainExtensionContextType {
     lastHashSendIndex: number;
   }>;
   syncLastHashSendIndex: (lastHashSendIndex: number) => Promise<number>;
+  openChannel: (
+    address_contract: string,
+    address_to: string,
+    amountInEth: string,
+    key: string,
+    chainId: number
+  ) => Promise<string>;
+  fetchSmartContractAddress: () => Promise<string>;
+  fetchChainId: () => Promise<number>;
 }
 
 interface HashChainExtensionProviderProps {
@@ -69,7 +78,6 @@ export const HashChainExtensionProvider: React.FC<
       type: string;
       data: { hash: string; index: number };
     }>("HashChain");
-    console.log(response.data);
     const newElement = HashChainElementSchema.parse({
       hash: response.data.hash,
       index: response.data.index,
@@ -131,12 +139,50 @@ export const HashChainExtensionProvider: React.FC<
       { type: "RequestSyncLastHashSendIndex", data: { lastHashSendIndex } },
       "*"
     );
-    console.log("Syncing last hash send index");
     const response = await createEventPromise<{
       type: string;
       data: { lastHashSendIndex: number };
     }>("SyncLastHashSendIndex");
     return response.data.lastHashSendIndex;
+  };
+
+  const openChannel = async (
+    address_contract: string,
+    address_to: string,
+    amountEth: string,
+    key: string,
+    chainId: number
+  ) => {
+    window.postMessage(
+      {
+        type: "RequestOpenChannel",
+        data: { address_contract, address_to, amountEth, key, chainId },
+      },
+      "*"
+    );
+    const response = await createEventPromise<{
+      type: string;
+      data: { status: string; message: string };
+    }>("OpenChannel");
+    return response.data.status;
+  };
+
+  const fetchSmartContractAddress = async (): Promise<string> => {
+    window.postMessage({ type: "RequestSmartContractAddress" }, "*");
+    const response = await createEventPromise<{
+      type: string;
+      data: string;
+    }>("SmartContractAddress");
+    return response.data;
+  };
+
+  const fetchChainId = async (): Promise<number> => {
+    window.postMessage({ type: "RequestChainId" }, "*");
+    const response = await createEventPromise<{
+      type: string;
+      data: number;
+    }>("ChainId");
+    return response.data;
   };
 
   const contextValue: HashChainExtensionContextType = {
@@ -151,6 +197,9 @@ export const HashChainExtensionProvider: React.FC<
     fetchHashChain,
     fetchSecretAndLength,
     syncLastHashSendIndex,
+    openChannel,
+    fetchSmartContractAddress,
+    fetchChainId,
   };
 
   return (

@@ -49,6 +49,9 @@ chrome.runtime.onMessage.addListener(
           case "DeliverSmartContractAddress":
             await handleDeliverSmartContractAddress(sendResponse);
             break;
+          case "DeliverChainId":
+            await handleDeliverChainId(sendResponse);
+            break;
         }
       } catch (error) {
         console.error("Error in message handler:", error);
@@ -248,6 +251,22 @@ async function handleDeliverSmartContractAddress(
     }
   } catch (error) {
     console.error("Error in handleDeliverAddress:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleDeliverChainId(
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.chainId });
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverChainId:", error);
     sendResponse({ error: "Failed to retrieve hash chain" });
   }
 }
