@@ -55,6 +55,8 @@ const HashchainManager: React.FC = () => {
         await fetchHashchainFromServer();
         setNewHash("");
         setNewHashChainSize(undefined);
+        setNewChainId(undefined);
+        setNewSmartContractAddress("");
         toast.success("Hashchain updated successfully!");
       } catch (error) {
         console.error("Error updating payword:", error);
