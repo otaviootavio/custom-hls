@@ -43,8 +43,12 @@ chrome.runtime.onMessage.addListener(
           case "DeliverSyncLastHashSendIndex":
             await handleSyncLastHashSendIndex(message.data.data, sendResponse);
             break;
-          default:
-            sendResponse({ error: "Unknown action" });
+          case "DeliverOpenChannel":
+            await handleOpenChannel(message.data.data, sendResponse);
+            break;
+          case "DeliverSmartContractAddress":
+            await handleDeliverSmartContractAddress(sendResponse);
+            break;
         }
       } catch (error) {
         console.error("Error in message handler:", error);
@@ -73,8 +77,10 @@ async function handleMakeHashChain(
   console.log("Hash chain created", start_chain);
 
   const hashChainData: HashObject = {
+    chainId: 0,
     address_contract: "",
     address_to: "",
+    amountInEth: "",
     length: length,
     hashchain: start_chain.map((hash) => toHex(hash)),
     isValid: false,
@@ -191,6 +197,57 @@ async function handleSyncLastHashSendIndex(
     }
   } catch (error) {
     console.error("Error in handleSyncLastHashSendIndex:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleOpenChannel(
+  data: {
+    address_contract: string;
+    address_to: string;
+    amountInEth: string;
+    key: string;
+    chainId: number;
+  },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  console.log("Handling openChannel action");
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      const updatedHashChain: HashObject = {
+        ...selectedHashChain,
+        chainId: data.chainId,
+        address_to: data.address_to,
+        address_contract: data.address_contract,
+        amountInEth: data.amountInEth,
+      };
+      await hashRepo.updateHashChain(updatedHashChain);
+      sendResponse({ status: "success", message: "Channel opened" });
+    } else {
+      sendResponse({ status: "error", message: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleOpenChannel:", error);
+    sendResponse({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function handleDeliverSmartContractAddress(
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.address_contract });
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverAddress:", error);
     sendResponse({ error: "Failed to retrieve hash chain" });
   }
 }

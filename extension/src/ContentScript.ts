@@ -1,7 +1,6 @@
 window.addEventListener("message", handleMessage);
 
 function handleMessage(event: MessageEvent) {
-  console.log("Handling message:", event);
   switch (event.data.type) {
     case "Send_h(100)":
       handleSendH100();
@@ -18,8 +17,15 @@ function handleMessage(event: MessageEvent) {
     case "RequestSyncLastHashSendIndex":
       handleSyncLastHashSendIndex(event);
       break;
-    default:
-      console.error("Unknown message type:", event.data.type);
+    case "RequestOpenChannel":
+      handleOpenChannel(event);
+      break;
+    case "RequestSmartContractAddress":
+      handleRequestSmartContractAddress();
+      break;
+    // It will listen to all messages from all extensions
+    // default:
+    //   console.error("Unknown message type:", event.data.type);
   }
 }
 
@@ -94,6 +100,42 @@ function handleSyncLastHashSendIndex(event: MessageEvent) {
       } else {
         window.postMessage(
           { type: "SyncLastHashSendIndex", data: "No data found" },
+          "*"
+        );
+      }
+    }
+  );
+}
+
+function handleOpenChannel(event: MessageEvent) {
+  console.log("Handling HandleOpenChannel action");
+  chrome.runtime.sendMessage(
+    { action: "DeliverOpenChannel", data: { ...event.data } },
+    (response) => {
+      if (response && response.data !== undefined) {
+        window.postMessage({ type: "OpenChannel", data: response.data }, "*");
+      } else {
+        window.postMessage({ type: "OpenChannel", data: "No data found" }, "*");
+      }
+    }
+  );
+}
+
+function handleRequestSmartContractAddress() {
+  chrome.runtime.sendMessage(
+    { action: "DeliverSmartContractAddress" },
+    (response) => {
+      if (response && response.data !== null) {
+        window.postMessage(
+          {
+            type: "SmartContractAddress",
+            data: response.data,
+          },
+          "*"
+        );
+      } else {
+        window.postMessage(
+          { type: "SmartContractAddress", data: "No data found" },
           "*"
         );
       }

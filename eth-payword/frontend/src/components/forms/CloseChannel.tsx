@@ -12,7 +12,7 @@ import HashchainInput from "../HashchainInput";
 import { useHashChainFromExtension } from "../../contexts/wallet/HashChainExtensionProvider";
 
 interface CloseChannelProps {
-  address: `0x${string}` | undefined;
+  address: `0x${string}`;
 }
 
 export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
@@ -40,7 +40,7 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
   const willTxSucess: boolean = data && data[0] ? true : false;
 
   const { fetchHashChain } = useHashChainFromExtension();
-  const [fullHashChain, setFullHashChain] = useState<string[]>([]);
+  const [fullHashChain, setFullHashChain] = useState<string[]>([""]);
 
   if (!address) return;
 
@@ -98,6 +98,7 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
           bigIntValue={bigIntValue}
           hexValue={hexValue}
           fullHashChain={fullHashChain}
+          isManualInput={!fullHashChain.length}
         />
         <input
           type="submit"

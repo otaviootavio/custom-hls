@@ -107,6 +107,8 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     const newHashObject: HashObject = {
       address_contract: "",
       address_to: "",
+      amountInEth: "",
+      chainId: 0,
       length,
       hashchain: newChain,
       isValid: false,

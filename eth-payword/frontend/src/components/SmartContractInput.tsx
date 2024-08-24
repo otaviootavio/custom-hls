@@ -1,9 +1,16 @@
 import React, { useState } from "react";
 import { Solc } from "solc-browserify";
-import { useDeployContract } from "wagmi";
-import { type Abi, type Address, type Hash, parseEther } from "viem";
+import { useAccount, useDeployContract } from "wagmi";
+import {
+  type Abi,
+  type Address,
+  formatEther,
+  type Hash,
+  parseEther,
+} from "viem";
 import { config } from "../wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
+import { useHashChainFromExtension } from "../contexts/wallet/HashChainExtensionProvider";
 
 interface SmartConractProps {
   amountEth: bigint;
@@ -23,6 +30,8 @@ const SmartContractInput: React.FC<SmartConractProps> = ({
   const { deployContractAsync, status, error } = useDeployContract();
   const [contractAddress, setContractAddress] = useState<Address>();
   const [isCompiling, setIsCompiling] = useState(false);
+  const { openChannel } = useHashChainFromExtension();
+  const { chainId } = useAccount();
 
   const deployContract = async () => {
     if (!abi) {
@@ -44,6 +53,14 @@ const SmartContractInput: React.FC<SmartConractProps> = ({
     if (!x.contractAddress) return; // Handle error
 
     setContractAddress(x.contractAddress);
+    if (!chainId) throw new Error("ChainId is not defined");
+    openChannel(
+      x.contractAddress,
+      toAddress,
+      formatEther(amountEth),
+      toAddress,
+      chainId,
+    );
   };
 
   async function compileSourceCode() {

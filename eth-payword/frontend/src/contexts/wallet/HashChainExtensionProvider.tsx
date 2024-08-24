@@ -27,6 +27,14 @@ interface HashChainExtensionContextType {
     lastHashSendIndex: number;
   }>;
   syncLastHashSendIndex: (lastHashSendIndex: number) => Promise<number>;
+  openChannel: (
+    address_contract: string,
+    address_to: string,
+    amountInEth: string,
+    key: string,
+    chainId: number,
+  ) => Promise<string>;
+  fetchSmartContractAddress: () => Promise<string>;
 }
 
 interface HashChainExtensionProviderProps {
@@ -138,6 +146,37 @@ export const HashChainExtensionProvider: React.FC<
     return response.data.lastHashSendIndex;
   };
 
+  const openChannel = async (
+    address_contract: string,
+    address_to: string,
+    amountEth: string,
+    key: string,
+    chainId: number,
+  ) => {
+    window.postMessage(
+      {
+        type: "RequestOpenChannel",
+        data: { address_contract, address_to, amountEth, key, chainId },
+      },
+      "*",
+    );
+    const response = await createEventPromise<{
+      type: string;
+      data: { status: string; message: string };
+    }>("OpenChannel");
+    return response.data.status;
+  };
+
+  const fetchSmartContractAddress = async (): Promise<string> => {
+    window.postMessage({ type: "RequestSmartContractAddress" }, "*");
+    const response = await createEventPromise<{
+      type: string;
+      data: string;
+    }>("SmartContractAddress");
+    console.log("Smart contract address", response.data);
+    return response.data;
+  };
+
   const contextValue: HashChainExtensionContextType = {
     hashChainElements,
     tail,
@@ -150,6 +189,8 @@ export const HashChainExtensionProvider: React.FC<
     fetchHashChain,
     fetchSecretAndLength,
     syncLastHashSendIndex,
+    openChannel,
+    fetchSmartContractAddress,
   };
 
   return (

@@ -99,7 +99,7 @@ const ContractInfo: React.FC<ContractInfoProps> = ({ address }) => {
           <p>{formatEther(balance?.value || 0n)}</p>
         </div>
       </div>
-      <CloseChannel address={address} />
+      <CloseChannel address={address ?? "0x0"} />
     </div>
   );
 };
