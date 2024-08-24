@@ -23,7 +23,6 @@ export default async function handler(
 
   const { hash, hashchainSize, chainId, smartContractAddress } = req.body;
 
-  console.log(req.body);
   if (
     !hash ||
     typeof hashchainSize !== "number" ||
