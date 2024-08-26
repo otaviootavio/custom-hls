@@ -15,7 +15,6 @@ const schema = z.object({
     })
     .transform((val) => Number(val))
     .refine((val) => val >= 1, { message: "Length must be at least 1" }),
-  key: z.string().min(1, "Key is required"),
 });
 
 type FormData = z.infer<typeof schema>;
@@ -33,7 +32,7 @@ const GenerateHash: React.FC = () => {
   const navigate = useNavigate();
 
   const onSubmit = (data: FormData) => {
-    addNewHashChain(data.secret, Number(data.length), data.key);
+    addNewHashChain(data.secret, Number(data.length));
     reset();
     navigate("/manage");
   };
@@ -66,19 +65,6 @@ const GenerateHash: React.FC = () => {
             value={field.value}
             onChange={field.onChange}
             error={errors.length?.message}
-          />
-        )}
-      />
-      <Controller
-        name="key"
-        control={control}
-        render={({ field }) => (
-          <Input
-            label="Key"
-            type="text"
-            value={field.value}
-            onChange={field.onChange}
-            error={errors.key?.message}
           />
         )}
       />

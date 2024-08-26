@@ -36,6 +36,8 @@ interface HashChainExtensionContextType {
   ) => Promise<string>;
   fetchSmartContractAddress: () => Promise<string>;
   fetchChainId: () => Promise<number>;
+  fetchToAddress: () => Promise<string>;
+  fetchAmount: () => Promise<string>;
 }
 
 interface HashChainExtensionProviderProps {
@@ -185,6 +187,24 @@ export const HashChainExtensionProvider: React.FC<
     return response.data;
   };
 
+  const fetchToAddress = async (): Promise<string> => {
+    window.postMessage({ type: "RequestToAddress" }, "*");
+    const response = await createEventPromise<{
+      type: string;
+      data: string;
+    }>("ToAddress");
+    return response.data;
+  };
+
+  const fetchAmount = async (): Promise<string> => {
+    window.postMessage({ type: "RequestAmount" }, "*");
+    const response = await createEventPromise<{
+      type: string;
+      data: string;
+    }>("Amount");
+    return response.data;
+  };
+
   const contextValue: HashChainExtensionContextType = {
     hashChainElements,
     tail,
@@ -200,6 +220,8 @@ export const HashChainExtensionProvider: React.FC<
     openChannel,
     fetchSmartContractAddress,
     fetchChainId,
+    fetchToAddress,
+    fetchAmount,
   };
 
   return (

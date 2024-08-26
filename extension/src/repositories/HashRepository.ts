@@ -3,60 +3,131 @@ import { type HashObject } from "../utils/interfaces";
 
 // Define the zod schema for HashObject
 const HashObjectSchema = z.object({
+  chainId: z.number(),
   address_contract: z.string(),
   address_to: z.string(),
   length: z.number(),
+  amountEthInWei: z.string().optional().default("0"), // Make it optional and provide a default
   hashchain: z.array(z.string().regex(/^0x[0-9a-fA-F]+$/)),
   isValid: z.boolean(),
-  key: z.string(),
+  key: z.string().regex(/^0x[0-9a-fA-F]+$/),
   secret: z.string(),
   tail: z.string().regex(/^0x[0-9a-fA-F]+$/),
   indexOfLastHashSend: z.number(),
 });
 
+const SerializedHashObjectSchema = z.object({
+  chainId: z.number(),
+  address_contract: z.string(),
+  address_to: z.string(),
+  length: z.number(),
+  amountEthInWei: z.string(),
+  hashchain: z.array(z.string().regex(/^0x[0-9a-fA-F]+$/)),
+  isValid: z.boolean(),
+  key: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  secret: z.string(),
+  tail: z.string().regex(/^0x[0-9a-fA-F]+$/),
+  indexOfLastHashSend: z.number(),
+});
+
+const DeserializedHashObjectSchema = SerializedHashObjectSchema.extend({
+  amountEthInWei: z.bigint(),
+});
+
+type SerializedHashObject = z.infer<typeof SerializedHashObjectSchema>;
+type DeserializedHashObject = z.infer<typeof DeserializedHashObjectSchema>;
+
 class HashRepository {
   private storageKey = "hashChains";
 
   private validateHashObject(hashObject: HashObject): void {
-    HashObjectSchema.parse(hashObject); // Use zod to validate the hashObject
+    try {
+      const validatedObject = HashObjectSchema.parse({
+        ...hashObject,
+        amountEthInWei: hashObject.amountEthInWei?.toString() || "0",
+      });
+      // If validation passes, update the original object with the validated values
+      Object.assign(hashObject, {
+        ...validatedObject,
+        amountEthInWei: BigInt(validatedObject.amountEthInWei),
+      });
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        console.error("Validation error:", error.issues);
+        throw new Error("Validation error");
+      } else {
+        console.error("Unknown error:", error);
+        throw error;
+      }
+    }
   }
 
   async getAllHashChains(): Promise<HashObject[]> {
     return new Promise((resolve) => {
       chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
-        resolve(result[this.storageKey]);
+        const serializedChains = result[this.storageKey];
+        const deserializedChains: DeserializedHashObject[] =
+          serializedChains.map((chain: any): DeserializedHashObject => {
+            return deserializeHashObject(chain);
+          });
+
+        const parsedDeseraliedChainsToHashObject: HashObject[] =
+          deserializedChains.map(
+            (chain: DeserializedHashObject): HashObject => {
+              return {
+                ...chain,
+                tail: chain.tail as `0x${string}`,
+                hashchain: chain.hashchain.map(
+                  (hash: string): `0x${string}` => hash as `0x${string}`
+                ),
+                key: chain.key as `0x${string}`,
+              };
+            }
+          );
+        resolve(parsedDeseraliedChainsToHashObject);
       });
     });
   }
 
   async addHashChain(hashObject: HashObject): Promise<void> {
-    this.validateHashObject(hashObject);
+    try {
+      this.validateHashObject(hashObject);
 
-    return new Promise((resolve) => {
-      chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
-        let hashChains: HashObject[] = result[this.storageKey];
-
-        const existingIndex = hashChains.findIndex(
-          (obj) => obj.key === hashObject.key
-        );
-
-        if (existingIndex === -1) {
-          hashChains.push(hashObject);
-          console.log(
-            `New hash chain with key ${hashObject.key} added successfully!`
+      return new Promise((resolve, reject) => {
+        this.getAllHashChains().then((hashChains) => {
+          const existingChain = hashChains.find(
+            (chain) => chain.tail === hashObject.tail
           );
-          chrome.storage.local.set({ [this.storageKey]: hashChains }, () => {
-            console.log("Hash chains saved successfully!");
-            resolve();
-          });
-        } else {
-          console.error(
-            `Hash chain with key ${hashObject.key} already exists.`
-          );
-          resolve();
-        }
+
+          if (existingChain) {
+            const errorMessage = `Hash chain with tail ${hashObject.tail} already exists.`;
+            console.error(errorMessage);
+            reject(new Error(errorMessage));
+          } else {
+            const serializedHashObject = serializeHashObject(hashObject);
+            hashChains.push({
+              ...serializedHashObject,
+              amountEthInWei: BigInt(serializedHashObject.amountEthInWei),
+              key: serializedHashObject.key as `0x${string}`,
+              tail: serializedHashObject.tail as `0x${string}`,
+              hashchain: serializedHashObject.hashchain.map(
+                (hash: string): `0x${string}` => hash as `0x${string}`
+              ),
+            });
+            console.log(
+              `New hash chain with tail ${hashObject.tail} added successfully!`
+            );
+            chrome.storage.local.set({ [this.storageKey]: hashChains }, () => {
+              console.log("Hash chains saved successfully!");
+              resolve();
+            });
+          }
+        });
       });
-    });
+    } catch (error) {
+      console.error("Error adding new hash chain:", error);
+      throw error;
+    }
   }
 
   async updateHashChain(hashObject: HashObject): Promise<void> {
@@ -64,14 +135,14 @@ class HashRepository {
 
     return new Promise((resolve, reject) => {
       chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
-        let hashChains: HashObject[] = result[this.storageKey];
+        let hashChains: any[] = result[this.storageKey];
 
         const existingIndex = hashChains.findIndex(
           (obj) => obj.key === hashObject.key
         );
 
         if (existingIndex !== -1) {
-          hashChains[existingIndex] = hashObject;
+          hashChains[existingIndex] = serializeHashObject(hashObject);
           console.log(
             `Hash chain with key ${hashObject.key} updated successfully!`
           );
@@ -113,20 +184,20 @@ class HashRepository {
     });
   }
 
-  async setSelectedKey(key: string): Promise<void> {
+  async setSelectedKey(tail: string): Promise<void> {
     return new Promise((resolve, reject) => {
       chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
         let hashChains: HashObject[] = result[this.storageKey];
 
-        const existingIndex = hashChains.findIndex((obj) => obj.key === key);
+        const existingChain = hashChains.find((obj) => obj.tail === tail);
 
-        if (existingIndex !== -1) {
-          chrome.storage.local.set({ selectedKey: key }, () => {
-            console.log(`Selected key set to ${key}`);
+        if (existingChain) {
+          chrome.storage.local.set({ selectedKey: tail }, () => {
+            console.log(`Selected key set to ${tail}`);
             resolve();
           });
         } else {
-          const errorMessage = `Hash chain with key ${key} not found.`;
+          const errorMessage = `Hash chain with tail ${tail} not found.`;
           console.error(errorMessage);
           reject(new Error(errorMessage));
         }
@@ -138,20 +209,26 @@ class HashRepository {
     return new Promise((resolve) => {
       chrome.storage.local.get(["selectedKey", this.storageKey], (result) => {
         const selectedKey = result.selectedKey;
-        const hashChains: HashObject[] = result[this.storageKey];
-        const selectedHashChain = hashChains.find(
+        const serializedChains: any[] = result[this.storageKey];
+        const selectedHashChain = serializedChains.find(
           (chain) => chain.key === selectedKey
         );
 
         if (selectedHashChain) {
-          resolve(selectedHashChain);
+          const deserialized = deserializeHashObject(selectedHashChain);
+          resolve({
+            ...deserialized,
+            hashchain: deserialized.hashchain.map(
+              (hash: string): `0x${string}` => hash as `0x${string}`
+            ),
+            tail: `${deserialized.tail}` as `0x${string}`,
+          });
         } else {
           resolve(null);
         }
       });
     });
   }
-
   async syncLastHashSendFromSelected(
     lastHashSendIndex: number
   ): Promise<HashObject | null> {
@@ -224,4 +301,23 @@ class HashRepository {
   }
 }
 
+function serializeHashObject(
+  hashObject: DeserializedHashObject
+): SerializedHashObject {
+  const serialized = {
+    ...hashObject,
+    amountEthInWei: hashObject.amountEthInWei.toString(),
+  };
+  return SerializedHashObjectSchema.parse(serialized);
+}
+
+function deserializeHashObject(
+  serialized: SerializedHashObject
+): DeserializedHashObject {
+  const deserialized = {
+    ...serialized,
+    amountEthInWei: BigInt(serialized.amountEthInWei),
+  };
+  return DeserializedHashObjectSchema.parse(deserialized);
+}
 export { HashRepository };

@@ -149,14 +149,14 @@ export const HashChainExtensionProvider: React.FC<
   const openChannel = async (
     address_contract: string,
     address_to: string,
-    amountEth: string,
+    amountEthInWei: string,
     key: string,
     chainId: number,
   ) => {
     window.postMessage(
       {
         type: "RequestOpenChannel",
-        data: { address_contract, address_to, amountEth, key, chainId },
+        data: { address_contract, address_to, amountEthInWei, key, chainId },
       },
       "*",
     );

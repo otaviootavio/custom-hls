@@ -4,8 +4,12 @@ export const UserMode = ({
   onFetch,
   onSync,
   onUpdate,
-  newHash,
-  setNewHash,
+  tail,
+  setTail,
+  toAddress,
+  setToAddress,
+  amount,
+  setAmount,
   newHashChainSize,
   setNewHashChainSize,
   newSmartContractAddress,
@@ -16,8 +20,12 @@ export const UserMode = ({
   onFetch: () => void;
   onSync: () => void;
   onUpdate: () => void;
-  newHash: string;
-  setNewHash: React.Dispatch<React.SetStateAction<string>>;
+  tail: string;
+  setTail: React.Dispatch<React.SetStateAction<string>>;
+  toAddress: string;
+  setToAddress: React.Dispatch<React.SetStateAction<string>>;
+  amount: string;
+  setAmount: React.Dispatch<React.SetStateAction<string>>;
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
   newSmartContractAddress: string;
@@ -46,14 +54,18 @@ export const UserMode = ({
 
       <UpdateServerForm
         onUpdate={onUpdate}
-        newHash={newHash}
-        setNewHash={setNewHash}
+        tail={tail}
+        setTail={setTail}
         newHashChainSize={newHashChainSize}
         setNewHashChainSize={setNewHashChainSize}
         newSmartContractAddress={newSmartContractAddress}
         setNewSmartContractAddress={setNewSmartContractAddress}
         newChainId={newChainId}
         setNewChainId={setNewChainId}
+        toAddress={toAddress}
+        setToAddress={setToAddress}
+        amount={amount}
+        setAmount={setAmount}
       />
     </div>
   </div>

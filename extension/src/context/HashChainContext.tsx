@@ -17,11 +17,7 @@ interface HashChainContextType {
   error: string | null;
   selectHashChain: (key: string) => Promise<void>;
   deleteHashChain: (key: string) => Promise<void>;
-  addNewHashChain: (
-    secret: string,
-    length: number,
-    key: string
-  ) => Promise<void>;
+  addNewHashChain: (secret: string, length: number) => Promise<void>;
 }
 
 const HashChainContext = createContext<HashChainContextType | undefined>(
@@ -45,7 +41,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       setIsLoading(true);
       setError(null);
       try {
-        const chains = await hashRepo.getAllHashChains();
+        const chains: HashObject[] = await hashRepo.getAllHashChains();
         setHashChains(chains);
         const selectedChain = await hashRepo.getSelectedHashChain();
         if (selectedChain) {
@@ -92,11 +88,7 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  const addNewHashChain = async (
-    secret: string,
-    length: number,
-    key: string
-  ) => {
+  const addNewHashChain = async (secret: string, length: number) => {
     setIsLoading(true);
     setError(null);
     const newChain = createHashChainFromSecretAndMaxIndex(
@@ -104,16 +96,17 @@ export const HashChainProvider: React.FC<{ children: ReactNode }> = ({
       length - 1
     );
     console.log(newChain);
+    const tail = newChain[newChain.length - 1];
     const newHashObject: HashObject = {
       address_contract: "",
       address_to: "",
-      amountInEth: "",
+      amountEthInWei: 0n,
       chainId: 0,
       length,
       hashchain: newChain,
       isValid: false,
-      key,
-      tail: newChain[newChain.length - 1],
+      key: tail, // Use the tail as the key
+      tail,
       secret: secret,
       indexOfLastHashSend: length,
     };

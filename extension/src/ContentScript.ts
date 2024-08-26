@@ -26,6 +26,12 @@ function handleMessage(event: MessageEvent) {
     case "RequestChainId":
       handleRequstChainId();
       break;
+    case "RequestToAddress":
+      handleRequestToAddress();
+      break;
+    case "RequestAmount":
+      handleRequestAmount();
+      break;
     // It will listen to all messages from all extensions
     // default:
     //   console.error("Unknown message type:", event.data.type);
@@ -158,6 +164,38 @@ function handleRequstChainId() {
       );
     } else {
       window.postMessage({ type: "ChainId", data: "No data found" }, "*");
+    }
+  });
+}
+
+function handleRequestToAddress() {
+  chrome.runtime.sendMessage({ action: "DeliverToAddress" }, (response) => {
+    if (response && response.data !== null) {
+      window.postMessage(
+        {
+          type: "ToAddress",
+          data: response.data,
+        },
+        "*"
+      );
+    } else {
+      window.postMessage({ type: "ToAddress", data: "No data found" }, "*");
+    }
+  });
+}
+
+function handleRequestAmount() {
+  chrome.runtime.sendMessage({ action: "DeliverAmount" }, (response) => {
+    if (response && response.data !== null) {
+      window.postMessage(
+        {
+          type: "Amount",
+          data: response.data,
+        },
+        "*"
+      );
+    } else {
+      window.postMessage({ type: "Amount", data: "No data found" }, "*");
     }
   });
 }

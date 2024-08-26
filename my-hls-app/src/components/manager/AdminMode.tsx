@@ -12,8 +12,8 @@ export const AdminMode = ({
   error: string | null;
   onRefetch: () => void;
   onUpdate: () => void;
-  newHash: string;
-  setNewHash: React.Dispatch<React.SetStateAction<string>>;
+  tail: string;
+  setTail: React.Dispatch<React.SetStateAction<string>>;
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (

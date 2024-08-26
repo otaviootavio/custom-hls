@@ -18,11 +18,14 @@ const HashchainManager: React.FC = () => {
     fetchHashchainFromServer,
     sendTailToServer,
   } = useHaschchainFromServer();
-  const [newHash, setNewHash] = useState("");
+
+  const [tail, setTail] = useState("");
   const [newHashChainSize, setNewHashChainSize] = useState<
     number | undefined
   >();
   const {
+    fetchToAddress,
+    fetchAmount,
     fetchSecretAndLength,
     syncLastHashSendIndex,
     fetchSmartContractAddress,
@@ -31,13 +34,15 @@ const HashchainManager: React.FC = () => {
   const { setHashChain } = useHashChainContext();
   const [newSmartContractAddress, setNewSmartContractAddress] = useState("");
   const [newChainId, setNewChainId] = useState<number | undefined>();
+  const [toAddress, setToAddress] = useState("");
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     fetchHashchainFromServer();
   }, [fetchHashchainFromServer]);
 
   const handleUpdateHashchainFromServer = async () => {
-    if (newHash && newHashChainSize !== undefined) {
+    if (tail && newHashChainSize !== undefined) {
       try {
         toast.info("Updating hashchain on server...");
 
@@ -47,13 +52,13 @@ const HashchainManager: React.FC = () => {
         }
 
         await sendTailToServer(
-          newHash,
+          tail,
           newHashChainSize,
           newChainId,
           newSmartContractAddress
         );
         await fetchHashchainFromServer();
-        setNewHash("");
+        setTail("");
         setNewHashChainSize(undefined);
         setNewChainId(undefined);
         setNewSmartContractAddress("");
@@ -71,7 +76,7 @@ const HashchainManager: React.FC = () => {
     try {
       toast.info("Fetching payword from extension...");
       const { tail, length } = await fetchSecretAndLength();
-      setNewHash(tail);
+      setTail(tail);
       setNewHashChainSize(length);
 
       const smartContractAddress = await fetchSmartContractAddress();
@@ -79,6 +84,12 @@ const HashchainManager: React.FC = () => {
 
       const chainId = await fetchChainId();
       setNewChainId(chainId);
+
+      const toAddress = await fetchToAddress();
+      setToAddress(toAddress);
+
+      const amount = await fetchAmount();
+      setAmount(amount);
 
       toast.success("Payword fetched successfully!");
     } catch (error) {
@@ -122,8 +133,12 @@ const HashchainManager: React.FC = () => {
           onFetch={handleFetchHashchainFromExtension}
           onSync={handleSyncLastHashSendIndex}
           onUpdate={handleUpdateHashchainFromServer}
-          newHash={newHash}
-          setNewHash={setNewHash}
+          tail={tail}
+          setTail={setTail}
+          toAddress={toAddress}
+          setToAddress={setToAddress}
+          amount={amount}
+          setAmount={setAmount}
           newHashChainSize={newHashChainSize}
           setNewHashChainSize={setNewHashChainSize}
           newSmartContractAddress={newSmartContractAddress}
@@ -138,8 +153,8 @@ const HashchainManager: React.FC = () => {
           error={error}
           onRefetch={fetchHashchainFromServer}
           onUpdate={handleUpdateHashchainFromServer}
-          newHash={newHash}
-          setNewHash={setNewHash}
+          tail={tail}
+          setTail={setTail}
           newHashChainSize={newHashChainSize}
           setNewHashChainSize={setNewHashChainSize}
         />

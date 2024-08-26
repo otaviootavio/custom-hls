@@ -5,7 +5,7 @@ import TailInput from "./TailInput";
 import { useHashChainFromExtension } from "../contexts/wallet/HashChainExtensionProvider";
 
 const DeployContract = () => {
-  const [amountEth, setAmountEth] = useState<bigint>(0n);
+  const [amountEthInWei, setAmountEthInWei] = useState<bigint>(0n);
   const [numersOfToken, setNumberOfTokens] = useState<number>(0);
   const [toAddress, setToAddress] = useState<`0x${string}`>("0x0");
   const [tail, setTail] = useState<string>("0x0");
@@ -42,7 +42,7 @@ const DeployContract = () => {
         </div>
         <div>
           <label className="text-gray-700">Amount of ETH:</label>
-          <BigIntInput onBigIntChange={setAmountEth} />
+          <BigIntInput onBigIntChange={setAmountEthInWei} />
         </div>
         <div>
           <label className="text-gray-700">
@@ -62,7 +62,7 @@ const DeployContract = () => {
         <div>
           <SmartContractInput
             tail={tail}
-            amountEth={amountEth}
+            amountEthInWei={amountEthInWei}
             numersOfToken={numersOfToken}
             toAddress={toAddress}
           />

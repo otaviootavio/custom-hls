@@ -1,26 +1,20 @@
 import React, { useState } from "react";
 import { Solc } from "solc-browserify";
 import { useAccount, useDeployContract } from "wagmi";
-import {
-  type Abi,
-  type Address,
-  formatEther,
-  type Hash,
-  parseEther,
-} from "viem";
+import { type Abi, type Address, type Hash } from "viem";
 import { config } from "../wagmi";
 import { waitForTransactionReceipt } from "wagmi/actions";
 import { useHashChainFromExtension } from "../contexts/wallet/HashChainExtensionProvider";
 
 interface SmartConractProps {
-  amountEth: bigint;
+  amountEthInWei: bigint;
   numersOfToken: number;
   toAddress: Address;
   tail: string;
 }
 
 const SmartContractInput: React.FC<SmartConractProps> = ({
-  amountEth,
+  amountEthInWei,
   numersOfToken,
   toAddress,
   tail,
@@ -42,7 +36,7 @@ const SmartContractInput: React.FC<SmartConractProps> = ({
       abi: abi,
       bytecode: `0x${byteCode}`,
       args: [toAddress, numersOfToken - 1, tail],
-      value: parseEther(amountEth.toString()),
+      value: amountEthInWei,
     });
 
     const x = await waitForTransactionReceipt(config, {
@@ -57,7 +51,7 @@ const SmartContractInput: React.FC<SmartConractProps> = ({
     openChannel(
       x.contractAddress,
       toAddress,
-      formatEther(amountEth),
+      amountEthInWei.toString(),
       toAddress,
       chainId,
     );
