@@ -20,7 +20,7 @@ export const UpdateServerForm = ({
   setNewChainId: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (
   <div className="mt-4 flex flex-col">
-    <h3 className="font-bold">Send data to server:</h3>
+    <h3 className="font-bold text-slate-800">Send data to server:</h3>
     <div className="gap-2 flex flex-col">
       <input
         type="text"

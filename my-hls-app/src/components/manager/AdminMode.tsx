@@ -21,7 +21,7 @@ export const AdminMode = ({
     {loading && <p>Loading...</p>}
     {error && <p className="text-red-500">{error}</p>}
     {hashchainFromServer && (
-      <div>
+      <div className="text-slate-800">
         <h3 className="font-bold mt-4">Server Data:</h3>
         <p>
           Last Hash: <SingleHashView hash={hashchainFromServer.lastHash} />
