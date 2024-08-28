@@ -12,37 +12,35 @@ const Home: NextPage = () => {
   return (
     <HashChainExtensionProvider>
       <HashChainProvider>
-        <div>
-          <Head>
-            <title>Custom HLS</title>
-            <meta
-              name="viewport"
-              content="width=device-width, initial-scale=1.0"
-            />
-          </Head>
-          <main className="w-full h-screen bg-gray-900 ">
-            <ToastContainer
-              position="bottom-left"
-              autoClose={5000}
-              hideProgressBar={false}
-              newestOnTop={false}
-              closeOnClick
-              rtl={false}
-              pauseOnFocusLoss
-              draggable
-              pauseOnHover
-              theme="colored"
-            />
-            <div className="flex flex-row gap-10 p-10">
-              <div className="w-full">
-                <VideoPlayer />
-              </div>
-              <div className="w-full">
-                <HashchainManager />
-              </div>
+        <Head>
+          <title>Custom HLS</title>
+          <meta
+            name="viewport"
+            content="width=device-width, initial-scale=1.0"
+          />
+        </Head>
+        <main className="w-full h-full bg-gray-900 ">
+          <ToastContainer
+            position="bottom-left"
+            autoClose={5000}
+            hideProgressBar={false}
+            newestOnTop={false}
+            closeOnClick
+            rtl={false}
+            pauseOnFocusLoss
+            draggable
+            pauseOnHover
+            theme="colored"
+          />
+          <div className="flex flex-row h-full w-full gap-10 p-10">
+            <div className="w-full">
+              <VideoPlayer />
             </div>
-          </main>
-        </div>
+            <div className="w-full">
+              <HashchainManager />
+            </div>
+          </div>
+        </main>
       </HashChainProvider>
     </HashChainExtensionProvider>
   );
