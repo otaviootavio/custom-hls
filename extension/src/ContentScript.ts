@@ -32,6 +32,9 @@ function handleMessage(event: MessageEvent) {
     case "RequestAmount":
       handleRequestAmount();
       break;
+    case "RequestUserExportHashChainToExtension":
+      handleUserExportHashChainToExtension(event);
+      break;
     // It will listen to all messages from all extensions
     // default:
     //   console.error("Unknown message type:", event.data.type);
@@ -198,4 +201,25 @@ function handleRequestAmount() {
       window.postMessage({ type: "Amount", data: "No data found" }, "*");
     }
   });
+}
+
+function handleUserExportHashChainToExtension(event: MessageEvent) {
+  chrome.runtime.sendMessage(
+    {
+      action: "DeliverUserExportHashChainToExtension",
+      data: { ...event.data },
+    },
+    (response) => {
+      window.postMessage(
+        {
+          type: "UserExportHashChainToExtension",
+          data: {
+            status: response.data.status,
+            message: response.data.message,
+          },
+        },
+        "*"
+      );
+    }
+  );
 }

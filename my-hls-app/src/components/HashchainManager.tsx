@@ -30,6 +30,7 @@ const HashchainManager: React.FC = () => {
     syncLastHashSendIndex,
     fetchSmartContractAddress,
     fetchChainId,
+    userExportHashChainToExtension,
   } = useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
   const [newSmartContractAddress, setNewSmartContractAddress] = useState("");
@@ -69,6 +70,26 @@ const HashchainManager: React.FC = () => {
           autoClose: 3000,
         });
       }
+    }
+  };
+
+  const exportHashChainToExtension = async () => {
+    if (
+      !!hashchainFromServer?.mostRecentHash &&
+      !!hashchainFromServer?.mostRecentHashIndex &&
+      !!hashchainFromServer?.chainSize &&
+      !!hashchainFromServer?.chainId &&
+      !!hashchainFromServer?.smartContractAddress
+    ) {
+      await userExportHashChainToExtension(
+        hashchainFromServer.mostRecentHash as `0x${string}`,
+        hashchainFromServer.mostRecentHashIndex,
+        hashchainFromServer.chainSize,
+        hashchainFromServer.chainId as number,
+        hashchainFromServer.smartContractAddress as `0x${string}`
+      );
+    } else {
+      toast.error("Failed to export hash chain to extension");
     }
   };
 
@@ -157,6 +178,7 @@ const HashchainManager: React.FC = () => {
           setTail={setTail}
           newHashChainSize={newHashChainSize}
           setNewHashChainSize={setNewHashChainSize}
+          exportHashChainToExtension={exportHashChainToExtension}
         />
       )}
     </div>

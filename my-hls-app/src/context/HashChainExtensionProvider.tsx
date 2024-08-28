@@ -38,6 +38,13 @@ interface HashChainExtensionContextType {
   fetchChainId: () => Promise<number>;
   fetchToAddress: () => Promise<string>;
   fetchAmount: () => Promise<string>;
+  userExportHashChainToExtension: (
+    lastHashExpended: `0x${string}`,
+    indexOfLastHashExended: number,
+    hashChainLength: number,
+    chainId: number,
+    smartContractAddress: `0x${string}`
+  ) => Promise<string>;
 }
 
 interface HashChainExtensionProviderProps {
@@ -205,6 +212,33 @@ export const HashChainExtensionProvider: React.FC<
     return response.data;
   };
 
+  const userExportHashChainToExtension = async (
+    lastHashExpended: `0x${string}`,
+    indexOfLastHashExended: number,
+    hashChainLength: number,
+    chainId: number,
+    smartContractAddress: string
+  ) => {
+    window.postMessage(
+      {
+        type: "RequestUserExportHashChainToExtension",
+        data: {
+          lastHashExpended,
+          indexOfLastHashExended,
+          hashChainLength,
+          chainId,
+          smartContractAddress,
+        },
+      },
+      "*"
+    );
+    const response = await createEventPromise<{
+      type: string;
+      data: { status: string; message: string };
+    }>("UserExportHashChainToExtension");
+    return response.data.status;
+  };
+
   const contextValue: HashChainExtensionContextType = {
     hashChainElements,
     tail,
@@ -222,6 +256,7 @@ export const HashChainExtensionProvider: React.FC<
     fetchChainId,
     fetchToAddress,
     fetchAmount,
+    userExportHashChainToExtension,
   };
 
   return (

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { type HashObject } from "../utils/interfaces";
+import { createHashChainFromItemAndLength } from "../utils/UsefulFunctions";
 
 const SerializedHashObjectSchema = z.object({
   chainId: z.number(),
@@ -200,6 +201,56 @@ class HashRepository {
     await this.updateHashChain(selectedChain);
     console.log(`Popped hash from chain with key ${selectedChain.key}`);
     return { index, hash: lastHash };
+  }
+
+  async importHashChainFromItemOfIndex(
+    lastHashExpend: `0x${string}`,
+    indexOfLastHashExpend: number,
+    hashChainLength: number,
+    chainId: number,
+    addressContract: `0x${string}`
+  ): Promise<void> {
+    // Generate the hash chain
+    const hashchain: `0x${string}`[] = createHashChainFromItemAndLength(
+      lastHashExpend,
+      hashChainLength - indexOfLastHashExpend
+    );
+    const zeros: `0x${string}`[] = Array(indexOfLastHashExpend).fill(
+      "0x0" as `0x${string}`
+    );
+
+    const fullHashchain: `0x${string}`[] = zeros.concat(hashchain);
+
+    // Create the HashObject
+    const importedHashObject: HashObject = {
+      chainId,
+      address_contract: addressContract,
+      address_to: "",
+      length: hashChainLength,
+      amountEthInWei: BigInt(0),
+      hashchain: fullHashchain,
+      isValid: true,
+      key: fullHashchain[fullHashchain.length - 1], // Using tail as the key for imported hash chains//
+      secret: "", // No secret for imported hash chains
+      tail: fullHashchain[fullHashchain.length - 1],
+      indexOfLastHashSend: indexOfLastHashExpend,
+    };
+
+    try {
+      // Add the imported hash chain
+      await this.addHashChain(importedHashObject);
+      console.log(
+        `Imported hash chain with tail ${
+          fullHashchain[fullHashchain.length - 1]
+        } successfully!`
+      );
+    } catch (error) {
+      if (error instanceof Error) {
+        console.error(`Failed to import hash chain: ${error.message}`);
+      }
+      console.error(`Failed to import hash chain: ${error}`);
+      throw error;
+    }
   }
 }
 

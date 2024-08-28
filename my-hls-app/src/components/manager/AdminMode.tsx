@@ -6,6 +6,7 @@ export const AdminMode = ({
   loading,
   error,
   onRefetch,
+  exportHashChainToExtension,
 }: {
   hashchainFromServer: Hashchain | null;
   loading: boolean;
@@ -16,13 +17,22 @@ export const AdminMode = ({
   setTail: React.Dispatch<React.SetStateAction<string>>;
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
+  exportHashChainToExtension: () => Promise<void>;
 }) => (
   <div className="p-4 w-full">
     {loading && <p>Loading...</p>}
     {error && <p className="text-red-500">{error}</p>}
     {hashchainFromServer && (
       <div className="text-slate-800">
-        <h3 className="font-bold mt-4">Server Data:</h3>
+        <div className="flex flex-row justify-between items-center">
+          <h3 className="font-bold mt-4">Server Data:</h3>
+          <button
+            className="bg-blue-500 text-white px-4 py-2 rounded mt-4"
+            onClick={exportHashChainToExtension}
+          >
+            Export to Extension
+          </button>
+        </div>
         <p>
           Last Hash: <SingleHashView hash={hashchainFromServer.lastHash} />
         </p>

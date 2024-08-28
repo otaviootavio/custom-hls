@@ -58,6 +58,12 @@ chrome.runtime.onMessage.addListener(
           case "DeliverAmount":
             await handleDeliverAmount(sendResponse);
             break;
+          case "DeliverUserExportHashChainToExtension":
+            await handleDeliverUserExportHashChainToExtension(
+              message.data.data,
+              sendResponse
+            );
+            break;
         }
       } catch (error) {
         console.error("Error in message handler:", error);
@@ -306,6 +312,40 @@ async function handleDeliverAmount(
   } catch (error) {
     console.error("Error in handleDeliverAmount:", error);
     sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleDeliverUserExportHashChainToExtension(
+  data: {
+    lastHashExpended: `0x${string}`;
+    indexOfLastHashExended: number;
+    hashChainLength: number;
+    chainId: number;
+    smartContractAddress: `0x${string}`;
+  },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  console.log("Handling DeliverUserExportHashChainToExtension action");
+  console.log(data);
+  try {
+    await hashRepo.importHashChainFromItemOfIndex(
+      data.lastHashExpended,
+      data.indexOfLastHashExended,
+      data.hashChainLength,
+      data.chainId,
+      data.smartContractAddress
+    );
+
+    sendResponse({ status: "error", message: "No hash chain selected" });
+  } catch (error) {
+    console.error(
+      "Error in handleDeliverUserExportHashChainToExtension:",
+      error
+    );
+    sendResponse({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 
