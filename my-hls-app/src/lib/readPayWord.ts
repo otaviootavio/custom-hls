@@ -1,5 +1,5 @@
 import { type PublicClient } from "viem";
-import { getClientByChainId } from "./supportedChain";
+import { defaultChains, getClientByChainId } from "./supportedChain";
 import { bigint } from "zod";
 
 export const ethWordAbi = [
@@ -81,7 +81,7 @@ export const getPaywordContractByAddressAndChainId = async (
     symbol: string;
   };
 }> => {
-  const client: PublicClient = getClientByChainId(chainId);
+  const client: PublicClient = getClientByChainId(defaultChains, chainId);
 
   if (!client.chain) {
     throw new Error("Chain not found");

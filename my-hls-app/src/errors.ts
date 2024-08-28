@@ -67,3 +67,10 @@ export class HashChainVerificationError extends Error {
     this.name = "HashChainVerificationError";
   }
 }
+
+export class WrongToAddresError extends Error {
+  constructor(message: string) {
+    super(`Error during hash chain verification: ${message}`);
+    this.name = "WrongToAddresError";
+  }
+}

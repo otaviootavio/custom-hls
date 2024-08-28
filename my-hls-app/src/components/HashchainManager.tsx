@@ -8,6 +8,7 @@ import { Navbar } from "./manager/NavBar";
 import { UserMode } from "./manager/UserMode";
 import { AdminMode } from "./manager/AdminMode";
 import { toast } from "react-toastify";
+import { VendorData } from "./VendorData";
 
 const HashchainManager: React.FC = () => {
   const [mode, setMode] = useState<"user" | "admin">("user");
@@ -56,7 +57,8 @@ const HashchainManager: React.FC = () => {
           tail,
           newHashChainSize,
           newChainId,
-          newSmartContractAddress
+          newSmartContractAddress,
+          toAddress
         );
         await fetchHashchainFromServer();
         setTail("");
@@ -147,8 +149,9 @@ const HashchainManager: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-200 p-4 w-full">
+    <div className="bg-gray-200 p-4 w-full gap-2 flex flex-col ">
       <Navbar setMode={setMode} currentMode={mode} />
+      <VendorData />
       {mode === "user" ? (
         <UserMode
           onFetch={handleFetchHashchainFromExtension}

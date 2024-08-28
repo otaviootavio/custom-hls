@@ -1,11 +1,4 @@
-import {
-  Chain,
-  Client,
-  createClient,
-  createPublicClient,
-  http,
-  PublicClient,
-} from "viem";
+import { Chain, createPublicClient, http, PublicClient } from "viem";
 
 export const xrpEVMSidechain: Chain = {
   id: 1440002,
@@ -17,7 +10,7 @@ export const xrpEVMSidechain: Chain = {
   },
   rpcUrls: {
     default: {
-      http: ["https://rpc-evm-sidechain.xrpl.org"], // Replace with the correct RPC URL
+      http: ["https://rpc-evm-sidechain.xrpl.org"],
     },
   },
   blockExplorers: {
@@ -47,18 +40,21 @@ export const sepolia: Chain = {
   testnet: true,
 };
 
-const chains: Chain[] = [xrpEVMSidechain, sepolia];
+export const defaultChains: Chain[] = [xrpEVMSidechain, sepolia];
 
-export function getChainById(id: number): Chain | undefined {
+export function getChainById(chains: Chain[], id: number): Chain | undefined {
   return chains.find((chain) => chain.id === id);
 }
 
-export function getAllChains(): Chain[] {
+export function getAllChains(chains: Chain[]): Chain[] {
   return chains;
 }
 
-export function getClientByChainId(chainId: number): PublicClient {
-  const chain = getChainById(chainId);
+export function getClientByChainId(
+  chains: Chain[],
+  chainId: number
+): PublicClient {
+  const chain = getChainById(chains, chainId);
   if (!chain) {
     throw new Error(`Chain with id ${chainId} not found`);
   }
@@ -69,4 +65,16 @@ export function getClientByChainId(chainId: number): PublicClient {
   });
 
   return client;
+}
+
+export function parseChainIdToChainName(
+  chains: Chain[],
+  chainId: number
+): string {
+  const chain: Chain | undefined = getChainById(chains, chainId);
+  console.log(chainId);
+  if (!!chain) {
+    return chain.name;
+  }
+  throw new Error(`Chain with id ${chainId} not found`);
 }

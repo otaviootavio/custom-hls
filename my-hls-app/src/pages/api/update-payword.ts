@@ -2,6 +2,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { getAuth } from "@clerk/nextjs/server";
 import { PrismaClient } from "@prisma/client";
 import { validatePaywordContractByAddressAndChainId } from "@/lib/readPayWord";
+import { env } from "@/env/server";
 
 const prisma = new PrismaClient();
 
@@ -22,15 +23,22 @@ export default async function handler(
     return;
   }
 
-  const { hash, hashchainSize, chainId, smartContractAddress } = req.body;
+  const { hash, hashchainSize, chainId, smartContractAddress, toAddress } =
+    req.body;
 
   if (
     !hash ||
     typeof hashchainSize !== "number" ||
     !chainId ||
-    !smartContractAddress
+    !smartContractAddress ||
+    !toAddress
   ) {
     res.status(400).json({ error: "Invalid input" });
+    return;
+  }
+
+  if (toAddress !== env.VENDOR_ADDRESS) {
+    res.status(400).json({ error: "Invalid to address" });
     return;
   }
 

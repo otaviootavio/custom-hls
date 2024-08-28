@@ -34,7 +34,8 @@ const useHaschchainFromServer = () => {
       hash: string,
       hashchainSize: number,
       chainId: number,
-      smartContractAddress: string
+      smartContractAddress: string,
+      toAddress: string
     ) => {
       setLoading(true);
       try {
@@ -44,6 +45,7 @@ const useHaschchainFromServer = () => {
             hashchainSize,
             chainId,
             smartContractAddress,
+            toAddress,
           })
           .catch((err) => {
             console.error("Error updating payword:", err);

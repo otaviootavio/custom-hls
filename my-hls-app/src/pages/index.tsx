@@ -32,7 +32,7 @@ const Home: NextPage = () => {
             pauseOnHover
             theme="colored"
           />
-          <div className="flex flex-row h-full w-full gap-10 p-10">
+          <div className="flex flex-row h-full w-full gap-10 p-10 ">
             <div className="w-full">
               <VideoPlayer />
             </div>

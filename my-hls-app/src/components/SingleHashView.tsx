@@ -21,7 +21,7 @@ const copyToClipboard = (text: string) => {
 const SingleHashView: React.FC<{ hash: string }> = ({ hash }) => {
   return (
     <span
-      className="ml-1 cursor-pointer text-blue-500 hover:underline"
+      className="ml-1 cursor-pointer hover:underline"
       title={hash}
       onClick={() => copyToClipboard(hash)}
     >
