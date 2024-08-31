@@ -116,3 +116,11 @@ pnpm dev
 - Micropayments implementation with PayWord protocol
 - Browser extension for managing hash chains
 - Smart contract for handling payments
+
+## To dos
+
+- [] Store hls video segment to a bucket
+- [] Create a monorepo
+- [] Add chadcn/ui( or other ui components )
+- [] Add dark and light mode
+- [] Perhaps there is no need to use background + content script
