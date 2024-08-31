@@ -6,6 +6,9 @@ export interface Hashchain {
   chainSize: number;
   mostRecentHashIndex: number;
   mostRecentHash: string;
+  chainId: number;
+  smartContractAddress: string;
+  amount: string;
 }
 
 const useHaschchainFromServer = () => {
@@ -28,14 +31,38 @@ const useHaschchainFromServer = () => {
   }, []);
 
   const sendTailToServer = useCallback(
-    async (hash: string, hashchainSize: number) => {
+    async (
+      hash: string,
+      hashchainSize: number,
+      chainId: number,
+      smartContractAddress: string,
+      toAddress: string,
+      amount: string
+    ) => {
       setLoading(true);
       try {
-        await axios.post("/api/update-payword", { hash, hashchainSize });
-        await fetchHashchainFromServer();
-        setError(null);
+        await axios
+          .post("/api/update-payword", {
+            hash,
+            hashchainSize,
+            chainId,
+            smartContractAddress,
+            toAddress,
+            amount,
+          })
+          .catch((err) => {
+            console.error("Error updating payword:", err);
+            setError("Failed to update payword");
+            setLoading(false);
+            throw err;
+          })
+          .finally(() => {
+            setLoading(false);
+            setError(null);
+          });
       } catch (err) {
         setError("Failed to update payword");
+        throw err;
       } finally {
         setLoading(false);
       }

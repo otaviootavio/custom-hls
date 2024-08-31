@@ -74,7 +74,7 @@ export const withPayword = (handler: NextApiHandler) => {
         mostRecentHashIndex
       );
 
-      if (!isValid) throw new Error("Invalid hash");
+      if (!isValid) throw new HashChainVerificationError("Invalid hash chain");
 
       await prisma.user.update({
         where: { clerkUserId: userId },

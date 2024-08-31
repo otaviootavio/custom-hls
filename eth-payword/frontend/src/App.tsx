@@ -27,31 +27,38 @@ function App() {
         <ConnectButton />
       </header>
       <main className="my-10 flex flex-col w-full justify-center items-center">
-        <HashChainExtensionProvider>
-          <div className="max-w-3xl w-full">
-            <nav className="bg-white shadow-sm w-full">
-              <ul className="flex">
-                <li>
-                  <button
-                    className={`px-4 py-2 ${currentPage === "open" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
-                    onClick={() => setCurrentPage("open")}
-                  >
-                    Open Channel
-                  </button>
-                </li>
-                <li>
-                  <button
-                    className={`px-4 py-2 ${currentPage === "close" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
-                    onClick={() => setCurrentPage("close")}
-                  >
-                    Close Channel
-                  </button>
-                </li>
-              </ul>
-            </nav>
-            {address && <div>{renderPage()}</div>}
+        {address ? (
+          <HashChainExtensionProvider>
+            <div className="max-w-3xl w-full">
+              <nav className="bg-white shadow-sm w-full">
+                <ul className="flex">
+                  <li>
+                    <button
+                      className={`px-4 py-2 ${currentPage === "open" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
+                      onClick={() => setCurrentPage("open")}
+                    >
+                      Open Channel
+                    </button>
+                  </li>
+                  <li>
+                    <button
+                      className={`px-4 py-2 ${currentPage === "close" ? "text-blue-500 border-b-2 border-blue-500" : "text-gray-500"}`}
+                      onClick={() => setCurrentPage("close")}
+                    >
+                      Close Channel
+                    </button>
+                  </li>
+                </ul>
+              </nav>
+              {address && <div>{renderPage()}</div>}
+            </div>
+          </HashChainExtensionProvider>
+        ) : (
+          <div className="p-2 text-slate-600 rounded-xl shadow flex flex-col justify-start items-start bg-slate-50 border border-slate-200">
+            <p className="font-semibold text-xl">Error!</p>
+            <p>Please connect your wallet to continue</p>
           </div>
-        </HashChainExtensionProvider>
+        )}
       </main>
     </div>
   );

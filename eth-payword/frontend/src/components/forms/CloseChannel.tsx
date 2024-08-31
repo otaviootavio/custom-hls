@@ -12,7 +12,7 @@ import HashchainInput from "../HashchainInput";
 import { useHashChainFromExtension } from "../../contexts/wallet/HashChainExtensionProvider";
 
 interface CloseChannelProps {
-  address: `0x${string}` | undefined;
+  address: `0x${string}`;
 }
 
 export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
@@ -40,7 +40,7 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
   const willTxSucess: boolean = data && data[0] ? true : false;
 
   const { fetchHashChain } = useHashChainFromExtension();
-  const [fullHashChain, setFullHashChain] = useState<string[]>([]);
+  const [fullHashChain, setFullHashChain] = useState<string[]>([""]);
 
   if (!address) return;
 
@@ -70,10 +70,12 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
   const handleFetchHashChain = async () => {
     const hashChain = await fetchHashChain();
     setFullHashChain(hashChain);
-    const firstHashToWithdraw = 1;
-    setBigIntValue(BigInt(firstHashToWithdraw));
-    setHexValue(hashChain[hashChain.length - 1 - firstHashToWithdraw]);
-    console.log(hashChain);
+
+    const hashChainWithoutZeros = hashChain.filter((hash) => hash !== "0x0");
+    const mostRecentHash = hashChainWithoutZeros[0];
+
+    setBigIntValue(BigInt(hashChainWithoutZeros.length - 1));
+    setHexValue(mostRecentHash);
   };
 
   return (
@@ -98,6 +100,7 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
           bigIntValue={bigIntValue}
           hexValue={hexValue}
           fullHashChain={fullHashChain}
+          isManualInput={!fullHashChain.length}
         />
         <input
           type="submit"
@@ -113,10 +116,10 @@ export const CloseChannel: React.FC<CloseChannelProps> = ({ address }) => {
       <p className="text-red-500 max-w-sm break-words">{errorEth?.message}</p>
 
       {willTxSucess && (
-        <p className="text-gray-900 p-2 bg-gray-100 rounded-lg border border-gray-300">
+        <div className="text-gray-900 p-2 bg-gray-100 rounded-lg border border-gray-300">
           <div className="text-sm">Ammont of tokens to withdraw:</div>
           <div className="text-xl">{data && formatEther(data[1])}</div>
-        </p>
+        </div>
       )}
     </div>
   );

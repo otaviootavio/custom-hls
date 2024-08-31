@@ -1,24 +1,37 @@
-import { Hashchain } from "@/hooks/useHashchainFromServer";
 import { UpdateServerForm } from "./UpdateServerForm";
 
 export const UserMode = ({
   onFetch,
   onSync,
-  hashchainFromServer,
   onUpdate,
-  newHash,
-  setNewHash,
+  tail,
+  setTail,
+  toAddress,
+  setToAddress,
+  amount,
+  setAmount,
   newHashChainSize,
   setNewHashChainSize,
+  newSmartContractAddress,
+  setNewSmartContractAddress,
+  newChainId,
+  setNewChainId,
 }: {
   onFetch: () => void;
   onSync: () => void;
-  hashchainFromServer: Hashchain | null;
   onUpdate: () => void;
-  newHash: string;
-  setNewHash: React.Dispatch<React.SetStateAction<string>>;
+  tail: string;
+  setTail: React.Dispatch<React.SetStateAction<string>>;
+  toAddress: string;
+  setToAddress: React.Dispatch<React.SetStateAction<string>>;
+  amount: string;
+  setAmount: React.Dispatch<React.SetStateAction<string>>;
   newHashChainSize: number | undefined;
   setNewHashChainSize: React.Dispatch<React.SetStateAction<number | undefined>>;
+  newSmartContractAddress: string;
+  setNewSmartContractAddress: React.Dispatch<React.SetStateAction<string>>;
+  newChainId: number | undefined;
+  setNewChainId: React.Dispatch<React.SetStateAction<number | undefined>>;
 }) => (
   <div className="p-4 w-full">
     <div className="flex-col flex">
@@ -41,10 +54,18 @@ export const UserMode = ({
 
       <UpdateServerForm
         onUpdate={onUpdate}
-        newHash={newHash}
-        setNewHash={setNewHash}
+        tail={tail}
+        setTail={setTail}
         newHashChainSize={newHashChainSize}
         setNewHashChainSize={setNewHashChainSize}
+        newSmartContractAddress={newSmartContractAddress}
+        setNewSmartContractAddress={setNewSmartContractAddress}
+        newChainId={newChainId}
+        setNewChainId={setNewChainId}
+        toAddress={toAddress}
+        setToAddress={setToAddress}
+        amount={amount}
+        setAmount={setAmount}
       />
     </div>
   </div>

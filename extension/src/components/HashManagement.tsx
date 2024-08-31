@@ -13,7 +13,7 @@ const HashManagement: React.FC = () => {
   const navigate = useNavigate();
 
   return (
-    <div className="max-w-lg mx-auto p-4 bg-gray-900 rounded-lg shadow-md flex flex-col">
+    <div className="w-full mx-auto p-4 bg-gray-900 rounded-lg shadow-md flex flex-col">
       {isLoading && <div>Loading...</div>}
       {error && <div className="text-red-500">{error}</div>}
       <div>
@@ -24,7 +24,7 @@ const HashManagement: React.FC = () => {
       </div>
       <div className="mt-4">
         List of Hash Chains:
-        <ul className="text-gray-300 min-h-max flex flex-col gap-2">
+        <ul className="text-gray-300 w-full flex flex-col gap-2">
           {hashChains.length > 0 ? (
             hashChains.map((chain) => (
               <li

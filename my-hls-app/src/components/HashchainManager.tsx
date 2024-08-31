@@ -8,6 +8,7 @@ import { Navbar } from "./manager/NavBar";
 import { UserMode } from "./manager/UserMode";
 import { AdminMode } from "./manager/AdminMode";
 import { toast } from "react-toastify";
+import { VendorData } from "./VendorData";
 
 const HashchainManager: React.FC = () => {
   const [mode, setMode] = useState<"user" | "admin">("user");
@@ -18,26 +19,53 @@ const HashchainManager: React.FC = () => {
     fetchHashchainFromServer,
     sendTailToServer,
   } = useHaschchainFromServer();
-  const [newHash, setNewHash] = useState("");
+
+  const [tail, setTail] = useState("");
   const [newHashChainSize, setNewHashChainSize] = useState<
     number | undefined
   >();
-  const { fetchSecretAndLength, syncLastHashSendIndex } =
-    useHashChainFromExtension();
+  const {
+    fetchToAddress,
+    fetchAmount,
+    fetchSecretAndLength,
+    syncLastHashSendIndex,
+    fetchSmartContractAddress,
+    fetchChainId,
+    userExportHashChainToExtension,
+  } = useHashChainFromExtension();
   const { setHashChain } = useHashChainContext();
+  const [newSmartContractAddress, setNewSmartContractAddress] = useState("");
+  const [newChainId, setNewChainId] = useState<number | undefined>();
+  const [toAddress, setToAddress] = useState("");
+  const [amount, setAmount] = useState("");
 
   useEffect(() => {
     fetchHashchainFromServer();
   }, [fetchHashchainFromServer]);
 
   const handleUpdateHashchainFromServer = async () => {
-    if (newHash && newHashChainSize !== undefined) {
+    if (tail && newHashChainSize !== undefined) {
       try {
         toast.info("Updating hashchain on server...");
-        await sendTailToServer(newHash, newHashChainSize);
+
+        if (!newChainId || !newSmartContractAddress) {
+          toast.error("Chain id or smart contract address not set");
+          throw new Error("Chain id or smart contract address not set");
+        }
+
+        await sendTailToServer(
+          tail,
+          newHashChainSize,
+          newChainId,
+          newSmartContractAddress,
+          toAddress,
+          amount
+        );
         await fetchHashchainFromServer();
-        setNewHash("");
+        setTail("");
         setNewHashChainSize(undefined);
+        setNewChainId(undefined);
+        setNewSmartContractAddress("");
         toast.success("Hashchain updated successfully!");
       } catch (error) {
         console.error("Error updating payword:", error);
@@ -48,12 +76,45 @@ const HashchainManager: React.FC = () => {
     }
   };
 
+  const exportHashChainToExtension = async () => {
+    if (
+      !!hashchainFromServer?.mostRecentHash &&
+      !!hashchainFromServer?.mostRecentHashIndex &&
+      !!hashchainFromServer?.chainSize &&
+      !!hashchainFromServer?.chainId &&
+      !!hashchainFromServer?.smartContractAddress
+    ) {
+      await userExportHashChainToExtension(
+        hashchainFromServer.mostRecentHash as `0x${string}`,
+        hashchainFromServer.mostRecentHashIndex,
+        hashchainFromServer.chainSize,
+        hashchainFromServer.chainId as number,
+        hashchainFromServer.smartContractAddress as `0x${string}`
+      );
+    } else {
+      toast.error("Failed to export hash chain to extension");
+    }
+  };
+
   const handleFetchHashchainFromExtension = async () => {
     try {
       toast.info("Fetching payword from extension...");
-      const data = await fetchSecretAndLength();
-      setNewHash(data.tail);
-      setNewHashChainSize(data.length);
+      const { tail, length } = await fetchSecretAndLength();
+      setTail(tail);
+      setNewHashChainSize(length);
+
+      const smartContractAddress = await fetchSmartContractAddress();
+      setNewSmartContractAddress(smartContractAddress);
+
+      const chainId = await fetchChainId();
+      setNewChainId(chainId);
+
+      const toAddress = await fetchToAddress();
+      setToAddress(toAddress);
+
+      const amount = await fetchAmount();
+      setAmount(amount);
+
       toast.success("Payword fetched successfully!");
     } catch (error) {
       console.error("Error fetching payword from extension:", error);
@@ -89,18 +150,26 @@ const HashchainManager: React.FC = () => {
   };
 
   return (
-    <div className="bg-gray-200 p-4 w-full">
+    <div className="bg-gray-200 p-4 w-full gap-2 flex flex-col ">
       <Navbar setMode={setMode} currentMode={mode} />
+      <VendorData />
       {mode === "user" ? (
         <UserMode
           onFetch={handleFetchHashchainFromExtension}
           onSync={handleSyncLastHashSendIndex}
-          hashchainFromServer={hashchainFromServer}
           onUpdate={handleUpdateHashchainFromServer}
-          newHash={newHash}
-          setNewHash={setNewHash}
+          tail={tail}
+          setTail={setTail}
+          toAddress={toAddress}
+          setToAddress={setToAddress}
+          amount={amount}
+          setAmount={setAmount}
           newHashChainSize={newHashChainSize}
           setNewHashChainSize={setNewHashChainSize}
+          newSmartContractAddress={newSmartContractAddress}
+          setNewSmartContractAddress={setNewSmartContractAddress}
+          newChainId={newChainId}
+          setNewChainId={setNewChainId}
         />
       ) : (
         <AdminMode
@@ -109,10 +178,11 @@ const HashchainManager: React.FC = () => {
           error={error}
           onRefetch={fetchHashchainFromServer}
           onUpdate={handleUpdateHashchainFromServer}
-          newHash={newHash}
-          setNewHash={setNewHash}
+          tail={tail}
+          setTail={setTail}
           newHashChainSize={newHashChainSize}
           setNewHashChainSize={setNewHashChainSize}
+          exportHashChainToExtension={exportHashChainToExtension}
         />
       )}
     </div>

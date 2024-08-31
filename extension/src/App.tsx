@@ -14,7 +14,7 @@ function App() {
   return (
     <HashChainProvider>
       <Router>
-        <div className="min-h-96 min-w-56  bg-gray-800 text-gray-200">
+        <div className="h-max w-max  bg-gray-800 text-gray-200">
           <nav className="bg-gray-900 p-4">
             <ul className="flex justify-center space-x-4">
               <li>

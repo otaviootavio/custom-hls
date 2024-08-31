@@ -43,8 +43,27 @@ chrome.runtime.onMessage.addListener(
           case "DeliverSyncLastHashSendIndex":
             await handleSyncLastHashSendIndex(message.data.data, sendResponse);
             break;
-          default:
-            sendResponse({ error: "Unknown action" });
+          case "DeliverOpenChannel":
+            await handleOpenChannel(message.data.data, sendResponse);
+            break;
+          case "DeliverSmartContractAddress":
+            await handleDeliverSmartContractAddress(sendResponse);
+            break;
+          case "DeliverChainId":
+            await handleDeliverChainId(sendResponse);
+            break;
+          case "DeliverToAddress":
+            await handleDeliverToAddress(sendResponse);
+            break;
+          case "DeliverAmount":
+            await handleDeliverAmount(sendResponse);
+            break;
+          case "DeliverUserExportHashChainToExtension":
+            await handleDeliverUserExportHashChainToExtension(
+              message.data.data,
+              sendResponse
+            );
+            break;
         }
       } catch (error) {
         console.error("Error in message handler:", error);
@@ -73,8 +92,10 @@ async function handleMakeHashChain(
   console.log("Hash chain created", start_chain);
 
   const hashChainData: HashObject = {
+    chainId: 0,
     address_contract: "",
     address_to: "",
+    amountEthInWei: 0n,
     length: length,
     hashchain: start_chain.map((hash) => toHex(hash)),
     isValid: false,
@@ -192,6 +213,139 @@ async function handleSyncLastHashSendIndex(
   } catch (error) {
     console.error("Error in handleSyncLastHashSendIndex:", error);
     sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleOpenChannel(
+  data: {
+    address_contract: string;
+    address_to: string;
+    amountEthInWei: string;
+    key: string;
+    chainId: number;
+  },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  console.log("Handling openChannel action");
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      const updatedHashChain: HashObject = {
+        ...selectedHashChain,
+        chainId: data.chainId,
+        address_to: data.address_to,
+        address_contract: data.address_contract,
+        amountEthInWei: BigInt(data.amountEthInWei),
+      };
+      await hashRepo.updateHashChain(updatedHashChain);
+      sendResponse({ status: "success", message: "Channel opened" });
+    } else {
+      sendResponse({ status: "error", message: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleOpenChannel:", error);
+    sendResponse({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
+  }
+}
+
+async function handleDeliverSmartContractAddress(
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.address_contract });
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverAddress:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleDeliverChainId(
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.chainId });
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverChainId:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleDeliverToAddress(
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.address_to });
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverToAddress:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleDeliverAmount(
+  sendResponse: (response: ResponseMessage) => void
+) {
+  try {
+    const selectedHashChain = await hashRepo.getSelectedHashChain();
+    if (selectedHashChain) {
+      sendResponse({ data: selectedHashChain.amountEthInWei.toString() });
+    } else {
+      sendResponse({ data: "No hash chain selected" });
+    }
+  } catch (error) {
+    console.error("Error in handleDeliverAmount:", error);
+    sendResponse({ error: "Failed to retrieve hash chain" });
+  }
+}
+
+async function handleDeliverUserExportHashChainToExtension(
+  data: {
+    lastHashExpended: `0x${string}`;
+    indexOfLastHashExended: number;
+    hashChainLength: number;
+    chainId: number;
+    smartContractAddress: `0x${string}`;
+  },
+  sendResponse: (response: ResponseMessage) => void
+) {
+  console.log("Handling DeliverUserExportHashChainToExtension action");
+  console.log(data);
+  try {
+    await hashRepo.importHashChainFromItemOfIndex(
+      data.lastHashExpended,
+      data.indexOfLastHashExended,
+      data.hashChainLength,
+      data.chainId,
+      data.smartContractAddress
+    );
+
+    sendResponse({ status: "error", message: "No hash chain selected" });
+  } catch (error) {
+    console.error(
+      "Error in handleDeliverUserExportHashChainToExtension:",
+      error
+    );
+    sendResponse({
+      status: "error",
+      message: error instanceof Error ? error.message : String(error),
+    });
   }
 }
 

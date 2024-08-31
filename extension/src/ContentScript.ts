@@ -1,7 +1,6 @@
 window.addEventListener("message", handleMessage);
 
 function handleMessage(event: MessageEvent) {
-  console.log("Handling message:", event);
   switch (event.data.type) {
     case "Send_h(100)":
       handleSendH100();
@@ -18,8 +17,27 @@ function handleMessage(event: MessageEvent) {
     case "RequestSyncLastHashSendIndex":
       handleSyncLastHashSendIndex(event);
       break;
-    default:
-      console.error("Unknown message type:", event.data.type);
+    case "RequestOpenChannel":
+      handleOpenChannel(event);
+      break;
+    case "RequestSmartContractAddress":
+      handleRequestSmartContractAddress();
+      break;
+    case "RequestChainId":
+      handleRequstChainId();
+      break;
+    case "RequestToAddress":
+      handleRequestToAddress();
+      break;
+    case "RequestAmount":
+      handleRequestAmount();
+      break;
+    case "RequestUserExportHashChainToExtension":
+      handleUserExportHashChainToExtension(event);
+      break;
+    // It will listen to all messages from all extensions
+    // default:
+    //   console.error("Unknown message type:", event.data.type);
   }
 }
 
@@ -97,6 +115,111 @@ function handleSyncLastHashSendIndex(event: MessageEvent) {
           "*"
         );
       }
+    }
+  );
+}
+
+function handleOpenChannel(event: MessageEvent) {
+  console.log("Handling HandleOpenChannel action");
+  chrome.runtime.sendMessage(
+    { action: "DeliverOpenChannel", data: { ...event.data } },
+    (response) => {
+      if (response && response.data !== undefined) {
+        window.postMessage({ type: "OpenChannel", data: response.data }, "*");
+      } else {
+        window.postMessage({ type: "OpenChannel", data: "No data found" }, "*");
+      }
+    }
+  );
+}
+
+function handleRequestSmartContractAddress() {
+  chrome.runtime.sendMessage(
+    { action: "DeliverSmartContractAddress" },
+    (response) => {
+      if (response && response.data !== null) {
+        window.postMessage(
+          {
+            type: "SmartContractAddress",
+            data: response.data,
+          },
+          "*"
+        );
+      } else {
+        window.postMessage(
+          { type: "SmartContractAddress", data: "No data found" },
+          "*"
+        );
+      }
+    }
+  );
+}
+
+function handleRequstChainId() {
+  chrome.runtime.sendMessage({ action: "DeliverChainId" }, (response) => {
+    if (response && response.data !== null) {
+      window.postMessage(
+        {
+          type: "ChainId",
+          data: response.data,
+        },
+        "*"
+      );
+    } else {
+      window.postMessage({ type: "ChainId", data: "No data found" }, "*");
+    }
+  });
+}
+
+function handleRequestToAddress() {
+  chrome.runtime.sendMessage({ action: "DeliverToAddress" }, (response) => {
+    if (response && response.data !== null) {
+      window.postMessage(
+        {
+          type: "ToAddress",
+          data: response.data,
+        },
+        "*"
+      );
+    } else {
+      window.postMessage({ type: "ToAddress", data: "No data found" }, "*");
+    }
+  });
+}
+
+function handleRequestAmount() {
+  chrome.runtime.sendMessage({ action: "DeliverAmount" }, (response) => {
+    if (response && response.data !== null) {
+      window.postMessage(
+        {
+          type: "Amount",
+          data: response.data,
+        },
+        "*"
+      );
+    } else {
+      window.postMessage({ type: "Amount", data: "No data found" }, "*");
+    }
+  });
+}
+
+function handleUserExportHashChainToExtension(event: MessageEvent) {
+  chrome.runtime.sendMessage(
+    {
+      action: "DeliverUserExportHashChainToExtension",
+      data: { ...event.data },
+    },
+    (response) => {
+      window.postMessage(
+        {
+          type: "UserExportHashChainToExtension",
+          data: {
+            status: response.data.status,
+            message: response.data.message,
+          },
+        },
+        "*"
+      );
     }
   );
 }
