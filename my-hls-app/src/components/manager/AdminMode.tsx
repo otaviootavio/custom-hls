@@ -1,5 +1,7 @@
 import { Hashchain } from "@/hooks/useHashchainFromServer";
 import SingleHashView from "../SingleHashView";
+import { formatEther } from "viem";
+import { defaultChains, getChainById } from "@/lib/supportedChain";
 
 export const AdminMode = ({
   hashchainFromServer,
@@ -48,6 +50,17 @@ export const AdminMode = ({
         <p>
           Smart Contract Address:{" "}
           <SingleHashView hash={hashchainFromServer.smartContractAddress} />
+        </p>
+        <p>
+          Amount: {formatEther(BigInt(hashchainFromServer.amount))}{" "}
+          {
+            getChainById(defaultChains, hashchainFromServer.chainId)
+              ?.nativeCurrency.symbol
+          }
+        </p>
+        <p>
+          Network:{" "}
+          {getChainById(defaultChains, hashchainFromServer.chainId)?.name}
         </p>
       </div>
     )}

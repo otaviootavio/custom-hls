@@ -17,4 +17,5 @@ model User {
   mostRecentHashIndex  Int
   chainId              Int
   smartContractAddress String
+  amount               String
 }

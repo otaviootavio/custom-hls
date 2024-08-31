@@ -23,17 +23,24 @@ export default async function handler(
     return;
   }
 
-  const { hash, hashchainSize, chainId, smartContractAddress, toAddress } =
-    req.body;
+  const {
+    hash,
+    hashchainSize,
+    chainId,
+    smartContractAddress,
+    toAddress,
+    amount,
+  } = req.body;
 
   if (
     !hash ||
     typeof hashchainSize !== "number" ||
     !chainId ||
     !smartContractAddress ||
-    !toAddress
+    !toAddress ||
+    typeof amount !== "string"
   ) {
-    res.status(400).json({ error: "Invalid input" });
+    res.status(400).json({ error: "Invalid input format or type" });
     return;
   }
 
@@ -63,6 +70,7 @@ export default async function handler(
       chainId,
       smartContractAddress,
       BigInt(hashchainSize),
+      BigInt(amount),
       // expectedChannelRecipient,
       // expectedChannelSender,
       hash
@@ -84,6 +92,7 @@ export default async function handler(
           mostRecentHashIndex: hashchainSize - 1,
           chainId: chainId,
           smartContractAddress: smartContractAddress,
+          amount: amount,
         },
       });
     } else {

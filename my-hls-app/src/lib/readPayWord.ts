@@ -1,6 +1,5 @@
 import { type PublicClient } from "viem";
 import { defaultChains, getClientByChainId } from "./supportedChain";
-import { bigint } from "zod";
 
 export const ethWordAbi = [
   {
@@ -133,6 +132,7 @@ export const validatePaywordContractByAddressAndChainId = async (
   hashchainSize: bigint,
   // expectedChannelRecipient: `0x${string}`,
   // expectedChannelSender: `0x${string}`,
+  amount: bigint,
   expectedChannelTip: `0x${string}`
 ): Promise<boolean> => {
   const contract = await getPaywordContractByAddressAndChainId(
@@ -142,7 +142,8 @@ export const validatePaywordContractByAddressAndChainId = async (
   return (
     // contract.channelRecipient === expectedChannelRecipient &&
     // contract.channelSender === expectedChannelSender &&
-    contract.channelTip === expectedChannelTip,
+    contract.channelAmmount === amount &&
+      contract.channelTip === expectedChannelTip,
     contract.channelHashchainSize === hashchainSize
   );
 };

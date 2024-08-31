@@ -58,7 +58,8 @@ const HashchainManager: React.FC = () => {
           newHashChainSize,
           newChainId,
           newSmartContractAddress,
-          toAddress
+          toAddress,
+          amount
         );
         await fetchHashchainFromServer();
         setTail("");

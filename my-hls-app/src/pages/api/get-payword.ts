@@ -42,6 +42,7 @@ export default async function handler(
       mostRecentHashIndex: user.mostRecentHashIndex,
       chainId: user.chainId,
       smartContractAddress: user.smartContractAddress,
+      amount: user.amount,
     });
   } catch (error) {
     console.error("Error retrieving payword:", error);

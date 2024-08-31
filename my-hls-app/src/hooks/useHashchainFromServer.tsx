@@ -8,6 +8,7 @@ export interface Hashchain {
   mostRecentHash: string;
   chainId: number;
   smartContractAddress: string;
+  amount: string;
 }
 
 const useHaschchainFromServer = () => {
@@ -35,7 +36,8 @@ const useHaschchainFromServer = () => {
       hashchainSize: number,
       chainId: number,
       smartContractAddress: string,
-      toAddress: string
+      toAddress: string,
+      amount: string
     ) => {
       setLoading(true);
       try {
@@ -46,6 +48,7 @@ const useHaschchainFromServer = () => {
             chainId,
             smartContractAddress,
             toAddress,
+            amount,
           })
           .catch((err) => {
             console.error("Error updating payword:", err);
