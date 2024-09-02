@@ -5,7 +5,7 @@ export const env = createEnv({
   server: {
     POSTGRES_USER: z.string().min(1),
     POSTGRES_PASSWORD: z.string().min(1),
-    POSTGRES_DB: z.string().min(1),
+    POSTGRES_DATABASE: z.string().min(1),
     POSTGRES_PRISMA_URL: z.string().url(),
     POSTGRES_URL_NON_POOLING: z.string().url(),
     CLERK_SECRET_KEY: z.string().min(1),
@@ -16,7 +16,7 @@ export const env = createEnv({
   runtimeEnv: {
     POSTGRES_USER: process.env.POSTGRES_USER,
     POSTGRES_PASSWORD: process.env.POSTGRES_PASSWORD,
-    POSTGRES_DB: process.env.POSTGRES_DB,
+    POSTGRES_DATABASE: process.env.POSTGRES_DATABASE,
     POSTGRES_PRISMA_URL: process.env.POSTGRES_PRISMA_URL,
     POSTGRES_URL_NON_POOLING: process.env.POSTGRES_URL_NON_POOLING,
     CLERK_SECRET_KEY: process.env.CLERK_SECRET_KEY,
