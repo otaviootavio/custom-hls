@@ -21,6 +21,7 @@ const useHaschchainFromServer = () => {
     setLoading(true);
     try {
       const response = await axios.get("/api/get-payword");
+      console.log("hashchainFromServer", response.data);
       setHashchainFromServer(response.data);
       setError(null);
     } catch (err) {

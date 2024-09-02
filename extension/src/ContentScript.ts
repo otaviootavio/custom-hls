@@ -210,12 +210,14 @@ function handleUserExportHashChainToExtension(event: MessageEvent) {
       data: { ...event.data },
     },
     (response) => {
+      console.log("handleUserExportHashChainToExtension");
+      console.log(response);
       window.postMessage(
         {
           type: "UserExportHashChainToExtension",
           data: {
-            status: response.data.status,
-            message: response.data.message,
+            status: response.status,
+            message: response.message,
           },
         },
         "*"
