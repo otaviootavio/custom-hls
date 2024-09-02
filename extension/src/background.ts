@@ -336,7 +336,10 @@ async function handleDeliverUserExportHashChainToExtension(
       data.smartContractAddress
     );
 
-    sendResponse({ status: "error", message: "No hash chain selected" });
+    sendResponse({
+      status: "success",
+      message: "Hashchain exported successfully",
+    });
   } catch (error) {
     console.error(
       "Error in handleDeliverUserExportHashChainToExtension:",

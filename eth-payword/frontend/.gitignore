@@ -24,5 +24,4 @@ dist-ssr
 *.sw?
 
 bun.lockb
-generated.ts
 .env

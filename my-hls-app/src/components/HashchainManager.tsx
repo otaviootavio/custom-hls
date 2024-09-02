@@ -66,6 +66,8 @@ const HashchainManager: React.FC = () => {
         setNewHashChainSize(undefined);
         setNewChainId(undefined);
         setNewSmartContractAddress("");
+        setAmount("");
+        setToAddress("");
         toast.success("Hashchain updated successfully!");
       } catch (error) {
         console.error("Error updating payword:", error);
@@ -79,18 +81,25 @@ const HashchainManager: React.FC = () => {
   const exportHashChainToExtension = async () => {
     if (
       !!hashchainFromServer?.mostRecentHash &&
-      !!hashchainFromServer?.mostRecentHashIndex &&
+      hashchainFromServer?.mostRecentHashIndex >= 0 &&
       !!hashchainFromServer?.chainSize &&
       !!hashchainFromServer?.chainId &&
-      !!hashchainFromServer?.smartContractAddress
+      !!hashchainFromServer?.smartContractAddress &&
+      !!hashchainFromServer?.lastHash
     ) {
-      await userExportHashChainToExtension(
+      const status = await userExportHashChainToExtension(
         hashchainFromServer.mostRecentHash as `0x${string}`,
         hashchainFromServer.mostRecentHashIndex,
         hashchainFromServer.chainSize,
         hashchainFromServer.chainId as number,
-        hashchainFromServer.smartContractAddress as `0x${string}`
+        hashchainFromServer.smartContractAddress as `0x${string}`,
+        hashchainFromServer.lastHash as `0x${string}`
       );
+      if (status === "success") {
+        toast.success("Hashchain exported successfully!");
+      } else {
+        toast.error("Failed to export hash chain to extension");
+      }
     } else {
       toast.error("Failed to export hash chain to extension");
     }

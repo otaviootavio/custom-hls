@@ -43,7 +43,8 @@ interface HashChainExtensionContextType {
     indexOfLastHashExended: number,
     hashChainLength: number,
     chainId: number,
-    smartContractAddress: `0x${string}`
+    smartContractAddress: `0x${string}`,
+    tail: `0x${string}`
   ) => Promise<string>;
 }
 
@@ -217,12 +218,14 @@ export const HashChainExtensionProvider: React.FC<
     indexOfLastHashExended: number,
     hashChainLength: number,
     chainId: number,
-    smartContractAddress: string
+    smartContractAddress: string,
+    tail: `0x${string}`
   ) => {
     window.postMessage(
       {
         type: "RequestUserExportHashChainToExtension",
         data: {
+          tail,
           lastHashExpended,
           indexOfLastHashExended,
           hashChainLength,

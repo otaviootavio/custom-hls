@@ -3,17 +3,20 @@ import { type HashObject } from "../utils/interfaces";
 import { createHashChainFromItemAndLength } from "../utils/UsefulFunctions";
 
 const SerializedHashObjectSchema = z.object({
-  chainId: z.number(),
-  address_contract: z.string(),
-  address_to: z.string(),
-  length: z.number(),
-  amountEthInWei: z.string(),
-  hashchain: z.array(z.string().regex(/^0x[0-9a-fA-F]+$/)),
-  isValid: z.boolean(),
+  chainId: z.number().default(0),
+  address_contract: z.string().default("0x0"),
+  address_to: z.string().default("0x0"),
+  length: z.number().default(0),
+  amountEthInWei: z.string().default("0"),
+  hashchain: z.array(z.string().regex(/^0x[0-9a-fA-F]+$/)).default([]),
+  isValid: z.boolean().default(true),
   key: z.string().regex(/^0x[0-9a-fA-F]+$/),
-  secret: z.string(),
-  tail: z.string().regex(/^0x[0-9a-fA-F]+$/),
-  indexOfLastHashSend: z.number(),
+  secret: z.string().default("0"),
+  tail: z
+    .string()
+    .regex(/^0x[0-9a-fA-F]+$/)
+    .default("0x0"),
+  indexOfLastHashSend: z.number().default(0),
 });
 
 type SerializedHashObject = z.infer<typeof SerializedHashObjectSchema>;
@@ -44,6 +47,7 @@ class HashRepository {
   private deserializeHashObject(serialized: SerializedHashObject): HashObject {
     return {
       ...serialized,
+      chainId: serialized.chainId || 0,
       amountEthInWei: BigInt(serialized.amountEthInWei),
       hashchain: serialized.hashchain.map((hash) => hash as `0x${string}`),
       tail: serialized.tail as `0x${string}`,
