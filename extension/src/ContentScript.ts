@@ -1,7 +1,38 @@
+import browser from "webextension-polyfill";
+import { HashObjectWithoutKey } from "./utils/interfaces";
+
+interface MessageResponse {
+  data?: any;
+  status?: string;
+  message?: string;
+}
+
+interface CustomMessageEventData {
+  type: string;
+  data?: Partial<HashObjectWithoutKey> & {
+    indexOfLastHashSend?: number;
+    address_contract?: string;
+    address_to?: string;
+    amountEthInWei?: string;
+    chainId?: number;
+    smartContractAddress?: string;
+    secret?: string;
+    length?: number;
+    hashchain?: string[];
+    tail?: string;
+  };
+}
+
+interface CustomMessageEvent extends MessageEvent {
+  data: CustomMessageEventData;
+}
+
 window.addEventListener("message", handleMessage);
 
-function handleMessage(event: MessageEvent) {
-  switch (event.data.type) {
+function handleMessage(event: CustomMessageEvent) {
+  const { type, data } = event.data;
+
+  switch (type) {
     case "Send_h(100)":
       handleSendH100();
       break;
@@ -15,16 +46,16 @@ function handleMessage(event: MessageEvent) {
       handleRequestSecretLength();
       break;
     case "RequestSyncLastHashSendIndex":
-      handleSyncLastHashSendIndex(event);
+      if (data) handleSyncLastHashSendIndex(data);
       break;
     case "RequestOpenChannel":
-      handleOpenChannel(event);
+      if (data) handleOpenChannel(data);
       break;
     case "RequestSmartContractAddress":
       handleRequestSmartContractAddress();
       break;
     case "RequestChainId":
-      handleRequstChainId();
+      handleRequestChainId();
       break;
     case "RequestToAddress":
       handleRequestToAddress();
@@ -33,195 +64,144 @@ function handleMessage(event: MessageEvent) {
       handleRequestAmount();
       break;
     case "RequestUserExportHashChainToExtension":
-      handleUserExportHashChainToExtension(event);
+      if (data) handleUserExportHashChainToExtension(data);
       break;
-    // It will listen to all messages from all extensions
-    // default:
-    //   console.error("Unknown message type:", event.data.type);
+    default:
+      console.error("Unknown message type:", type);
   }
 }
 
 function handleSendH100() {
-  chrome.runtime.sendMessage({ action: "Deliver_h(100)" }, (response) => {
-    if (response && response.data !== undefined) {
-      window.postMessage({ type: "Recover_h(100)", data: response.data }, "*");
-    } else {
-      window.postMessage(
-        { type: "Recover_h(100)", data: "No data found" },
-        "*"
-      );
-    }
+  (
+    browser.runtime.sendMessage({ action: "Deliver_h(100)" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "Recover_h(100)", data }, "*");
   });
 }
 
 function handleRequestHashChain() {
-  chrome.runtime.sendMessage({ action: "DeliverHashchain" }, (response) => {
-    if (response && response.data !== null) {
-      window.postMessage({ type: "HashChain", data: response.data }, "*");
-    } else {
-      window.postMessage({ type: "HashChain", data: "No data found" }, "*");
-    }
+  (
+    browser.runtime.sendMessage({ action: "DeliverHashchain" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "HashChain", data }, "*");
   });
 }
 
 function handleRequestFullHashChain() {
-  chrome.runtime.sendMessage({ action: "DeliverFullHashchain" }, (response) => {
-    if (response && response.data !== null) {
-      window.postMessage(
-        {
-          type: "fullHashChain",
-          data: response.data,
-        },
-        "*"
-      );
-    } else {
-      window.postMessage({ type: "fullHashChain", data: "No data found" }, "*");
-    }
+  (
+    browser.runtime.sendMessage({ action: "DeliverFullHashchain" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "fullHashChain", data }, "*");
   });
 }
 
 function handleRequestSecretLength() {
-  chrome.runtime.sendMessage({ action: "DeliverSecretLength" }, (response) => {
-    if (response && response.data) {
-      window.postMessage(
-        {
-          type: "SecretLength",
-          data: response.data,
-        },
-        "*"
-      );
-    } else {
-      window.postMessage(
-        { type: "SecretLength", data: "No data found", length: 0 },
-        "*"
-      );
-    }
+  (
+    browser.runtime.sendMessage({ action: "DeliverSecretLength" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? { message: "No data found", length: 0 };
+    window.postMessage({ type: "SecretLength", data }, "*");
   });
 }
 
-function handleSyncLastHashSendIndex(event: MessageEvent) {
+function handleSyncLastHashSendIndex(data: CustomMessageEventData["data"]) {
   console.log("Handling SyncLastHashSendIndex action");
-  chrome.runtime.sendMessage(
-    { action: "DeliverSyncLastHashSendIndex", data: { ...event.data } },
-    (response) => {
-      if (response && response.data !== undefined) {
-        window.postMessage(
-          { type: "SyncLastHashSendIndex", data: response.data },
-          "*"
-        );
-      } else {
-        window.postMessage(
-          { type: "SyncLastHashSendIndex", data: "No data found" },
-          "*"
-        );
-      }
-    }
-  );
+  (
+    browser.runtime.sendMessage({
+      action: "DeliverSyncLastHashSendIndex",
+      data,
+    }) as Promise<Partial<MessageResponse>>
+  ).then((response) => {
+    const resultData = response?.data ?? "No data found";
+    window.postMessage(
+      { type: "SyncLastHashSendIndex", data: resultData },
+      "*"
+    );
+  });
 }
 
-function handleOpenChannel(event: MessageEvent) {
-  console.log("Handling HandleOpenChannel action");
-  chrome.runtime.sendMessage(
-    { action: "DeliverOpenChannel", data: { ...event.data } },
-    (response) => {
-      if (response && response.data !== undefined) {
-        window.postMessage({ type: "OpenChannel", data: response.data }, "*");
-      } else {
-        window.postMessage({ type: "OpenChannel", data: "No data found" }, "*");
-      }
-    }
-  );
+function handleOpenChannel(data: CustomMessageEventData["data"]) {
+  console.log("Handling OpenChannel action");
+  (
+    browser.runtime.sendMessage({
+      action: "DeliverOpenChannel",
+      data,
+    }) as Promise<Partial<MessageResponse>>
+  ).then((response) => {
+    const resultData = response?.data ?? "No data found";
+    window.postMessage({ type: "OpenChannel", data: resultData }, "*");
+  });
 }
 
 function handleRequestSmartContractAddress() {
-  chrome.runtime.sendMessage(
-    { action: "DeliverSmartContractAddress" },
-    (response) => {
-      if (response && response.data !== null) {
-        window.postMessage(
-          {
-            type: "SmartContractAddress",
-            data: response.data,
-          },
-          "*"
-        );
-      } else {
-        window.postMessage(
-          { type: "SmartContractAddress", data: "No data found" },
-          "*"
-        );
-      }
-    }
-  );
+  (
+    browser.runtime.sendMessage({
+      action: "DeliverSmartContractAddress",
+    }) as Promise<Partial<MessageResponse>>
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "SmartContractAddress", data }, "*");
+  });
 }
 
-function handleRequstChainId() {
-  chrome.runtime.sendMessage({ action: "DeliverChainId" }, (response) => {
-    if (response && response.data !== null) {
-      window.postMessage(
-        {
-          type: "ChainId",
-          data: response.data,
-        },
-        "*"
-      );
-    } else {
-      window.postMessage({ type: "ChainId", data: "No data found" }, "*");
-    }
+function handleRequestChainId() {
+  (
+    browser.runtime.sendMessage({ action: "DeliverChainId" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "ChainId", data }, "*");
   });
 }
 
 function handleRequestToAddress() {
-  chrome.runtime.sendMessage({ action: "DeliverToAddress" }, (response) => {
-    if (response && response.data !== null) {
-      window.postMessage(
-        {
-          type: "ToAddress",
-          data: response.data,
-        },
-        "*"
-      );
-    } else {
-      window.postMessage({ type: "ToAddress", data: "No data found" }, "*");
-    }
+  (
+    browser.runtime.sendMessage({ action: "DeliverToAddress" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "ToAddress", data }, "*");
   });
 }
 
 function handleRequestAmount() {
-  chrome.runtime.sendMessage({ action: "DeliverAmount" }, (response) => {
-    if (response && response.data !== null) {
-      window.postMessage(
-        {
-          type: "Amount",
-          data: response.data,
-        },
-        "*"
-      );
-    } else {
-      window.postMessage({ type: "Amount", data: "No data found" }, "*");
-    }
+  (
+    browser.runtime.sendMessage({ action: "DeliverAmount" }) as Promise<
+      Partial<MessageResponse>
+    >
+  ).then((response) => {
+    const data = response?.data ?? "No data found";
+    window.postMessage({ type: "Amount", data }, "*");
   });
 }
 
-function handleUserExportHashChainToExtension(event: MessageEvent) {
-  chrome.runtime.sendMessage(
-    {
+function handleUserExportHashChainToExtension(
+  data: CustomMessageEventData["data"]
+) {
+  (
+    browser.runtime.sendMessage({
       action: "DeliverUserExportHashChainToExtension",
-      data: { ...event.data },
-    },
-    (response) => {
-      console.log("handleUserExportHashChainToExtension");
-      console.log(response);
-      window.postMessage(
-        {
-          type: "UserExportHashChainToExtension",
-          data: {
-            status: response.status,
-            message: response.message,
-          },
-        },
-        "*"
-      );
-    }
-  );
+      data,
+    }) as Promise<Partial<MessageResponse>>
+  ).then((response) => {
+    const status = response?.status ?? "error";
+    const message = response?.message ?? "Operation failed";
+    window.postMessage(
+      { type: "UserExportHashChainToExtension", data: { status, message } },
+      "*"
+    );
+  });
 }

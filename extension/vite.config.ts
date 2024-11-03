@@ -1,9 +1,21 @@
 import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { resolve } from "path";
+import copy from "rollup-plugin-copy";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    copy({
+      targets: [
+        {
+          src: "src/browser-polyfill.js",
+          dest: "dist/assets",
+        },
+      ],
+      hook: "writeBundle",
+    }),
+  ],
   build: {
     rollupOptions: {
       input: {

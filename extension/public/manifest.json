@@ -1,3 +1,4 @@
+
 {
   "manifest_version": 3,
   "name": "Storage_Extension",
@@ -5,20 +6,23 @@
   "description": "Uma descrição da minha extensão.",
   "permissions": [
     "storage",
-    "activeTab",
+    "activeTab"
+  ],
+  "host_permissions": [
     "*://*/*"
   ],
   "background": {
     "service_worker": "assets/background.js",
-    "type": "module"
+    "scripts": ["assets/browser-polyfill.js", "assets/background.js"]
   },
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["assets/contentScript.js"]
+      "js": ["assets/browser-polyfill.js", "assets/contentScript.js"]
     }
   ],
   "action": {
     "default_popup": "index.html"
   }
 }
+

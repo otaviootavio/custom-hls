@@ -2,6 +2,7 @@ import { stringToBytes, toHex } from "viem";
 import { HashRepository } from "./repositories/HashRepository";
 import { HashObject } from "./utils/interfaces";
 import { createHashChainFromSecretAndMaxIndex } from "./utils/UsefulFunctions";
+import browser from "webextension-polyfill";
 
 const hashRepo = new HashRepository();
 
@@ -14,66 +15,127 @@ interface ResponseMessage {
 
 console.log("Service worker script loaded");
 
-chrome.runtime.onMessage.addListener(
-  (
+// chrome.runtime.onMessage.addListener(
+//   (
+//     message: any,
+//     _sender,
+//     sendResponse: (response: ResponseMessage) => void
+//   ) => {
+//     console.log("Received message:", message);
+
+//     const handleMessage = async () => {
+//       try {
+//         switch (message.action) {
+//           case "makeHashChain":
+//             await handleMakeHashChain(message.data, sendResponse);
+//             break;
+//           case "Deliver_h(100)":
+//             await handleDeliverH100(sendResponse);
+//             break;
+//           case "DeliverHashchain":
+//             await handleDeliverHashchain(sendResponse);
+//             break;
+//           case "DeliverFullHashchain":
+//             await handleDeliverFullHashchain(sendResponse);
+//             break;
+//           case "DeliverSecretLength":
+//             await handleDeliverSecretLength(sendResponse);
+//             break;
+//           case "DeliverSyncLastHashSendIndex":
+//             await handleSyncLastHashSendIndex(message.data.data, sendResponse);
+//             break;
+//           case "DeliverOpenChannel":
+//             await handleOpenChannel(message.data.data, sendResponse);
+//             break;
+//           case "DeliverSmartContractAddress":
+//             await handleDeliverSmartContractAddress(sendResponse);
+//             break;
+//           case "DeliverChainId":
+//             await handleDeliverChainId(sendResponse);
+//             break;
+//           case "DeliverToAddress":
+//             await handleDeliverToAddress(sendResponse);
+//             break;
+//           case "DeliverAmount":
+//             await handleDeliverAmount(sendResponse);
+//             break;
+//           case "DeliverUserExportHashChainToExtension":
+//             await handleDeliverUserExportHashChainToExtension(
+//               message.data.data,
+//               sendResponse
+//             );
+//             break;
+//         }
+//       } catch (error) {
+//         console.error("Error in message handler:", error);
+//         sendResponse({
+//           error: error instanceof Error ? error.message : String(error),
+//         });
+//       }
+//     };
+
+//     handleMessage();
+//     return true; // Indicates async response
+//   }
+// );
+
+browser.runtime.onMessage.addListener(
+  async (
     message: any,
     _sender,
     sendResponse: (response: ResponseMessage) => void
   ) => {
     console.log("Received message:", message);
 
-    const handleMessage = async () => {
-      try {
-        switch (message.action) {
-          case "makeHashChain":
-            await handleMakeHashChain(message.data, sendResponse);
-            break;
-          case "Deliver_h(100)":
-            await handleDeliverH100(sendResponse);
-            break;
-          case "DeliverHashchain":
-            await handleDeliverHashchain(sendResponse);
-            break;
-          case "DeliverFullHashchain":
-            await handleDeliverFullHashchain(sendResponse);
-            break;
-          case "DeliverSecretLength":
-            await handleDeliverSecretLength(sendResponse);
-            break;
-          case "DeliverSyncLastHashSendIndex":
-            await handleSyncLastHashSendIndex(message.data.data, sendResponse);
-            break;
-          case "DeliverOpenChannel":
-            await handleOpenChannel(message.data.data, sendResponse);
-            break;
-          case "DeliverSmartContractAddress":
-            await handleDeliverSmartContractAddress(sendResponse);
-            break;
-          case "DeliverChainId":
-            await handleDeliverChainId(sendResponse);
-            break;
-          case "DeliverToAddress":
-            await handleDeliverToAddress(sendResponse);
-            break;
-          case "DeliverAmount":
-            await handleDeliverAmount(sendResponse);
-            break;
-          case "DeliverUserExportHashChainToExtension":
-            await handleDeliverUserExportHashChainToExtension(
-              message.data.data,
-              sendResponse
-            );
-            break;
-        }
-      } catch (error) {
-        console.error("Error in message handler:", error);
-        sendResponse({
-          error: error instanceof Error ? error.message : String(error),
-        });
+    try {
+      switch (message.action) {
+        case "makeHashChain":
+          await handleMakeHashChain(message.data, sendResponse);
+          break;
+        case "Deliver_h(100)":
+          await handleDeliverH100(sendResponse);
+          break;
+        case "DeliverHashchain":
+          await handleDeliverHashchain(sendResponse);
+          break;
+        case "DeliverFullHashchain":
+          await handleDeliverFullHashchain(sendResponse);
+          break;
+        case "DeliverSecretLength":
+          await handleDeliverSecretLength(sendResponse);
+          break;
+        case "DeliverSyncLastHashSendIndex":
+          await handleSyncLastHashSendIndex(message.data.data, sendResponse);
+          break;
+        case "DeliverOpenChannel":
+          await handleOpenChannel(message.data.data, sendResponse);
+          break;
+        case "DeliverSmartContractAddress":
+          await handleDeliverSmartContractAddress(sendResponse);
+          break;
+        case "DeliverChainId":
+          await handleDeliverChainId(sendResponse);
+          break;
+        case "DeliverToAddress":
+          await handleDeliverToAddress(sendResponse);
+          break;
+        case "DeliverAmount":
+          await handleDeliverAmount(sendResponse);
+          break;
+        case "DeliverUserExportHashChainToExtension":
+          await handleDeliverUserExportHashChainToExtension(
+            message.data.data,
+            sendResponse
+          );
+          break;
       }
-    };
+    } catch (error) {
+      console.error("Error in message handler:", error);
+      sendResponse({
+        error: error instanceof Error ? error.message : String(error),
+      });
+    }
 
-    handleMessage();
     return true; // Indicates async response
   }
 );
@@ -352,10 +414,10 @@ async function handleDeliverUserExportHashChainToExtension(
   }
 }
 
-chrome.runtime.onStartup.addListener(() => {
+browser.runtime.onStartup.addListener(() => {
   console.log("Service worker startup");
 });
 
-chrome.runtime.onInstalled.addListener(() => {
+browser.runtime.onInstalled.addListener(() => {
   console.log("Service worker installed");
 });

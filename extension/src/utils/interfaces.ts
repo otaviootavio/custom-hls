@@ -11,3 +11,5 @@ export interface HashObject {
   secret: string;
   indexOfLastHashSend: number;
 }
+
+export type HashObjectWithoutKey = Omit<HashObject, "key">;
