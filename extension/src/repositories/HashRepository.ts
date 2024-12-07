@@ -25,17 +25,6 @@ type SerializedHashObject = z.infer<typeof SerializedHashObjectSchema>;
 class HashRepository {
   private storageKey = "hashChains";
 
-  // private async fetchFromStorage(): Promise<SerializedHashObject[]> {
-  //   return new Promise((resolve) => {
-  //     chrome.storage.local.get({ [this.storageKey]: [] }, (result) => {
-  //       const serializedChains = SerializedHashObjectSchema.array().parse(
-  //         result[this.storageKey]
-  //       );
-  //       resolve(serializedChains);
-  //     });
-  //   });
-  // }
-
   private async fetchFromStorage(): Promise<SerializedHashObject[]> {
     const result = await browser.storage.local.get({ [this.storageKey]: [] });
     const serializedChains = SerializedHashObjectSchema.array().parse(
@@ -68,35 +57,6 @@ class HashRepository {
     return serializedChains.map(this.deserializeHashObject);
   }
 
-  // async addHashChain(hashObject: HashObject): Promise<void> {
-  //   const hashChains = await this.getAllHashChains();
-  //   const existingChain = hashChains.find(
-  //     (chain) => chain.tail === hashObject.tail
-  //   );
-
-  //   if (existingChain) {
-  //     throw new Error(
-  //       `Hash chain with tail ${hashObject.tail} already exists.`
-  //     );
-  //   }
-
-  //   hashChains.push(hashObject);
-  //   const serializedChains = hashChains.map(this.serializeHashObject);
-
-  //   return new Promise((resolve, reject) => {
-  //     chrome.storage.local.set({ [this.storageKey]: serializedChains }, () => {
-  //       if (chrome.runtime.lastError) {
-  //         reject(chrome.runtime.lastError);
-  //       } else {
-  //         console.log(
-  //           `New hash chain with tail ${hashObject.tail} added successfully!`
-  //         );
-  //         resolve();
-  //       }
-  //     });
-  //   });
-  // }
-
   async addHashChain(hashObject: HashObject): Promise<void> {
     const hashChains = await this.getAllHashChains();
     const existingChain = hashChains.find(
@@ -123,33 +83,6 @@ class HashRepository {
     }
   }
 
-  // async updateHashChain(hashObject: HashObject): Promise<void> {
-  //   const hashChains = await this.getAllHashChains();
-  //   const existingIndex = hashChains.findIndex(
-  //     (chain) => chain.key === hashObject.key
-  //   );
-
-  //   if (existingIndex === -1) {
-  //     throw new Error(`Hash chain with key ${hashObject.key} not found.`);
-  //   }
-
-  //   hashChains[existingIndex] = hashObject;
-  //   const serializedChains = hashChains.map(this.serializeHashObject);
-
-  //   return new Promise((resolve, reject) => {
-  //     chrome.storage.local.set({ [this.storageKey]: serializedChains }, () => {
-  //       if (chrome.runtime.lastError) {
-  //         reject(chrome.runtime.lastError);
-  //       } else {
-  //         console.log(
-  //           `Hash chain with key ${hashObject.key} updated successfully!`
-  //         );
-  //         resolve();
-  //       }
-  //     });
-  //   });
-  // }
-
   async updateHashChain(hashObject: HashObject): Promise<void> {
     const hashChains = await this.getAllHashChains();
     const existingIndex = hashChains.findIndex(
@@ -173,37 +106,6 @@ class HashRepository {
       throw error;
     }
   }
-
-  // async deleteHashChain(key: string): Promise<void> {
-  //   const hashChains = await this.getAllHashChains();
-  //   const existingIndex = hashChains.findIndex((chain) => chain.key === key);
-
-  //   if (existingIndex === -1) {
-  //     throw new Error(`Hash chain with key ${key} not found.`);
-  //   }
-
-  //   hashChains.splice(existingIndex, 1);
-  //   const serializedChains = hashChains.map(this.serializeHashObject);
-
-  //   return new Promise((resolve, reject) => {
-  //     chrome.storage.local.set(
-  //       { [this.storageKey]: serializedChains },
-  //       async () => {
-  //         if (chrome.runtime.lastError) {
-  //           reject(chrome.runtime.lastError);
-  //         } else {
-  //           const selectedKey = await chrome.storage.local.get("selectedKey");
-  //           if (selectedKey.selectedKey === key) {
-  //             await chrome.storage.local.remove("selectedKey");
-  //             console.log(`Selected key ${key} removed as it was deleted.`);
-  //           }
-  //           console.log(`Hash chain with key ${key} deleted successfully!`);
-  //           resolve();
-  //         }
-  //       }
-  //     );
-  //   });
-  // }
 
   async deleteHashChain(key: string): Promise<void> {
     const hashChains = await this.getAllHashChains();
@@ -230,26 +132,6 @@ class HashRepository {
     }
   }
 
-  // async setSelectedKey(tail: string): Promise<void> {
-  //   const hashChains = await this.getAllHashChains();
-  //   const existingChain = hashChains.find((chain) => chain.tail === tail);
-
-  //   if (!existingChain) {
-  //     throw new Error(`Hash chain with tail ${tail} not found.`);
-  //   }
-
-  //   return new Promise((resolve, reject) => {
-  //     chrome.storage.local.set({ selectedKey: tail }, () => {
-  //       if (chrome.runtime.lastError) {
-  //         reject(chrome.runtime.lastError);
-  //       } else {
-  //         console.log(`Selected key set to ${tail}`);
-  //         resolve();
-  //       }
-  //     });
-  //   });
-  // }
-
   async setSelectedKey(tail: string): Promise<void> {
     const hashChains = await this.getAllHashChains();
     const existingChain = hashChains.find((chain) => chain.tail === tail);
@@ -266,12 +148,6 @@ class HashRepository {
       throw error;
     }
   }
-
-  // async getSelectedHashChain(): Promise<HashObject | null> {
-  //   const { selectedKey } = await chrome.storage.local.get("selectedKey");
-  //   const hashChains = await this.getAllHashChains();
-  //   return hashChains.find((chain) => chain.key === selectedKey) || null;
-  // }
 
   async getSelectedHashChain(): Promise<HashObject | null> {
     const { selectedKey } = await browser.storage.local.get("selectedKey");

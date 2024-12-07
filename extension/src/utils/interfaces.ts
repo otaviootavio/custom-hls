@@ -12,4 +12,17 @@ export interface HashObject {
   indexOfLastHashSend: number;
 }
 
+export interface MessageData {
+  type: string;
+  data: HashObject;
+}
+export interface Message {
+  action: string;
+  data: HashObject;
+}
+
+export interface event {
+  data: MessageData;
+}
+
 export type HashObjectWithoutKey = Omit<HashObject, "key">;

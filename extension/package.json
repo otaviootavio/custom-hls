@@ -11,6 +11,7 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^3.9.0",
+    "browser": "^0.2.6",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-hook-form": "^7.52.1",
@@ -20,6 +21,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.0.263",
+    "@types/firefox-webext-browser": "^120.0.4",
     "@types/node": "^20.11.30",
     "@types/react": "^18.2.64",
     "@types/react-dom": "^18.2.21",

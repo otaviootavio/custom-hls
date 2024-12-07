@@ -13,7 +13,8 @@
   ],
   "background": {
     "service_worker": "assets/background.js",
-    "scripts": ["assets/browser-polyfill.js", "assets/background.js"]
+    "scripts": ["assets/browser-polyfill.js", "assets/background.js"],
+    "type": "module"
   },
   "content_scripts": [
     {
