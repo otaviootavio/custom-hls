@@ -1,9 +1,9 @@
 
 {
   "manifest_version": 3,
-  "name": "Storage_Extension",
+  "name": "Hashchain Storage",
   "version": "1.0",
-  "description": "Uma descrição da minha extensão.",
+  "description": "This extensio allows you to store hashchains and interact with them.",
   "permissions": [
     "storage",
     "activeTab"
