@@ -32,6 +32,7 @@ browser.runtime.onMessage.addListener(
         case "DeliverHashchain":
           return await handleDeliverHashchain();
         case "DeliverFullHashchain":
+          console.log("Chegou aqui");
           return await handleDeliverFullHashchain();
         case "DeliverSecretLength":
           return await handleDeliverSecretLength();
