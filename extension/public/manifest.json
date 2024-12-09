@@ -1,24 +1,39 @@
+
 {
   "manifest_version": 3,
-  "name": "Storage_Extension",
+  "name": "Hashchain Storage",
   "version": "1.0",
-  "description": "Uma descrição da minha extensão.",
+  "description": "This extensio allows you to store hashchains and interact with them.",
+  "icons": {
+    "16": "icons/icon-16.png",
+    "48": "icons/icon-48.png",
+    "128": "icons/icon-128.png"
+  },
   "permissions": [
     "storage",
-    "activeTab",
+    "activeTab"
+  ],
+  "host_permissions": [
     "*://*/*"
   ],
   "background": {
     "service_worker": "assets/background.js",
+    "scripts": ["assets/browser-polyfill.js", "assets/background.js"],
     "type": "module"
   },
   "content_scripts": [
     {
       "matches": ["*://*/*"],
-      "js": ["assets/contentScript.js"]
+      "js": ["assets/browser-polyfill.js", "assets/contentScript.js"]
     }
   ],
   "action": {
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    },
     "default_popup": "index.html"
   }
 }
+
