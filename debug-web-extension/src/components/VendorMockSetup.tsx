@@ -3,19 +3,20 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
+import { useMockedChainExtension } from '@/context/MockChainExtensionProvider';
+import { useToast } from '@/hooks/use-toast';
 
-interface VendorMockSetupProps {
-  onSetVendorData: (data: {
-    chainId: string;
-    vendorAddress: string;
-    amountPerHash: string;
-  }) => void;
+interface VendorData {
+  chainId: string;
+  vendorAddress: string;
+  amountPerHash: string;
 }
 
-export const VendorMockSetup: React.FC<VendorMockSetupProps> = ({
-  onSetVendorData,
-}) => {
-  const [vendorData, setVendorData] = React.useState({
+export const VendorMockSetup: React.FC = () => {
+  const { storeVendorData } = useMockedChainExtension();
+  const { toast } = useToast();
+  const [isSubmitting, setIsSubmitting] = React.useState(false);
+  const [vendorData, setVendorData] = React.useState<VendorData>({
     chainId: '',
     vendorAddress: '',
     amountPerHash: ''
@@ -29,8 +30,24 @@ export const VendorMockSetup: React.FC<VendorMockSetupProps> = ({
     }));
   };
 
-  const handleSubmit = () => {
-    onSetVendorData(vendorData);
+  const handleSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      await storeVendorData(vendorData);
+      toast({
+        title: "Success",
+        description: "Vendor data has been stored successfully",
+      });
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to store vendor data",
+        variant: "destructive",
+      });
+      console.error('Error storing vendor data:', error);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleSetDefault = () => {
@@ -41,6 +58,10 @@ export const VendorMockSetup: React.FC<VendorMockSetupProps> = ({
     };
     setVendorData(defaultData);
   };
+
+  const isFormValid = vendorData.chainId && 
+                     vendorData.vendorAddress && 
+                     vendorData.amountPerHash;
 
   return (
     <Card>
@@ -57,6 +78,7 @@ export const VendorMockSetup: React.FC<VendorMockSetupProps> = ({
               value={vendorData.chainId}
               onChange={handleChange}
               placeholder="e.g., 0x5"
+              disabled={isSubmitting}
             />
           </div>
           <div className="space-y-2">
@@ -67,6 +89,7 @@ export const VendorMockSetup: React.FC<VendorMockSetupProps> = ({
               value={vendorData.vendorAddress}
               onChange={handleChange}
               placeholder="0x..."
+              disabled={isSubmitting}
             />
           </div>
         </div>
@@ -81,18 +104,23 @@ export const VendorMockSetup: React.FC<VendorMockSetupProps> = ({
             placeholder="0.001"
             type="number"
             step="0.001"
+            disabled={isSubmitting}
           />
         </div>
 
         <div className="flex gap-4">
-          <Button onClick={handleSetDefault} variant="outline">
+          <Button 
+            onClick={handleSetDefault} 
+            variant="outline"
+            disabled={isSubmitting}
+          >
             Set Default Values
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!vendorData.chainId || !vendorData.vendorAddress || !vendorData.amountPerHash}
+            disabled={!isFormValid || isSubmitting}
           >
-            Save Vendor Data
+            {isSubmitting ? "Saving..." : "Save Vendor Data"}
           </Button>
         </div>
       </CardContent>
