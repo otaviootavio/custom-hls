@@ -18,7 +18,7 @@ const HashManagement: React.FC = () => {
       {error && <div className="text-red-500">{error}</div>}
       <div>
         Selected Hash Chain:
-        <p className="cursor-pointer bg-red-800 rounded-lg text-center p-2 truncate">
+        <p className="cursor-pointer bg-gray-800 rounded-lg text-center p-2  truncate">
           {selectedHashChain?.key ?? "No Hash Chain Selected"}
         </p>
       </div>
@@ -34,7 +34,7 @@ const HashManagement: React.FC = () => {
                 <div className="flex flex-row justify-between p-1">
                   <span
                     onClick={() => handleKeySelect(chain.key)}
-                    className={`cursor-pointer  hover:text-indigo-500 bg-gray-700 rounded-lg text-center  font-semibold p-2 ${
+                    className={`cursor-pointer  hover:text-indigo-500 bg-gray-700 rounded-lg text-center truncate font-semibold p-2 ${
                       chain.key === selectedHashChain?.key
                         ? "bg-indigo-900"
                         : ""

@@ -9,23 +9,53 @@ export default defineConfig({
     copy({
       targets: [
         {
-          src: "src/browser-polyfill.js",
-          dest: "dist/assets",
+          src: "node_modules/webextension-polyfill/dist/browser-polyfill.js",
+          dest: "dist/assets"
         },
+        {
+          src: "public/manifest.json",
+          dest: "dist"
+        },
+        {
+          src: "public/icons",
+          dest: "dist"
+        }
       ],
-      hook: "writeBundle",
-    }),
+      hook: "writeBundle"
+    })
   ],
   build: {
+    emptyOutDir: true,
     rollupOptions: {
       input: {
         main: resolve(__dirname, "index.html"),
         background: resolve(__dirname, "src/background.ts"),
-        contentScript: resolve(__dirname, "src/ContentScript.ts"),
+        contentScript: resolve(__dirname, "src/ContentScript.ts")
       },
-      output: {
-        entryFileNames: "assets/[name].js",
-      },
+      output: [
+        {
+          // Output for the extension UI (React app)
+          dir: 'dist',
+          entryFileNames: 'assets/[name].js',
+          format: 'es',
+          name: 'app'
+        },
+        {
+          // Output for background and content scripts
+          dir: 'dist',
+          entryFileNames: 'assets/[name].js',
+          format: 'es',
+          preserveModules: false
+        }
+      ]
     },
+    target: "esnext",
+    minify: true,
+    sourcemap: true
   },
+  resolve: {
+    alias: {
+      '@': resolve(__dirname, 'src')
+    }
+  }
 });
