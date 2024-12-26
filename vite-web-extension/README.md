@@ -177,6 +177,58 @@ To run the workflow do the following:
 - [@crxjs/vite-plugin](https://crxjs.dev/vite-plugin)
 - [Tailwind CSS](https://tailwindcss.com/docs/configuration)
 
+
+# Hashchain Cicle
+We are implementing the Payword payment schema in the context of blockchain. To do so, we are implementing a extension that allow storing and managing the hashchain and keep infos about the vendor and the channel's smart contract as well. All the operations consider that the user has selected a hashchain to operate. To our MVP, we need to ensure the following user stories, described in the following sections. To implement each flux, we need to provide to the Web page a proper interface (the current one is just to debbuging), so it is possible to fetch and update and query the selected hashchain's informations.
+
+## Open Channel
+### Send to extension the payment data
+First, the user see page has values such as the chainid, vendor address, and ammount per hash.
+Then, the user press button on the page that send this datas to the extension.
+
+### Deploy the smart contract
+
+#### Create the smart contract
+The page has a input forms, that can be filled manually, but it is also possible to press a button to fetch the payment infos from the extension. The payments infos are the ones used to create the channel, such as hashchain tail (i.e, last hash item), ammount per hash, vendor address and chain id. The unique input manually selected by the user is to select how many hashes it will be used, and then the user can vizualise what is the total ammount being stored in that payment channel.
+
+#### Propagate it to the blockchain
+The page has a to button deploy the Smart Contract ( for testing, this can be mocked ).
+After the deploy ( mocked ) the pages autoamtically update the hashchain data based with the Smart Contract address.
+
+### Send data to Vendor
+Now that the initial data is stored on the WebExtension, the user can send the infos to the vendor. The Vendors page has a forms that can fetch the data from the selected hashchain and then send it to the vendor.
+The last step ( send to the vendor) is mocked but, in real life, it can be a write operation on database or anything chosen by the Vendor. The data that is send is sufficient to execute the payment validation:
+1. Is the User sending a existing Smart Contract on my specified Chain Id?
+2. Given that I read the data from the Smart Contract, is the User deploying to my address and blockchain?
+3. Given the data that I read from the blockchain, Is the User paying the right ammount per minute of hash?
+
+## Off chain payments
+Here, things is getting more complex! Now we have 3 entities: 1. the web extension 2. the client on the browser and 3. the server ( that is mocked, since the debbug client is a purely static )
+
+We are dealing with hashchains as payments. Each hash represent a coin, or a payment. The hash starts from the web extension, then send it to the page ( actually, the page request for the hash ) and then the page send it to the serve, that retrieves a ok ( sucess ) message. Ideally, this process repeats for each hash, but, due some limitation, the browser can have different behavior, and some work arrouns can be done to it work (i.e, send all the hashchain, or send the secret).
+
+Further, to it properly work, we need to track what was the last hash send, because the vendor is also keeping track of it, so it wont accept the same payment twice! To sucecifully execute the off chain payments we have a few operations mode:
+
+### Pop mode ( ideal world )
+The pages requests for a hash item, the extension send the hashitem and decrease the index of the last send hash. For some reason we can lose this sync between vendor and user and the user can hit the button to force sync
+
+### Full hashchain mode ( not ideal )
+The pages send the full hash chain. Also has a button to ensure sync between extension and vendor.
+
+### Secret mode ( kinda bad )
+Less secure, but may work for some ocasion
+The page request for the secret, then generate the hashchain locally
+To spend the hashchain, the page need to generate the hashchain and then send the hashes to somewhere
+This causes a sync overhead because the HashchainManagerExtension is not aware of what is being send
+So, te user needs to sync the extension by informing the index of the last hash sended
+Also, it is not secure because the page has the information of the hashchain secret!
+
+
+## Close channel
+Sometime, the vendor can close the channel and withdraw the ammount relative to its part of the payment channel. This calculation is done by calculating the ammount of hashes received. This assertion is done by recalculating the hashchain and verifying if the vendor is sending the correct hash, hash index. To close the channel, the vendor needs to access the smart contract (hence, he has the chain id and the smart contract address) and then send the infos to close the channel.
+
+So, the vendor access the admin panel, exports the data to the extension, then go the the close channel pannel, and closes the channel.
+
 # Credit <a name="credit"></a>
 Heavily inspired by [Jonghakseo's vite chrome extension boilerplate](https://github.com/Jonghakseo/chrome-extension-boilerplate-react-vite). 
 It uses SASS instead of TailwindCSS and is ~~slightly~~ _a lot_ less minimalist in case you want to check it out.

@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { type HashObject } from "../utils/interfaces";
 import { createHashChainFromItemAndLength } from "../utils/UsefulFunctions";
+import { IndexedDBClient } from "./IndexedDbClient";
 
 const SerializedHashObjectSchema = z.object({
   chainId: z.number().default(0),
@@ -12,56 +13,27 @@ const SerializedHashObjectSchema = z.object({
   isValid: z.boolean().default(true),
   key: z.string().regex(/^0x[0-9a-fA-F]+$/),
   secret: z.string().default("0"),
-  tail: z
-    .string()
-    .regex(/^0x[0-9a-fA-F]+$/)
-    .default("0x0"),
+  tail: z.string().regex(/^0x[0-9a-fA-F]+$/).default("0x0"),
   indexOfLastHashSend: z.number().default(0),
 });
 
 type SerializedHashObject = z.infer<typeof SerializedHashObjectSchema>;
 
-class HashRepository {
-  private dbName = "HashChainDB";
-  private storeName = "hashChains";
-  private db: IDBDatabase | null = null;
+export class HashRepository {
+  private dbClient: IndexedDBClient;
+  private readonly storeName = "hashChains";
 
   constructor() {
-    this.initDB();
-  }
-
-  private async initDB(): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const request = indexedDB.open(this.dbName, 1);
-
-      request.onerror = () => reject(request.error);
-
-      request.onsuccess = () => {
-        this.db = request.result;
-        resolve();
-      };
-
-      request.onupgradeneeded = (event) => {
-        const db = (event.target as IDBOpenDBRequest).result;
-        
-        // Create hash chains store if it doesn't exist
-        if (!db.objectStoreNames.contains(this.storeName)) {
-          const store = db.createObjectStore(this.storeName, { keyPath: "key" });
-          store.createIndex("tail", "tail", { unique: true });
-        }
-        
-        // Create metadata store if it doesn't exist
-        if (!db.objectStoreNames.contains("metadata")) {
-          db.createObjectStore("metadata");
-        }
-      };
-    });
-  }
-
-  private async ensureDBConnection(): Promise<void> {
-    if (!this.db) {
-      await this.initDB();
-    }
+    this.dbClient = new IndexedDBClient("HashChainDB", 1, [
+      {
+        name: this.storeName,
+        keyPath: "key",
+        indexes: [{ name: "tail", keyPath: "tail", options: { unique: true } }]
+      },
+      {
+        name: "metadata"
+      }
+    ]);
   }
 
   private serializeHashObject(hashObject: HashObject): SerializedHashObject {
@@ -83,24 +55,8 @@ class HashRepository {
     };
   }
 
-  private async performTransaction<T>(
-    storeName: string,
-    mode: IDBTransactionMode,
-    callback: (store: IDBObjectStore) => IDBRequest<T>
-  ): Promise<T> {
-    await this.ensureDBConnection();
-    return new Promise((resolve, reject) => {
-      const transaction = this.db!.transaction(storeName, mode);
-      const store = transaction.objectStore(storeName);
-      const request = callback(store);
-
-      request.onsuccess = () => resolve(request.result);
-      request.onerror = () => reject(request.error);
-    });
-  }
-
   async getAllHashChains(): Promise<HashObject[]> {
-    const serializedChains = await this.performTransaction<SerializedHashObject[]>(
+    const serializedChains = await this.dbClient.performTransaction<SerializedHashObject[]>(
       this.storeName,
       "readonly",
       (store) => store.getAll()
@@ -111,7 +67,7 @@ class HashRepository {
   async addHashChain(hashObject: HashObject): Promise<void> {
     const serialized = this.serializeHashObject(hashObject);
     try {
-      await this.performTransaction(
+      await this.dbClient.performTransaction(
         this.storeName,
         "readwrite",
         (store) => store.add(serialized)
@@ -126,7 +82,7 @@ class HashRepository {
   async updateHashChain(hashObject: HashObject): Promise<void> {
     const serialized = this.serializeHashObject(hashObject);
     try {
-      await this.performTransaction(
+      await this.dbClient.performTransaction(
         this.storeName,
         "readwrite",
         (store) => store.put(serialized)
@@ -140,20 +96,20 @@ class HashRepository {
 
   async deleteHashChain(key: string): Promise<void> {
     try {
-      await this.performTransaction(
+      await this.dbClient.performTransaction(
         this.storeName,
         "readwrite",
         (store) => store.delete(key)
       );
-      // Handle selected key in a separate table
-      const selectedKey = await this.performTransaction<string>(
+      
+      const selectedKey = await this.dbClient.performTransaction<string>(
         "metadata",
         "readonly",
         (store) => store.get("selectedKey")
       );
       
       if (selectedKey === key) {
-        await this.performTransaction(
+        await this.dbClient.performTransaction(
           "metadata",
           "readwrite",
           (store) => store.delete("selectedKey")
@@ -168,7 +124,7 @@ class HashRepository {
 
   async setSelectedKey(tail: string): Promise<void> {
     try {
-      await this.performTransaction(
+      await this.dbClient.performTransaction(
         "metadata",
         "readwrite",
         (store) => store.put(tail, "selectedKey")
@@ -182,14 +138,14 @@ class HashRepository {
 
   async getSelectedHashChain(): Promise<HashObject | null> {
     try {
-      const selectedKey = await this.performTransaction<string>(
+      const selectedKey = await this.dbClient.performTransaction<string>(
         "metadata",
         "readonly",
         (store) => store.get("selectedKey")
       );
       if (!selectedKey) return null;
 
-      const serializedChain = await this.performTransaction<SerializedHashObject>(
+      const serializedChain = await this.dbClient.performTransaction<SerializedHashObject>(
         this.storeName,
         "readonly",
         (store) => store.get(selectedKey)
@@ -283,5 +239,3 @@ class HashRepository {
     }
   }
 }
-
-export { HashRepository };
