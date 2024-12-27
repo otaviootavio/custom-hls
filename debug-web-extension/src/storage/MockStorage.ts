@@ -1,6 +1,7 @@
 import {
   HashchainData,
   HashchainId,
+  ImportHashchainData,
   PublicHashchainData,
   StorageData,
   VendorData,
@@ -173,4 +174,24 @@ export class MockStorage {
       data: toPublicData(data),
     };
   }
+
+  static async importHashchain(data: ImportHashchainData): Promise<HashchainId> {
+    await simulateDelay();
+  
+    const hashchainId = generateHashchainId();
+    const hashchainData: HashchainData = {
+      vendorData: data.vendorData,
+      secret: data.hash, // Using the provided hash as the secret
+      hashes: [data.hash], // Initialize with just the provided hash
+      lastIndex: data.lastIndex,
+      contractAddress: data.contractAddress,
+      numHashes: data.numHashes,
+      totalAmount: data.totalAmount,
+      createdAt: Date.now(),
+    };
+  
+    this.storage.hashchains[hashchainId] = hashchainData;
+    return hashchainId;
+  }
+  
 }

@@ -76,3 +76,13 @@ export interface StorageData {
 export interface PublicHashchainData extends Omit<HashchainData, 'secret'> {
   hasSecret: boolean;
 }
+
+export interface ImportHashchainData {
+  chainId: string;
+  contractAddress: string;
+  vendorData: VendorData;
+  hash: string;
+  lastIndex: number;
+  numHashes: string;
+  totalAmount: string;
+}
