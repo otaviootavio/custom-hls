@@ -6,6 +6,7 @@ import { Loader2, Hash, RefreshCw, Key, List } from "lucide-react";
 import { useHashchain } from '@/context/HashchainProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { sha256 } from '@noble/hashes/sha256';
 
 // PopMode Component
 const PopMode = () => {
@@ -294,13 +295,7 @@ const SecretMode = () => {
       const numHashes = parseInt(selectedHashchain.data.numHashes);
       
       for (let i = 0; i < numHashes - currentIndex - 1; i++) {
-        const hashBuffer = await crypto.subtle.digest(
-          'SHA-256', 
-          new TextEncoder().encode(currentHash)
-        );
-        currentHash = Array.from(new Uint8Array(hashBuffer))
-          .map(b => b.toString(16).padStart(2, '0'))
-          .join('');
+        currentHash = sha256(currentHash).toString();
       }
       
       setCurrentIndex(prev => prev + 1);
