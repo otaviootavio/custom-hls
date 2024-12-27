@@ -32,10 +32,6 @@ interface HashchainContextType {
   // Vendor Operations
   initializeHashchain: (vendorData: VendorData) => Promise<HashchainId>;
   selectHashchain: (hashchainId: HashchainId) => Promise<void>;
-  listVendorHashchains: (vendorAddress: string) => Promise<Array<{
-    hashchainId: HashchainId;
-    data: HashchainData;
-  }>>;
 
   // Hash Operations
   getNextHash: () => Promise<string | null>;
@@ -113,12 +109,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     });
   }, [storage]);
 
-  // List all hashchains for a vendor
-  const listVendorHashchains = useCallback(async (vendorAddress: string) => {
-    return withLoadingAndError(() => 
-      storage.getVendorHashchains(vendorAddress)
-    );
-  }, [storage]);
 
   // Get next hash from chain
   const getNextHash = useCallback(async () => {
@@ -212,7 +202,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     // Operations
     initializeHashchain,
     selectHashchain,
-    listVendorHashchains,
     getNextHash,
     getAllHashes,
     syncIndex,
