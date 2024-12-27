@@ -4,7 +4,7 @@ import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
 import { AlertCircle, Loader2 } from "lucide-react";
-import { useMockedChainExtension } from '@/context/MockChainExtensionProvider';
+import { useHashchain } from '@/context/HashchainProvider';
 import { useToast } from '@/hooks/use-toast';
 
 export const OpenChannel = () => {
@@ -12,48 +12,30 @@ export const OpenChannel = () => {
   
   // Local state
   const [numHashes, setNumHashes] = useState('');
-  const [loading, setLoading] = useState({
-    fetch: false,
-    deploy: false
-  });
   const [dataFetched, setDataFetched] = useState(false);
   const [localContractAddress, setLocalContractAddress] = useState('');
 
-  // Extension context - using updateHashchainDetails instead of updateContractAddress
+  // Using new context
   const { 
-    readHashchain,
-    updateHashchainDetails,
-    selectedHashchain
-  } = useMockedChainExtension();
+    selectedHashchain,
+    loading,
+    error,
+    updateContractDetails
+  } = useHashchain();
 
   const handleFetchFromExtension = async () => {
-    try {
-      setLoading(prev => ({ ...prev, fetch: true }));
-      const extensionData = await readHashchain();
-      
-      if (!extensionData) {
-        toast({
-          title: "Error",
-          description: "No vendor data found. Please set up vendor data first.",
-          variant: "destructive"
-        });
-        return;
-      }
-
+    if (selectedHashchain) {
       setDataFetched(true);
       toast({
         title: "Success",
         description: "Vendor data fetched successfully"
       });
-    } catch (error) {
+    } else {
       toast({
         title: "Error",
-        description: "Failed to fetch vendor data",
+        description: "No vendor data found. Please set up vendor data first.",
         variant: "destructive"
       });
-      console.error('Error fetching data:', error);
-    } finally {
-      setLoading(prev => ({ ...prev, fetch: false }));
     }
   };
 
@@ -68,19 +50,18 @@ export const OpenChannel = () => {
     if (!selectedHashchain || !numHashes) return;
 
     try {
-      setLoading(prev => ({ ...prev, deploy: true }));
-      
-      // Calculate total amount
-      const totalAmount = (
-        parseFloat(numHashes) * parseFloat(selectedHashchain.amountPerHash)
-      ).toString();
-      
       // Mock contract deployment
       const contractAddress = '0x' + Math.random().toString(16).slice(2).padEnd(40, '0');
       setLocalContractAddress(contractAddress);
       
-      // Using updateHashchainDetails to update all values at once
-      await updateHashchainDetails({
+      // Calculate total amount
+      const totalAmount = (
+        parseFloat(numHashes) * 
+        parseFloat(selectedHashchain.data.vendorData.amountPerHash)
+      ).toString();
+      
+      // Update contract details
+      await updateContractDetails({
         contractAddress,
         numHashes,
         totalAmount
@@ -90,21 +71,22 @@ export const OpenChannel = () => {
         title: "Success",
         description: "Contract deployed and channel opened successfully"
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to deploy contract';
       toast({
         title: "Error",
-        description: "Failed to deploy contract",
+        description: errorMessage,
         variant: "destructive"
       });
-      console.error('Error deploying contract:', error);
+      console.error('Error deploying contract:', err);
       setLocalContractAddress('');
-    } finally {
-      setLoading(prev => ({ ...prev, deploy: false }));
     }
   };
 
   const totalAmount = selectedHashchain && numHashes ? 
-    (parseFloat(numHashes) * parseFloat(selectedHashchain.amountPerHash)).toFixed(6) :
+    (parseFloat(numHashes) * 
+     parseFloat(selectedHashchain.data.vendorData.amountPerHash)
+    ).toFixed(6) :
     '0';
 
   return (
@@ -119,9 +101,9 @@ export const OpenChannel = () => {
             <h3 className="font-medium">1. Fetch Vendor Information</h3>
             <Button 
               onClick={handleFetchFromExtension}
-              disabled={loading.fetch}
+              disabled={loading}
             >
-              {loading.fetch ? (
+              {loading ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Fetching...
@@ -136,11 +118,11 @@ export const OpenChannel = () => {
             <div className="p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <p className="text-sm mb-2">Fetched Data:</p>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-sm">
-                <div>Chain ID: {selectedHashchain.chainId}</div>
+                <div>Chain ID: {selectedHashchain.data.vendorData.chainId}</div>
                 <div className="truncate">
-                  Vendor: {selectedHashchain.vendorAddress}
+                  Vendor: {selectedHashchain.data.vendorData.vendorAddress}
                 </div>
-                <div>Amount/Hash: {selectedHashchain.amountPerHash} ETH</div>
+                <div>Amount/Hash: {selectedHashchain.data.vendorData.amountPerHash} ETH</div>
               </div>
             </div>
           )}
@@ -159,7 +141,7 @@ export const OpenChannel = () => {
                 type="number"
                 min="1"
                 placeholder="Enter number of hashes"
-                disabled={!dataFetched || loading.deploy}
+                disabled={!dataFetched || loading}
               />
             </div>
             <div className="space-y-2">
@@ -174,11 +156,18 @@ export const OpenChannel = () => {
         {/* Deploy Contract Section */}
         <div className="space-y-4 pt-4 border-t">
           <h3 className="font-medium">3. Deploy Contract</h3>
+          
+          {error && (
+            <div className="text-sm text-red-500">
+              {error.message}
+            </div>
+          )}
+          
           <Button 
             onClick={handleDeployContract}
-            disabled={!dataFetched || !numHashes || loading.deploy}
+            disabled={!dataFetched || !numHashes || loading}
           >
-            {loading.deploy ? (
+            {loading ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                 Deploying...

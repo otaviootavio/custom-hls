@@ -3,19 +3,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Label } from "./ui/label";
 import { Input } from "./ui/input";
 import { Button } from "./ui/button";
-import { useMockedChainExtension } from '@/context/MockChainExtensionProvider';
+import { useHashchain } from '@/context/HashchainProvider';
 import { useToast } from '@/hooks/use-toast';
-
-interface VendorData {
-  chainId: string;
-  vendorAddress: string;
-  amountPerHash: string;
-}
+import { Loader2 } from "lucide-react";
+import { VendorData } from '@/types';
 
 export const VendorMockSetup: React.FC = () => {
-  const { storeVendorData } = useMockedChainExtension();
+  const { initializeHashchain, loading, error } = useHashchain();
   const { toast } = useToast();
-  const [isSubmitting, setIsSubmitting] = React.useState(false);
   const [vendorData, setVendorData] = React.useState<VendorData>({
     chainId: '',
     vendorAddress: '',
@@ -32,21 +27,19 @@ export const VendorMockSetup: React.FC = () => {
 
   const handleSubmit = async () => {
     try {
-      setIsSubmitting(true);
-      await storeVendorData(vendorData);
+      const hashchainId = await initializeHashchain(vendorData);
       toast({
         title: "Success",
-        description: "Vendor data has been stored successfully",
+        description: `Hashchain created with ID: ${hashchainId}`,
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to initialize hashchain';
       toast({
         title: "Error",
-        description: "Failed to store vendor data",
+        description: errorMessage,
         variant: "destructive",
       });
-      console.error('Error storing vendor data:', error);
-    } finally {
-      setIsSubmitting(false);
+      console.error('Error initializing hashchain:', err);
     }
   };
 
@@ -78,7 +71,7 @@ export const VendorMockSetup: React.FC = () => {
               value={vendorData.chainId}
               onChange={handleChange}
               placeholder="e.g., 0x5"
-              disabled={isSubmitting}
+              disabled={loading}
             />
           </div>
           <div className="space-y-2">
@@ -89,7 +82,7 @@ export const VendorMockSetup: React.FC = () => {
               value={vendorData.vendorAddress}
               onChange={handleChange}
               placeholder="0x..."
-              disabled={isSubmitting}
+              disabled={loading}
             />
           </div>
         </div>
@@ -104,23 +97,36 @@ export const VendorMockSetup: React.FC = () => {
             placeholder="0.001"
             type="number"
             step="0.001"
-            disabled={isSubmitting}
+            disabled={loading}
           />
         </div>
+
+        {error && (
+          <div className="text-sm text-red-500">
+            {error.message}
+          </div>
+        )}
 
         <div className="flex gap-4">
           <Button 
             onClick={handleSetDefault} 
             variant="outline"
-            disabled={isSubmitting}
+            disabled={loading}
           >
             Set Default Values
           </Button>
           <Button 
             onClick={handleSubmit}
-            disabled={!isFormValid || isSubmitting}
+            disabled={!isFormValid || loading}
           >
-            {isSubmitting ? "Saving..." : "Save Vendor Data"}
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Initializing...
+              </>
+            ) : (
+              "Initialize Hashchain"
+            )}
           </Button>
         </div>
       </CardContent>

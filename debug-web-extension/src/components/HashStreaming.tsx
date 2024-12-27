@@ -3,19 +3,23 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Loader2, Hash, RefreshCw, Key, List } from "lucide-react";
-import { useMockedChainExtension } from '@/context/MockChainExtensionProvider';
+import { useHashchain } from '@/context/HashchainProvider';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 
 // PopMode Component
 const PopMode = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
-  const { selectedHashchain, lastHashIndex, getNextHash, forceSync } = useMockedChainExtension();
+  const { 
+    selectedHashchain, 
+    loading,
+    error,
+    getNextHash,
+    syncIndex 
+  } = useHashchain();
 
   const handleRequestHash = async () => {
     try {
-      setLoading(true);
       const hash = await getNextHash();
       if (!hash) {
         toast({
@@ -33,33 +37,30 @@ const PopMode = () => {
           </div>
         ),
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to retrieve hash';
       toast({
         title: "Error",
-        description: "Failed to retrieve hash",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleSync = async () => {
     try {
-      setLoading(true);
-      await forceSync(lastHashIndex);
+      await syncIndex(selectedHashchain?.data.lastIndex || 0);
       toast({
         title: "Success",
         description: "Hash chain synced with current index",
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sync';
       toast({
         title: "Error",
-        description: "Failed to sync",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -76,12 +77,21 @@ const PopMode = () => {
       <div className="flex items-center justify-between">
         <div className="space-y-1">
           <Label>Current Hash Index</Label>
-          <div className="text-2xl font-mono">{lastHashIndex}</div>
+          <div className="text-2xl font-mono">
+            {selectedHashchain?.data.lastIndex || 0}
+          </div>
         </div>
+        
+        {error && (
+          <div className="text-sm text-red-500">
+            {error.message}
+          </div>
+        )}
+        
         <div className="space-x-2">
           <Button
             onClick={handleRequestHash}
-            disabled={loading || !selectedHashchain?.contractAddress}
+            disabled={loading || !selectedHashchain?.data.contractAddress}
           >
             {loading ? (
               <>
@@ -112,29 +122,32 @@ const PopMode = () => {
 // FullMode Component
 const FullMode = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [localHashes, setLocalHashes] = useState<string[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { selectedHashchain, forceSync, getFullHashchain } = useMockedChainExtension();
+  const { 
+    selectedHashchain,
+    loading,
+    error,
+    syncIndex,
+    getAllHashes 
+  } = useHashchain();
 
   const handleLoadHashes = async () => {
     try {
-      setLoading(true);
-      const hashes = await getFullHashchain();
+      const hashes = await getAllHashes();
       setLocalHashes(hashes);
       setCurrentIndex(0);
       toast({
         title: "Success",
         description: `Loaded ${hashes.length} hashes`,
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load hashes';
       toast({
         title: "Error",
-        description: "Failed to load hashes",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -163,20 +176,18 @@ const FullMode = () => {
 
   const handleSync = async () => {
     try {
-      setLoading(true);
-      await forceSync(currentIndex);
+      await syncIndex(currentIndex);
       toast({
         title: "Success",
         description: "Hash chain synced with current index",
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sync';
       toast({
         title: "Error",
-        description: "Failed to sync",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -198,10 +209,17 @@ const FullMode = () => {
             Current Index: {currentIndex}
           </div>
         </div>
+
+        {error && (
+          <div className="text-sm text-red-500">
+            {error.message}
+          </div>
+        )}
+
         <div className="space-x-2">
           <Button
             onClick={handleLoadHashes}
-            disabled={loading || !selectedHashchain?.contractAddress}
+            disabled={loading || !selectedHashchain?.data.contractAddress}
           >
             {loading ? (
               <>
@@ -239,41 +257,47 @@ const FullMode = () => {
 // SecretMode Component
 const SecretMode = () => {
   const { toast } = useToast();
-  const [loading, setLoading] = useState(false);
   const [secret, setSecret] = useState("");
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { selectedHashchain, getSecret, forceSync } = useMockedChainExtension();
+  const { 
+    selectedHashchain,
+    loading,
+    error,
+    syncIndex
+  } = useHashchain();
 
   const handleLoadSecret = async () => {
+    if (!selectedHashchain) return;
+    
     try {
-      setLoading(true);
-      const result = await getSecret();
-      setSecret(result);
+      setSecret(selectedHashchain.data.secret);
       setCurrentIndex(0);
       toast({
         title: "Success",
         description: "Secret loaded successfully",
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to load secret';
       toast({
         title: "Error",
-        description: "Failed to load secret",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
   const handleGetNext = async () => {
-    if (!secret) return;
+    if (!secret || !selectedHashchain?.data.numHashes) return;
     
     try {
       let currentHash = secret;
-      // Convert numHashes to number and handle undefined case
-    const numHashes = selectedHashchain?.numHashes ? parseInt(selectedHashchain.numHashes) : 0;
-    for (let i = 0; i < numHashes - currentIndex - 1; i++) {
-        const hashBuffer = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(currentHash));
+      const numHashes = parseInt(selectedHashchain.data.numHashes);
+      
+      for (let i = 0; i < numHashes - currentIndex - 1; i++) {
+        const hashBuffer = await crypto.subtle.digest(
+          'SHA-256', 
+          new TextEncoder().encode(currentHash)
+        );
         currentHash = Array.from(new Uint8Array(hashBuffer))
           .map(b => b.toString(16).padStart(2, '0'))
           .join('');
@@ -289,10 +313,11 @@ const SecretMode = () => {
           </div>
         ),
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to generate hash';
       toast({
         title: "Error",
-        description: "Failed to generate hash",
+        description: errorMessage,
         variant: "destructive"
       });
     }
@@ -300,20 +325,18 @@ const SecretMode = () => {
 
   const handleSync = async () => {
     try {
-      setLoading(true);
-      await forceSync(currentIndex);
+      await syncIndex(currentIndex);
       toast({
         title: "Success",
         description: "Hash chain synced with current index",
       });
-    } catch (error) {
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to sync';
       toast({
         title: "Error",
-        description: "Failed to sync",
+        description: errorMessage,
         variant: "destructive"
       });
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -337,10 +360,17 @@ const SecretMode = () => {
             Current Index: {currentIndex}
           </div>
         </div>
+
+        {error && (
+          <div className="text-sm text-red-500">
+            {error.message}
+          </div>
+        )}
+
         <div className="space-x-2">
           <Button
             onClick={handleLoadSecret}
-            disabled={loading || !selectedHashchain?.contractAddress}
+            disabled={loading || !selectedHashchain?.data.contractAddress}
           >
             {loading ? (
               <>

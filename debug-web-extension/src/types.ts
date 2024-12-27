@@ -42,49 +42,33 @@ export interface ChannelCloseProps {
   lastHashIndex: number;
 }
 
-export interface HashchainData {
-  chainId: string;
-  vendorAddress: string;
-  amountPerHash: string;
-  numHashes: string;
-  contractAddress: string;
-  totalAmount: string;
-  secret?: string;
-  lastHashIndex: number;
-}
-
 export interface HashchainInfo {
   vendorAddress: string;
   chainId: string;
 }
 
-export interface ExtensionContextType {
-  // Selected hashchain management
-  selectedHashchain: HashchainData | null;
-  setSelectedHashchain: (data: HashchainData) => void;
+export type HashchainId = string;
 
-  // Vendor data operations
-  storeVendorData: (
-    data: Pick<HashchainData, "chainId" | "vendorAddress" | "amountPerHash">
-  ) => void;
-  getVendorData: () => Pick<
-    HashchainData,
-    "chainId" | "vendorAddress" | "amountPerHash"
-  > | null;
+export interface VendorData {
+  vendorAddress: string;
+  chainId: string;
+  amountPerHash: string;
+}
 
-  // Contract operations
-  updateContractAddress: (address: string) => void;
+export interface HashchainData {
+  vendorData: VendorData;
+  secret: string;
+  hashes: string[];
+  lastIndex: number;
+  contractAddress?: string;
+  numHashes?: string;
+  totalAmount?: string;
+  createdAt: number;
+}
 
-  // Hash operations
-  getNextHash: () => string;
-  getFullHashchain: () => string[];
-  getSecret: () => string;
-  forceSync: (lastHashIndex: number) => void;
-
-  // Channel state
-  lastHashIndex: number;
-
-  // Read operations
-  readHashchain: () => HashchainData | null;
-  listHashchains: () => HashchainInfo[];
+export interface StorageData {
+  hashchains: {
+    [hashchainId: HashchainId]: HashchainData;
+  };
+  selectedHashchainId: HashchainId | null;
 }
