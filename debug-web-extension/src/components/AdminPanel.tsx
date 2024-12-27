@@ -12,14 +12,14 @@ export const AdminPanel = () => {
 
   // Channel data
   const channelData = {
-    chainId: "0x5",
+    chainId: "123",
     contractAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
     vendorData: {
-      vendorAddress: "0x742d35Cc6634C0532925a3b844Bc454e4438f44e",
+      vendorAddress: "0x742d35Cc6634C0532925a3b84438f44e4C0532925",
       chainId: "0x5",
       amountPerHash: "0.015"
     },
-    hash: "0x123...", // This would be the actual hash to import
+    hash: "0x6634C0532925a3b844Bc4e0532925a3b844Bb844B", // This would be the actual hash to import
     lastIndex: 42,
     numHashes: "100",
     totalAmount: "1.5"

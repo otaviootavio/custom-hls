@@ -8,13 +8,13 @@ import {
 import GenerateHash from "./components/GenerateHash";
 import HashManagement from "./components/HashManagement";
 import HashChainDetail from "./components/HashChainDetail";
-import { HashChainProvider } from "./context/HashChainContext";
+import { HashchainProvider } from "./context/HashChainContext";
 
-function Popup() {
+export default function Popup() {
   return (
-    <HashChainProvider>
+    <HashchainProvider>
       <Router>
-        <div className="bg-gray-800 w-[300px] h-[500px] text-gray-200">
+        <div className="bg-gray-800 text-gray-200">
           <nav className="bg-gray-900 p-4">
             <ul className="flex justify-center space-x-4">
               <li>
@@ -39,8 +39,6 @@ function Popup() {
           </div>
         </div>
       </Router>
-    </HashChainProvider>
+    </HashchainProvider>
   );
 }
-
-export default Popup;

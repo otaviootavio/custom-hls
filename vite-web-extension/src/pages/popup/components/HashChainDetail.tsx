@@ -1,97 +1,176 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useHashChain } from "../context/HashChainContext";
-import { formatEther } from "viem";
+import { useHashchain } from "../context/HashChainContext";
+import type { HashchainId, PublicHashchainData } from "@src/pages/background/types";
+
+interface DetailFieldProps {
+  label: string;
+  value: string | number | undefined;
+  className?: string;
+}
+
+const DetailField: React.FC<DetailFieldProps> = ({ label, value, className }) => (
+  <div className={`bg-gray-800 rounded-lg p-3 ${className || ''}`}>
+    <label className="text-gray-400 text-sm block mb-1">{label}</label>
+    <p className="font-mono text-white truncate">
+      {value?.toString() || 'Not set'}
+    </p>
+  </div>
+);
 
 const HashChainDetail: React.FC = () => {
   const { key } = useParams<{ key: string }>();
-  const { selectedHashChain, selectHashChain, deleteHashChain } =
-    useHashChain();
   const navigate = useNavigate();
+  const { 
+    selectHashchain, 
+    allHashchains,
+    getSecret,
+    loading: contextLoading 
+  } = useHashchain();
+
+  const [currentHashchain, setCurrentHashchain] = useState<{
+    id: HashchainId;
+    data: PublicHashchainData;
+  } | null>(null);
+  const [secret, setSecret] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (key) {
-      selectHashChain(key);
-    }
-  }, [key, selectHashChain]);
+    const loadHashchainData = async () => {
+      if (!key) {
+        setError("No hashchain ID provided");
+        setLoading(false);
+        return;
+      }
 
-  const handleDelete = async () => {
-    if (key) {
-      await deleteHashChain(key);
-      navigate("/manage");
+      try {
+        const hashchain = allHashchains.find(h => h.id === key);
+        if (!hashchain) {
+          setError("Hashchain not found");
+          setLoading(false);
+          return;
+        }
+
+        setCurrentHashchain(hashchain);
+
+        // Load secret if available
+        if (hashchain.data.hasSecret) {
+          const secretValue = await getSecret(key);
+          setSecret(secretValue);
+        }
+      } catch (err) {
+        setError("Failed to load hashchain details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (!contextLoading) {
+      loadHashchainData();
     }
+  }, [key, allHashchains, contextLoading, getSecret]);
+
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleString();
   };
 
-  const handleSelect = async () => {
-    if (key) {
-      await selectHashChain(key);
-      navigate("/manage");
-    }
-  };
-
-  if (!selectedHashChain) {
-    return <div className="text-center text-gray-400">Loading...</div>;
+  if (loading || contextLoading) {
+    return (
+      <div className="w-full p-4 bg-gray-900 rounded-lg shadow-md">
+        <div className="text-center text-gray-400">Loading...</div>
+      </div>
+    );
   }
 
-  const renderField = (label: string, value: string | number | bigint) => {
-    let renderedValue: React.ReactNode;
-
-    console.log(label, value, typeof value);
-    switch (typeof value) {
-      case "string":
-        renderedValue = <p className="text-white truncate">{value}</p>;
-        break;
-      case "number":
-        renderedValue = <p className="text-white truncate">{value.toString()}</p>;
-        break;
-      case "bigint":
-        renderedValue = <p className="text-white truncate">{value.toString()}</p>;
-        break;
-      default:
-        renderedValue = <p className="text-red-500 truncate">Unknown type</p>;
-    }
-
+  if (error || !currentHashchain) {
     return (
-      <p className="text-gray-300 mb-2">
-        {label}:
-        <div className="p-1 bg-gray-800 border border-gray-700 shadow rounded-md mt-1">
-          {renderedValue}
-        </div>
-      </p>
+      <div className="w-full p-4 bg-gray-900 rounded-lg shadow-md">
+        <div className="text-red-500 text-center">{error || "Hashchain not found"}</div>
+        <button
+          onClick={() => navigate("/manage")}
+          className="mt-4 w-full py-2 px-4 bg-gray-600 text-white font-semibold rounded-md shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          Back to management
+        </button>
+      </div>
     );
-  };
+  }
 
+  const { data } = currentHashchain;
+  
   return (
     <div className="w-full p-4 bg-gray-900 rounded-lg shadow-md">
-      <h1 className="text-2xl font-bold text-gray-200 mb-4">
-        Hash chain detail
-      </h1>
-      {renderField("Key", selectedHashChain.key)}
-      {renderField("Address Contract", selectedHashChain.address_contract)}
-      {renderField("Address To", selectedHashChain.address_to)}
-      {renderField("Length", selectedHashChain.length)}
-      {renderField("Tail", `${selectedHashChain.tail}`)}
-      {renderField(
-        "Index of last hash send",
-        selectedHashChain.indexOfLastHashSend
-      )}
-      {renderField("Secret", selectedHashChain.secret)}
-      {renderField(
-        "Amount",
-        formatEther(BigInt(selectedHashChain.amountEthInWei))
-      )}
-      <button
-        onClick={handleSelect}
-        className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500 mt-4"
-      >
-        Select this hash chain
-      </button>
-      <button
-        onClick={handleDelete}
-        className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 mt-2"
-      >
-        Delete this hash chain
-      </button>
+      <div className="gap-4 flex flex-col">
+        {data.hasSecret && secret && (
+          <DetailField 
+            label="Secret" 
+            value={secret}
+            className="bg-indigo-900/30"
+          />
+        )}
+        
+        <DetailField 
+          label="Vendor Address" 
+          value={data.vendorData.vendorAddress}
+        />
+        
+        <DetailField 
+          label="Chain ID" 
+          value={data.vendorData.chainId}
+        />
+        
+        <DetailField 
+          label="Amount Per Hash" 
+          value={data.vendorData.amountPerHash}
+        />
+        
+        <DetailField 
+          label="Contract Address" 
+          value={data.contractAddress}
+        />
+        
+        <DetailField 
+          label="Number of Hashes" 
+          value={data.numHashes}
+        />
+        
+        <DetailField 
+          label="Last Index" 
+          value={data.lastIndex}
+        />
+        
+        {data.totalAmount && (
+          <DetailField 
+            label="Total Amount" 
+            value={data.totalAmount}
+          />
+        )}
+
+        <DetailField 
+          label="Created At" 
+          value={formatDate(data.createdAt)}
+        />
+      </div>
+
+      <div className="flex flex-col gap-2 mt-6">
+        <button
+          onClick={async () => {
+            await selectHashchain(key);
+            navigate("/manage");
+          }}
+          className="w-full py-2 px-4 bg-indigo-600 text-white font-semibold rounded-md shadow-md hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+        >
+          Select this hash chain
+        </button>
+        
+        <button
+          onClick={() => navigate("/manage")}
+          className="w-full py-2 px-4 bg-gray-600 text-white font-semibold rounded-md shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+        >
+          Back to management
+        </button>
+      </div>
     </div>
   );
 };

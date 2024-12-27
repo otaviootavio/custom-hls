@@ -8,7 +8,7 @@ import {
 import React, { createContext, useContext, useState, useCallback } from "react";
 
 // Define storage interface with updated types
-interface StorageInterface {
+export interface StorageInterface {
   createHashchain: (
     vendorData: VendorData,
     secret: string
