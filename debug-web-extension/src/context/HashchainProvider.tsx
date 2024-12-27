@@ -1,31 +1,27 @@
-import { HashchainData, HashchainId, VendorData } from '@/types';
+import { HashchainData, HashchainId, PublicHashchainData, VendorData } from '@/types';
 import React, { createContext, useContext, useState, useCallback } from 'react';
 
-// Types from storage
 
-// Define storage interface
+// Define storage interface with updated types
 interface StorageInterface {
   createHashchain: (vendorData: VendorData, secret: string) => Promise<HashchainId>;
-  getHashchain: (hashchainId: HashchainId) => Promise<HashchainData | null>;
-  getVendorHashchains: (vendorAddress: string) => Promise<Array<{
-    hashchainId: HashchainId;
-    data: HashchainData;
-  }>>;
+  getHashchain: (hashchainId: HashchainId) => Promise<PublicHashchainData | null>;
   selectHashchain: (hashchainId: HashchainId | null) => Promise<void>;
   getSelectedHashchain: () => Promise<{
     hashchainId: HashchainId;
-    data: HashchainData;
+    data: PublicHashchainData;
   } | null>;
+  getSecret: (hashchainId: HashchainId) => Promise<string | null>;
   getNextHash: (hashchainId: HashchainId) => Promise<string | null>;
   getFullHashchain: (hashchainId: HashchainId) => Promise<string[]>;
   syncHashchainIndex: (hashchainId: HashchainId, newIndex: number) => Promise<void>;
   updateHashchain: (hashchainId: HashchainId, data: Partial<HashchainData>) => Promise<void>;
 }
 
-// Context type definition
+// Context type definition with PublicHashchainData
 interface HashchainContextType {
   // State
-  selectedHashchain: { hashchainId: HashchainId; data: HashchainData } | null;
+  selectedHashchain: { hashchainId: HashchainId; data: PublicHashchainData } | null;
   loading: boolean;
   error: Error | null;
 
@@ -37,6 +33,7 @@ interface HashchainContextType {
   getNextHash: () => Promise<string | null>;
   getAllHashes: () => Promise<string[]>;
   syncIndex: (newIndex: number) => Promise<void>;
+  getSecret: () => Promise<string | null>;
 
   // Contract Operations
   updateContractDetails: (details: {
@@ -59,7 +56,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 }) => {
   const [selectedHashchain, setSelectedHashchain] = useState<{
     hashchainId: HashchainId;
-    data: HashchainData;
+    data: PublicHashchainData;
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
@@ -109,6 +106,13 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     });
   }, [storage]);
 
+  // Get secret from selected hashchain
+  const getSecret = useCallback(async () => {
+    return withLoadingAndError(async () => {
+      if (!selectedHashchain) throw new Error('No hashchain selected');
+      return storage.getSecret(selectedHashchain.hashchainId);
+    });
+  }, [selectedHashchain, storage]);
 
   // Get next hash from chain
   const getNextHash = useCallback(async () => {
@@ -205,7 +209,8 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     getNextHash,
     getAllHashes,
     syncIndex,
-    updateContractDetails
+    updateContractDetails,
+    getSecret
   };
 
   return (

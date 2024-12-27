@@ -14,14 +14,20 @@ export const SecretMode = () => {
       selectedHashchain,
       loading,
       error,
-      syncIndex
+      syncIndex,
+      getSecret
     } = useHashchain();
   
     const handleLoadSecret = async () => {
       if (!selectedHashchain) return;
       
       try {
-        setSecret(selectedHashchain.data.secret);
+        const loadedSecret = await getSecret();
+        if (!loadedSecret) {
+          throw new Error('Secret not found');
+        }
+        
+        setSecret(loadedSecret);
         setCurrentIndex(0);
         toast({
           title: "Success",
@@ -115,7 +121,7 @@ export const SecretMode = () => {
           <div className="space-x-2">
             <Button
               onClick={handleLoadSecret}
-              disabled={loading || !selectedHashchain?.data.contractAddress}
+              disabled={loading || !selectedHashchain?.data.hasSecret || !selectedHashchain?.data.contractAddress}
             >
               {loading ? (
                 <>
@@ -149,4 +155,3 @@ export const SecretMode = () => {
       </div>
     );
   };
-  
