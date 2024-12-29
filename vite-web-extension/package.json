@@ -1,11 +1,12 @@
 {
-  "name": "vite-web-extension",
-  "version": "1.4.0",
-  "description": "A simple chrome & firefox extension template with Vite, React, TypeScript and Tailwind CSS.",
+  "name": "mini-moni-web-extension",
+  "version": "0.2.0",
+  "description": "A Payword based payment channel manager",
+  "author": "Otavio",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/JohnBra/vite-web-extension.git"
+    "url": "https://github.com/otaviootavio/custom-hls"
   },
   "scripts": {
     "build": "vite build --config vite.config.chrome.ts",
