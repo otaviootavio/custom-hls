@@ -6,6 +6,7 @@ import {
   PublicHashchainData,
   VendorData,
 } from "./types";
+import { keccak256, toHex } from "viem";
 
 export class HashchainRepository {
   public readonly SELECTED_KEY = "selected_hashchain";
@@ -17,10 +18,10 @@ export class HashchainRepository {
 
   private generateHashChain(secret: string, length: number): string[] {
     const chain: string[] = [];
-    let currentHash = secret;
+    let currentHash = toHex(secret);
 
     for (let i = 0; i < length; i++) {
-      currentHash = sha256(currentHash).toString();
+      currentHash = keccak256(currentHash);
       chain.unshift(currentHash);
     }
 

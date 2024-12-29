@@ -8,4 +8,17 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   position: relative;
+  overflow: hidden; /* Add this */
+}
+
+html {
+  width: 300px; /* Match body width */
+  height: 500px; /* Match body height */
+  overflow: hidden;
+}
+
+#__root {
+  width: 300px; /* Match body width */
+  height: 500px; /* Match body height */
+  overflow: auto; /* Add scrolling here */
 }

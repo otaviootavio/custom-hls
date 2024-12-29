@@ -1,10 +1,10 @@
 import { useHashchain } from "@/context/HashchainProvider";
 import { useToast } from "@/hooks/use-toast";
-import { sha256 } from "@noble/hashes/sha256";
 import { Label } from "@radix-ui/react-label";
 import { useState } from "react";
 import { Button } from "../ui/button";
 import { Hash, Key, Loader2, RefreshCw } from "lucide-react";
+import { keccak256, toHex } from 'viem';
 
 export const SecretMode = () => {
     const { toast } = useToast();
@@ -47,11 +47,14 @@ export const SecretMode = () => {
       if (!secret || !selectedHashchain?.data.numHashes) return;
       
       try {
-        let currentHash = secret;
+        let currentHash = toHex(secret);
         const numHashes = parseInt(selectedHashchain.data.numHashes);
         
-        for (let i = 0; i < numHashes - currentIndex - 1; i++) {
-          currentHash = sha256(currentHash).toString();
+        if(currentIndex >= numHashes) {
+          throw new Error('Current index is greater than or equal to the number of hashes');
+        }
+        for (let i = 0; i < numHashes - currentIndex; i++) {
+          currentHash = keccak256(currentHash);
         }
         
         setCurrentIndex(prev => prev + 1);

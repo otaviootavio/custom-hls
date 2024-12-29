@@ -57,7 +57,7 @@ interface HashchainContextType {
   getNextHash: () => Promise<string | null>;
   getAllHashes: () => Promise<string[]>;
   syncIndex: (newIndex: number) => Promise<void>;
-
+  getSecret: () => Promise<string | null>;
   // Contract Operations
   updateContractDetails: (details: {
     contractAddress: string;
@@ -165,6 +165,13 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     return withLoadingAndError(async () => {
       if (!selectedHashchain) throw new Error("No hashchain selected");
       return storage.getFullHashchain(selectedHashchain.hashchainId);
+    });
+  }, [selectedHashchain, storage]);
+
+  const getSecret = useCallback(async () => {
+    return withLoadingAndError(async () => {
+      if (!selectedHashchain) throw new Error("No hashchain selected");
+      return storage.getSecret(selectedHashchain.hashchainId);
     });
   }, [selectedHashchain, storage]);
 
@@ -277,7 +284,8 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     syncIndex,
     updateContractDetails,
     importHashchain,
-    getSelectedHashchain
+    getSelectedHashchain,
+    getSecret
   };
 
   return (

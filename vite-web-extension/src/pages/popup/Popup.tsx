@@ -14,7 +14,7 @@ export default function Popup() {
   return (
     <HashchainProvider>
       <Router>
-        <div className="bg-gray-800 text-gray-200">
+        <div className="bg-gray-800 h-full w-full text-gray-200 overflow-auto">
           <nav className="bg-gray-900 p-4">
             <ul className="flex justify-center space-x-4">
               <li>

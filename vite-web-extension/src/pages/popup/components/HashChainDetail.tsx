@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useHashchain } from "../context/HashChainContext";
 import type { HashchainId, PublicHashchainData } from "@src/pages/background/types";
+import FullHashchain from "./FullHashchain";
 
 interface DetailFieldProps {
   label: string;
@@ -151,11 +152,13 @@ const HashChainDetail: React.FC = () => {
           label="Created At" 
           value={formatDate(data.createdAt)}
         />
+        <FullHashchain label="Full Hashchain" value={data.hashes} />
       </div>
 
       <div className="flex flex-col gap-2 mt-6">
         <button
           onClick={async () => {
+            if (!key) throw new Error("No hashchain ID provided");
             await selectHashchain(key);
             navigate("/manage");
           }}
@@ -165,10 +168,13 @@ const HashChainDetail: React.FC = () => {
         </button>
         
         <button
-          onClick={() => navigate("/manage")}
-          className="w-full py-2 px-4 bg-gray-600 text-white font-semibold rounded-md shadow-md hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500"
+          onClick={async () => {
+            if (!key) throw new Error("No hashchain ID provided");
+            navigate("/manage");
+          }}
+          className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"
         >
-          Back to management
+          Delete this hash chain
         </button>
       </div>
     </div>
