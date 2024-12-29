@@ -63,4 +63,13 @@ export class IndexedDBClient {
       request.onerror = () => reject(request.error);
     });
   }
+
+  async delete(key: string): Promise<void> {
+    const store = await this.getStore();
+    return new Promise((resolve, reject) => {
+      const request = store.delete(key);
+      request.onsuccess = () => resolve();
+      request.onerror = () => reject(request.error);
+    });
+  }
 }

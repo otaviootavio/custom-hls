@@ -24,6 +24,7 @@ const HashChainDetail: React.FC = () => {
   const navigate = useNavigate();
   const { 
     selectHashchain, 
+    deleteHashchain,
     allHashchains,
     getSecret,
     loading: contextLoading 
@@ -170,6 +171,10 @@ const HashChainDetail: React.FC = () => {
         <button
           onClick={async () => {
             if (!key) throw new Error("No hashchain ID provided");
+
+            // Delete the hashchain
+            await deleteHashchain(key);
+
             navigate("/manage");
           }}
           className="w-full py-2 px-4 bg-red-600 text-white font-semibold rounded-md shadow-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500"

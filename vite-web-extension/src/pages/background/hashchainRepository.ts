@@ -185,4 +185,8 @@ export class HashchainRepository {
       data: this.toPublicData(data),
     }));
   }
+
+  async deleteHashchain(hashchainId: string): Promise<void> {
+    await this.db.delete(hashchainId);
+  }
 }

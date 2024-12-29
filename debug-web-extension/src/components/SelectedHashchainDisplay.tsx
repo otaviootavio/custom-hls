@@ -22,7 +22,6 @@ export const SelectedHashchainDisplay = () => {
     numHashes,
     totalAmount,
     lastIndex,
-    secret
   } = selectedHashchain.data;
 
   return (
@@ -100,19 +99,6 @@ export const SelectedHashchainDisplay = () => {
             <p className="text-sm font-mono">{lastIndex}</p>
           </div>
           
-          {secret && (
-            <div>
-              <p className="text-sm font-medium text-muted-foreground mb-1">
-                Secret
-              </p>
-              <p
-                className="text-sm font-mono truncate"
-                title={secret}
-              >
-                {secret}
-              </p>
-            </div>
-          )}
         </div>
       </CardContent>
     </Card>
