@@ -10,17 +10,19 @@ import {
 // extensionStorage.ts - Website Context
 export class ExtensionStorage implements StorageInterface {
   private contentScriptReady: boolean = false;
+  private hashchainChangeListeners: Set<() => void> = new Set();
 
   constructor() {
     // Listen for content script ready message
     window.addEventListener("message", (event) => {
-      if (
-        event.data &&
-        event.data.source === "CONTENT_SCRIPT" &&
-        event.data.type === "READY"
-      ) {
-        console.log("Content script marked as ready");
-        this.contentScriptReady = true;
+      if (event.data?.source === "CONTENT_SCRIPT") {
+        if (event.data.type === "READY") {
+          console.log("Content script marked as ready");
+          this.contentScriptReady = true;
+        } else if (event.data.type === "HASHCHAIN_SELECTION_CHANGED") {
+          console.log("Received hashchain selection change event");
+          this.notifyHashchainChangeListeners();
+        }
       }
     });
   }
@@ -140,5 +142,16 @@ export class ExtensionStorage implements StorageInterface {
 
   async importHashchain(data: ImportHashchainData): Promise<HashchainId> {
     return this.sendMessage("IMPORT_HASHCHAIN", { data });
+  }
+
+  onHashchainChange(listener: () => void): () => void {
+    this.hashchainChangeListeners.add(listener);
+    return () => {
+      this.hashchainChangeListeners.delete(listener);
+    };
+  }
+
+  private notifyHashchainChangeListeners(): void {
+    this.hashchainChangeListeners.forEach((listener) => listener());
   }
 }

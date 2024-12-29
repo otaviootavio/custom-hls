@@ -56,6 +56,32 @@ export class HashchainRepository {
 
   async selectHashchain(hashchainId: string | null): Promise<void> {
     await this.db.put(this.SELECTED_KEY, { selectedHashchainId: hashchainId });
+
+    // Directly broadcast to all tabs since we're already in the background
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id) {
+          console.log("Background: sending hashchain selection change to tab", tab.id);
+          chrome.tabs.sendMessage(
+            tab.id,
+            {
+              type: "HASHCHAIN_SELECTION_CHANGED",
+              hashchainId: hashchainId,
+            },
+            () => {
+              const lastError = chrome.runtime.lastError;
+              // Ignore the error - this just means the tab isn't ready
+              if (lastError) {
+                console.debug(
+                  `Could not send message to tab ${tab.id}:`,
+                  lastError.message
+                );
+              }
+            }
+          );
+        }
+      });
+    });
   }
 
   async getSelectedHashchain(): Promise<{

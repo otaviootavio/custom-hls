@@ -33,6 +33,7 @@ export interface StorageInterface {
     data: Partial<HashchainData>
   ) => Promise<void>;
   importHashchain: (data: ImportHashchainData) => Promise<HashchainId>;
+  onHashchainChange: (listener: () => void) => () => void;
 }
 
 // Context type definition with PublicHashchainData
@@ -269,6 +270,16 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     };
 
     initializeFromStorage();
+
+    const unsubscribe = storage.onHashchainChange(() => {
+      console.log("Hashchain change detected, refreshing state");
+      initializeFromStorage();
+    });
+
+    // Cleanup listener on unmount
+    return () => {
+      unsubscribe();
+    };
   }, [storage]);
 
   const value: HashchainContextType = {
@@ -285,7 +296,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     updateContractDetails,
     importHashchain,
     getSelectedHashchain,
-    getSecret
+    getSecret,
   };
 
   return (
