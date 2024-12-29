@@ -1,4 +1,3 @@
-import React from "react";
 import { HashchainDebug } from "./components/HashchainDebug";
 import { Toaster } from "./components/ui/toaster";
 
