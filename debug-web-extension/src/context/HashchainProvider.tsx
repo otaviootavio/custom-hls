@@ -5,17 +5,11 @@ import {
   PublicHashchainData,
   VendorData,
 } from "@/types";
-import React, { createContext, useContext, useState, useCallback } from "react";
+import React, { createContext, useContext, useState, useCallback, useRef } from "react";
 
-// Define storage interface with updated types
 export interface StorageInterface {
-  createHashchain: (
-    vendorData: VendorData,
-    secret: string
-  ) => Promise<HashchainId>;
-  getHashchain: (
-    hashchainId: HashchainId
-  ) => Promise<PublicHashchainData | null>;
+  createHashchain: (vendorData: VendorData, secret: string) => Promise<HashchainId>;
+  getHashchain: (hashchainId: HashchainId) => Promise<PublicHashchainData | null>;
   selectHashchain: (hashchainId: HashchainId | null) => Promise<void>;
   getSelectedHashchain: () => Promise<{
     hashchainId: HashchainId;
@@ -24,48 +18,34 @@ export interface StorageInterface {
   getSecret: (hashchainId: HashchainId) => Promise<string | null>;
   getNextHash: (hashchainId: HashchainId) => Promise<string | null>;
   getFullHashchain: (hashchainId: HashchainId) => Promise<string[]>;
-  syncHashchainIndex: (
-    hashchainId: HashchainId,
-    newIndex: number
-  ) => Promise<void>;
-  updateHashchain: (
-    hashchainId: HashchainId,
-    data: Partial<HashchainData>
-  ) => Promise<void>;
+  syncHashchainIndex: (hashchainId: HashchainId, newIndex: number) => Promise<void>;
+  updateHashchain: (hashchainId: HashchainId, data: Partial<HashchainData>) => Promise<void>;
   importHashchain: (data: ImportHashchainData) => Promise<HashchainId>;
   onHashchainChange: (listener: () => void) => () => void;
 }
 
-// Context type definition with PublicHashchainData
 interface HashchainContextType {
-  // State
   selectedHashchain: {
     hashchainId: HashchainId;
     data: PublicHashchainData;
   } | null;
   loading: boolean;
   error: Error | null;
-
-  // Vendor Operations
   initializeHashchain: (vendorData: VendorData) => Promise<HashchainId>;
   selectHashchain: (hashchainId: HashchainId) => Promise<void>;
   getSelectedHashchain: () => Promise<{
     hashchainId: HashchainId;
     data: PublicHashchainData;
   } | null>;
-
-  // Hash Operations
   getNextHash: () => Promise<string | null>;
   getAllHashes: () => Promise<string[]>;
   syncIndex: (newIndex: number) => Promise<void>;
   getSecret: () => Promise<string | null>;
-  // Contract Operations
   updateContractDetails: (details: {
     contractAddress: string;
     numHashes: string;
     totalAmount: string;
   }) => Promise<void>;
-
   importHashchain: (data: ImportHashchainData) => Promise<void>;
 }
 
@@ -86,33 +66,44 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
   } | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const initializationAttempted = useRef(false);
+  const initializationTimeoutId = useRef<NodeJS.Timeout>();
 
-  // Helper to wrap async operations with loading and error handling
   const withLoadingAndError = async <T,>(
-    operation: () => Promise<T>
+    operation: () => Promise<T>,
+    skipLoading: boolean = false
   ): Promise<T> => {
-    setLoading(true);
+    if (!skipLoading) setLoading(true);
     setError(null);
     try {
       return await operation();
     } catch (err) {
-      const error =
-        err instanceof Error ? err : new Error("Unknown error occurred");
+      const error = err instanceof Error ? err : new Error("Unknown error occurred");
       setError(error);
       throw error;
     } finally {
-      setLoading(false);
+      if (!skipLoading) setLoading(false);
     }
   };
 
-  // Initialize new hashchain
+  const refreshSelectedHashchain = useCallback(async () => {
+    try {
+      const stored = await storage.getSelectedHashchain();
+      setSelectedHashchain(stored);
+    } catch (error) {
+      console.error("Failed to refresh selected hashchain:", error);
+      if (error instanceof Error && !error.message.includes('timeout')) {
+        setSelectedHashchain(null);
+      }
+    }
+  }, [storage]);
+
   const initializeHashchain = useCallback(
     async (vendorData: VendorData) => {
       return withLoadingAndError(async () => {
         const secret = `initial_secret_${Date.now()}`;
         const hashchainId = await storage.createHashchain(vendorData, secret);
 
-        // Auto-select the newly created hashchain
         const hashchain = await storage.getHashchain(hashchainId);
         if (!hashchain) throw new Error("Failed to create hashchain");
 
@@ -125,10 +116,15 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     [storage]
   );
 
-  // Select existing hashchain
   const selectHashchain = useCallback(
-    async (hashchainId: HashchainId) => {
+    async (hashchainId: HashchainId | null) => {
       return withLoadingAndError(async () => {
+        if (hashchainId === null) {
+          await storage.selectHashchain(null);
+          setSelectedHashchain(null);
+          return;
+        }
+
         const hashchain = await storage.getHashchain(hashchainId);
         if (!hashchain) throw new Error("Hashchain not found");
 
@@ -139,14 +135,12 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     [storage]
   );
 
-  // Get next hash from chain
   const getNextHash = useCallback(async () => {
     return withLoadingAndError(async () => {
       if (!selectedHashchain) throw new Error("No hashchain selected");
 
       const hash = await storage.getNextHash(selectedHashchain.hashchainId);
       if (hash) {
-        // Update local state with new index
         const updatedHashchain = await storage.getHashchain(
           selectedHashchain.hashchainId
         );
@@ -161,7 +155,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     });
   }, [selectedHashchain, storage]);
 
-  // Get all hashes
   const getAllHashes = useCallback(async () => {
     return withLoadingAndError(async () => {
       if (!selectedHashchain) throw new Error("No hashchain selected");
@@ -176,7 +169,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     });
   }, [selectedHashchain, storage]);
 
-  // Sync hashchain index
   const syncIndex = useCallback(
     async (newIndex: number) => {
       return withLoadingAndError(async () => {
@@ -187,7 +179,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
           newIndex
         );
 
-        // Update local state
         const updatedHashchain = await storage.getHashchain(
           selectedHashchain.hashchainId
         );
@@ -202,7 +193,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     [selectedHashchain, storage]
   );
 
-  // Update contract details
   const updateContractDetails = useCallback(
     async (details: {
       contractAddress: string;
@@ -214,12 +204,10 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
         await storage.updateHashchain(selectedHashchain.hashchainId, details);
 
-        // Update local state
         const updatedHashchain = await storage.getHashchain(
           selectedHashchain.hashchainId
         );
-        if (!updatedHashchain)
-          throw new Error("Failed to update contract details");
+        if (!updatedHashchain) throw new Error("Failed to update contract details");
 
         setSelectedHashchain({
           hashchainId: selectedHashchain.hashchainId,
@@ -232,20 +220,25 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
   const getSelectedHashchain = useCallback(async () => {
     return withLoadingAndError(async () => {
+      if (selectedHashchain?.hashchainId && selectedHashchain?.data) {
+        return selectedHashchain;
+      }
+
       const hashchain = await storage.getSelectedHashchain();
       if (!hashchain) {
+        setSelectedHashchain(null);
         throw new Error("No hashchain selected");
       }
+      setSelectedHashchain(hashchain);
       return hashchain;
     });
-  }, [storage]);
+  }, [storage, selectedHashchain]);
 
   const importHashchain = useCallback(
     async (data: ImportHashchainData) => {
       return withLoadingAndError(async () => {
         const hashchainId = await storage.importHashchain(data);
 
-        // Auto-select the newly imported hashchain
         const hashchain = await storage.getHashchain(hashchainId);
         if (!hashchain) throw new Error("Failed to import hashchain");
 
@@ -256,38 +249,52 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     [storage]
   );
 
-  // Initialize selected hashchain from storage
   React.useEffect(() => {
-    const initializeFromStorage = async () => {
+    let mounted = true;
+
+    const initialize = async () => {
+      if (initializationAttempted.current) return;
+      initializationAttempted.current = true;
+
       try {
-        const stored = await storage.getSelectedHashchain();
-        if (stored) {
-          setSelectedHashchain(stored);
-        }
+        await new Promise(resolve => setTimeout(resolve, 100));
+        await refreshSelectedHashchain();
       } catch (error) {
-        console.error("Failed to initialize from storage:", error);
+        console.error("Failed initial hashchain load:", error);
+        if (mounted && error instanceof Error && error.message.includes('timeout')) {
+          if (initializationTimeoutId.current) {
+            clearTimeout(initializationTimeoutId.current);
+          }
+          initializationTimeoutId.current = setTimeout(() => {
+            initializationAttempted.current = false;
+            initialize();
+          }, 1000);
+        }
       }
     };
 
-    initializeFromStorage();
+    initialize();
 
     const unsubscribe = storage.onHashchainChange(() => {
-      console.log("Hashchain change detected, refreshing state");
-      initializeFromStorage();
+      if (mounted) {
+        console.log("Hashchain change detected, refreshing state");
+        refreshSelectedHashchain();
+      }
     });
 
-    // Cleanup listener on unmount
     return () => {
+      mounted = false;
       unsubscribe();
+      if (initializationTimeoutId.current) {
+        clearTimeout(initializationTimeoutId.current);
+      }
     };
-  }, [storage]);
+  }, [storage, refreshSelectedHashchain]);
 
   const value: HashchainContextType = {
-    // State
     selectedHashchain,
     loading,
     error,
-    // Operations
     initializeHashchain,
     selectHashchain,
     getNextHash,
@@ -306,7 +313,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
   );
 };
 
-// Custom hook for using the context
 export const useHashchain = () => {
   const context = useContext(HashchainContext);
   if (!context) {
