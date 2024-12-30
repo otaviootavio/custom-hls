@@ -6,6 +6,7 @@ import { OpenChannel } from "./OpenChannel";
 import { HashStreaming } from "./HashStreaming";
 import { CloseChannel } from "./CloseChannel";
 import { AdminPanel } from "./AdminPanel";
+import DownloadLinks from "./DownloadLinks";
 
 export const HashchainDebug = () => {
   return (
@@ -14,6 +15,10 @@ export const HashchainDebug = () => {
         <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
           Hashchain Debug Client
         </h1>
+
+        <div className="mb-6">
+          <DownloadLinks />
+        </div>
 
         <SelectedHashchainDisplay />
 
@@ -56,7 +61,7 @@ export const HashchainDebug = () => {
                 <span>Admin</span>
               </div>
             </TabsTrigger>
-            
+
             <TabsTrigger
               value="close"
               className="flex items-center justify-center"
