@@ -18,9 +18,9 @@ const HashManagement: React.FC = () => {
       {error && <div className="text-red-500">{error}</div>}
       <div>
         Selected Hash Chain:
-        <div className="cursor-pointer bg-gray-800 rounded-lg text-center p-2">
+        <p className="cursor-pointer bg-red-800 rounded-lg text-center p-2 truncate">
           {selectedHashChain?.key ?? "No Hash Chain Selected"}
-        </div>
+        </p>
       </div>
       <div className="mt-4">
         List of Hash Chains:

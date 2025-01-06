@@ -134,18 +134,22 @@ async function handleDeliverHashchain() {
   }
 }
 
-async function handleDeliverFullHashchain() {
-  console.log("Executing handleDeliverFullHashchain...");
+async function handleDeliverFullHashchain(): Promise<ResponseMessage> {
+  console.log("[Background] Executing handleDeliverFullHashchain...");
   try {
     const selectedHashChain = await hashRepo.getSelectedHashChain();
-
     if (selectedHashChain) {
-      console.log("Hashchain:", selectedHashChain.hashchain);
+      console.log("[Background] Retrieved hash chain data:", {
+        length: selectedHashChain.hashchain.length,
+        sample: selectedHashChain.hashchain.slice(0, 2),
+      });
       return { data: selectedHashChain.hashchain };
     } else {
+      console.log("[Background] No hash chain selected");
       return { error: "No hash chain selected" };
     }
   } catch (error) {
+    console.error("[Background] Error retrieving hash chain:", error);
     return { error: "Failed to retrieve hash chain" };
   }
 }

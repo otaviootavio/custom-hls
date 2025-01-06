@@ -58,12 +58,25 @@ export const HashChainExtensionProvider: React.FC<
   const [lastHashSendIndex, setLastHashSendIndex] = useState<number>(0);
 
   const createEventPromise = <T,>(eventType: string): Promise<T> => {
+    console.log(
+      `[React Context] Creating event promise for type: ${eventType}`,
+    );
     return new Promise((resolve) => {
       const handler = (event: MessageEvent) => {
-        if (event.data.type === eventType) {
+        // Only log messages that match our expected type
+        if (event.data?.type === eventType) {
+          console.log(`[React Context] Received matching message:`, {
+            type: event.data?.type,
+            hasData: !!event.data?.data,
+            dataLength: Array.isArray(event.data?.data)
+              ? event.data.data.length
+              : "not an array",
+          });
+
           window.removeEventListener("message", handler);
           resolve(event.data as T);
         }
+        // Don't log mismatched messages to reduce noise
       };
       window.addEventListener("message", handler);
     });
@@ -95,12 +108,39 @@ export const HashChainExtensionProvider: React.FC<
   };
 
   const fetchHashChain = async (): Promise<string[]> => {
+    console.log("[React Context] Requesting full hash chain...");
     window.postMessage({ type: "RequestFullHashChain" }, "*");
-    const response = await createEventPromise<{ type: string; data: string[] }>(
-      "fullHashChain",
-    );
-    setFullHashChain(response.data);
-    return response.data;
+
+    try {
+      const response = await createEventPromise<{
+        type: string;
+        data: string[];
+      }>("fullHashChain");
+
+      if (!response?.data) {
+        console.error("[React Context] No data in response:", response);
+        throw new Error("No data received from extension");
+      }
+
+      if (!Array.isArray(response.data)) {
+        console.error(
+          "[React Context] Response data is not an array:",
+          response.data,
+        );
+        throw new Error("Invalid response format: expected array");
+      }
+
+      console.log("[React Context] Successfully received hash chain:", {
+        length: response.data.length,
+        sample: response.data.slice(0, 2),
+      });
+
+      setFullHashChain(response.data);
+      return response.data;
+    } catch (error) {
+      console.error("[React Context] Error fetching hash chain:", error);
+      throw error;
+    }
   };
 
   const fetchSecretAndLength = async (): Promise<
