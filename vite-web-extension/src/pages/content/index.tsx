@@ -60,3 +60,40 @@ chrome.runtime.onMessage.addListener((message) => {
     });
   }
 });
+
+const channel = new BroadcastChannel("fetch-intercept-channel");
+
+// Handle messages from service worker
+channel.onmessage = async (event) => {
+  console.log("Service Worker -> Content script:", event.data);
+
+  const { type, url, method, body, timestamp } = event.data;
+
+  if (type === "GET_NEXT_REQUEST_HEADER_FROM_BACKGROUND") {
+    // Process the intercepted request
+    console.log("Content: Received intercept request", {
+      url,
+      method,
+      body,
+      timestamp,
+    });
+
+    const selectedHashchain = await sendToBackground("GET_SELECTED_HASHCHAIN", {});
+    const nextHash = await sendToBackground("GET_NEXT_HASH", {
+      hashchainId: selectedHashchain.hashchainId,
+    });
+
+    // Here you can modify the request or add custom logic for /todos/1
+    const response = {
+      type: "INTERCEPT_RESPONSE",
+      timestamp: Date.now(),
+      data: {
+        hashchainId: selectedHashchain.hashchainId,
+        nextHash,
+      },
+    };
+
+    channel.postMessage(response);
+    console.log("Content script -> Service Worker:", response);
+  }
+};
