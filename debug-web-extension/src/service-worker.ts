@@ -9,8 +9,9 @@ const channel = new BroadcastChannel("fetch-intercept-channel");
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
 
+  // TODO
+  // CHANGE WITH YOUR OWN URL
   // Check if this is the specific request we want to intercept
-  console.log("SW: Fetch event for:", url.pathname);
   if (url.pathname.startsWith("/todos/1")) {
     event.respondWith(
       (async () => {
