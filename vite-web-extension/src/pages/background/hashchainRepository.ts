@@ -1,4 +1,3 @@
-import { sha256 } from "@noble/hashes/sha256";
 import { IndexedDBClient } from "./indexedDBClient";
 import {
   HashchainData,
@@ -29,8 +28,8 @@ export class HashchainRepository {
   }
 
   private toPublicData(data: HashchainData): PublicHashchainData {
-    const { secret, ...publicData } = data;
-    return { ...publicData, hasSecret: !!secret };
+    const {  hashes, secret, ...publicData } = data;
+    return { ...publicData, hasSecret: !!secret , hashes };
   }
 
   async createHashchain(
