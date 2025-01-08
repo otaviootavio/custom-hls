@@ -1,21 +1,21 @@
 const targetOrigin = window.location.origin;
-console.log("Content script initialized with origin:", targetOrigin);
+console.log("[ContentScript] Content script initialized with origin:", targetOrigin);
 
 // Helper function to send messages to webpage
 const sendToWebpage = (message: any) => {
   window.postMessage(message, targetOrigin);
-  console.log("Content script -> Webpage:", message);
+  console.log("[ContentScript] Content script -> Webpage:", message);
 };
 
 // Helper function to handle messages to background
 const sendToBackground = async (type: string, payload: any) => {
-  console.log("Content script -> Background:", { type, payload });
+  console.log("[ContentScript] Content script -> Background:", { type, payload });
   try {
     const response = await chrome.runtime.sendMessage({ type, payload });
-    console.log("Background -> Content script:", response);
+    console.log("[ContentScript] Background -> Content script:", response);
     return response;
   } catch (err) {
-    console.error("Background communication error:", err);
+    console.error("[ContentScript] Background communication error:", err);
     throw err;
   }
 };
@@ -65,13 +65,13 @@ const channel = new BroadcastChannel("fetch-intercept-channel");
 
 // Handle messages from service worker
 channel.onmessage = async (event) => {
-  console.log("Service Worker -> Content script:", event.data);
+  console.log("[ContentScript] Service Worker -> Content script:", event.data);
 
   const { type, url, method, body, timestamp } = event.data;
 
   if (type === "GET_NEXT_REQUEST_HEADER_FROM_BACKGROUND") {
     // Process the intercepted request
-    console.log("Content: Received intercept request", {
+    console.log("[ContentScript] Received intercept request", {
       url,
       method,
       body,
@@ -94,6 +94,6 @@ channel.onmessage = async (event) => {
     };
 
     channel.postMessage(response);
-    console.log("Content script -> Service Worker:", response);
+    console.log("[ContentScript] Content script -> Service Worker:", response);
   }
 };

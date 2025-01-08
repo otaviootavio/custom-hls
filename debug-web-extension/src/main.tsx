@@ -16,9 +16,9 @@ async function registerServiceWorker() {
           type: import.meta.env.MODE === "production" ? "classic" : "module",
         }
       );
-      console.log("Service Worker registered successfully");
+      console.log("[Page] Service Worker registered successfully");
     } catch (error) {
-      console.error("Service Worker registration failed:", error);
+      console.error("[Page] Service Worker registration failed:", error);
     }
   }
 }

@@ -10,7 +10,7 @@ self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
 
   // TODO
-  // CHANGE WITH YOUR OWN URL
+  // CHANGE WITH YOUR OWN URLw
   // Check if this is the specific request we want to intercept
   if (url.pathname.startsWith("/todos/1")) {
     event.respondWith(
@@ -22,7 +22,7 @@ self.addEventListener("fetch", async (event) => {
           };
 
           channel.postMessage(message);
-          console.log("SW: Sent intercept request", message);
+          console.log("[Page Service Worker]: Sent intercept request", message);
 
           const response = await new Promise<{
             hashchainId: string;
