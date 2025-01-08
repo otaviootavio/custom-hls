@@ -1,26 +1,29 @@
-import path from "path";
-import react from "@vitejs/plugin-react";
 import { defineConfig } from "vite";
+import react from "@vitejs/plugin-react";
 import { VitePWA } from "vite-plugin-pwa";
+import path from "path";
 
 export default defineConfig({
+  resolve: {
+    alias: {
+      "@": path.resolve(__dirname, "./src"),
+    },
+  },
   plugins: [
     react(),
     VitePWA({
       srcDir: "src",
-      filename: "service-worker.js",
+      filename: "service-worker.ts",
       strategies: "injectManifest",
       injectRegister: false,
       manifest: false,
       injectManifest: {
         injectionPoint: undefined,
       },
-      selfDestroying: true,
+      devOptions: {
+        enabled: true,
+        type: "module",
+      },
     }),
   ],
-  resolve: {
-    alias: {
-      "@": path.resolve(__dirname, "./src"),
-    },
-  },
 });
