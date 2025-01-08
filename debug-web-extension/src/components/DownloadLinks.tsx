@@ -21,7 +21,7 @@ export const DownloadLinks = () => {
           Download for Firefox
         </a>
       </Button>
-      <Button asChild size="sm">
+      <Button asChild size="sm" variant={"outline"}>
         <p
           onClick={async () => {
             const data = await fetch(
@@ -30,7 +30,7 @@ export const DownloadLinks = () => {
             console.log(await data.json());
           }}
         >
-          Download for Edge
+          Dummy fetch
         </p>
       </Button>
     </div>
