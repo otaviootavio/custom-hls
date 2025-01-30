@@ -1,9 +1,8 @@
-import React from "react";
 import { createRoot } from "react-dom/client";
-import "@pages/popup/index.css";
+import "@pages/auth/index.css";
 import "@assets/styles/tailwind.css";
-import Popup from "./Popup";
-import { WebsiteAuthProvider } from "../auth/context/WebsiteAuthContext";
+import { Auth } from "./Auth";
+import { WebsiteAuthProvider } from "../context/WebsiteAuthContext";
 
 function init() {
   const rootContainer = document.querySelector("#__root");
@@ -11,7 +10,7 @@ function init() {
   const root = createRoot(rootContainer);
   root.render(
     <WebsiteAuthProvider>
-      <Popup />
+      <Auth />
     </WebsiteAuthProvider>
   );
 }

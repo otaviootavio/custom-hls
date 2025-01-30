@@ -15,13 +15,16 @@ export interface StorageInterface {
     hashchainId: HashchainId;
     data: PublicHashchainData;
   } | null>;
+  // NEED SECRET AUTH
   getSecret: (hashchainId: HashchainId) => Promise<string | null>;
   getNextHash: (hashchainId: HashchainId) => Promise<string | null>;
   getFullHashchain: (hashchainId: HashchainId) => Promise<string[]>;
+  // END OF SECRET AUTH
   syncHashchainIndex: (hashchainId: HashchainId, newIndex: number) => Promise<void>;
   updateHashchain: (hashchainId: HashchainId, data: Partial<HashchainData>) => Promise<void>;
   importHashchain: (data: ImportHashchainData) => Promise<HashchainId>;
   onHashchainChange: (listener: () => void) => () => void;
+  requestConnection: () => Promise<void>;
 }
 
 interface HashchainContextType {
@@ -47,6 +50,7 @@ interface HashchainContextType {
     totalAmount: string;
   }) => Promise<void>;
   importHashchain: (data: ImportHashchainData) => Promise<void>;
+  requestConnection: () => Promise<void>;  
 }
 
 const HashchainContext = createContext<HashchainContextType | null>(null);
@@ -85,6 +89,12 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
       if (!skipLoading) setLoading(false);
     }
   };
+
+  const requestConnection = useCallback(async () => {
+    return withLoadingAndError(async () => {
+      await storage.requestConnection();
+    });
+  }, [storage]);
 
   const refreshSelectedHashchain = useCallback(async () => {
     try {
@@ -304,6 +314,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     importHashchain,
     getSelectedHashchain,
     getSecret,
+    requestConnection
   };
 
   return (

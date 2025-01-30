@@ -32,6 +32,10 @@ export class ExtensionStorage implements StorageInterface {
     });
   }
 
+    async requestConnection(): Promise<void> {
+      return this.messageBus.sendMessage<void>('REQUEST_CONNECTION', {});
+    }
+  
   async getHashchain(
     hashchainId: HashchainId
   ): Promise<PublicHashchainData | null> {
