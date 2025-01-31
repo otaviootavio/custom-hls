@@ -30,6 +30,7 @@ export class AuthRepository {
 
     console.log(`Granting basic access to ${url} for ${duration}ms`);
     await this.db.put(url, auth);
+    await this.notifyAuthStatusChangeListeners(url);
   }
 
   /**
@@ -43,13 +44,13 @@ export class AuthRepository {
   ): Promise<void> {
     const auth = await this.db.get<WebsiteAuth>(url);
     if (!auth) return;
-
     await this.db.put(url, {
       ...auth,
       basicAccessDuration: newDuration,
       basicAuth: true,
       startTime: Date.now(),
     });
+    await this.notifyAuthStatusChangeListeners(url);
   }
 
   // =========================
@@ -81,6 +82,7 @@ export class AuthRepository {
 
     console.log(`Granting secret access to ${url} for ${duration}ms`);
     await this.db.put(url, auth);
+    await this.notifyAuthStatusChangeListeners(url);
   }
 
   /**
@@ -101,6 +103,7 @@ export class AuthRepository {
       secretAuth: true,
       startTime: Date.now(),
     });
+    await this.notifyAuthStatusChangeListeners(url);
   }
 
   // ======================
@@ -166,6 +169,7 @@ export class AuthRepository {
       basicAuth: false,
       secretAuth: false,
     });
+    await this.notifyAuthStatusChangeListeners(url);
   }
 
   /**
@@ -183,5 +187,57 @@ export class AuthRepository {
    */
   async removeAuth(url: string): Promise<void> {
     await this.db.delete(url);
+    await this.notifyAuthStatusChangeListeners(url);
   }
+  /**
+   * Gets the authentication status for a website
+   * @param url The website URL to check
+   * @returns Object with basicAuth and secretAuth booleans
+   */
+  async getAuthStatus(
+    url: string
+  ): Promise<{ basicAuth: boolean; secretAuth: boolean }> {
+    console.log("Getting auth status for", url);
+    const auth = await this.db.get<WebsiteAuth>(url);
+    return {
+      basicAuth: auth?.basicAuth ?? false,
+      secretAuth: auth?.secretAuth ?? false,
+    };
+  }
+
+  notifyAuthStatusChangeListeners = async (url: string) => {
+    const auth = await this.db.get<WebsiteAuth>(url);
+    const authStatus = {
+      basicAuth: auth?.basicAuth ?? false,
+      secretAuth: auth?.secretAuth ?? false,
+    };
+
+    chrome.tabs.query({}, (tabs) => {
+      tabs.forEach((tab) => {
+        if (tab.id) {
+          console.log("Background: sending auth status change to tab", tab.id);
+          chrome.tabs.sendMessage(
+            tab.id,
+            {
+              type: "AUTH_STATUS_CHANGED",
+              authStatus: {
+                basicAuth: authStatus.basicAuth,
+                secretAuth: authStatus.secretAuth,
+              },
+            },
+            () => {
+              const lastError = chrome.runtime.lastError;
+              // Ignore the error - this just means the tab isn't ready
+              if (lastError) {
+                console.debug(
+                  `Could not send message to tab ${tab.id}:`,
+                  lastError.message
+                );
+              }
+            }
+          );
+        }
+      });
+    });
+  };
 }

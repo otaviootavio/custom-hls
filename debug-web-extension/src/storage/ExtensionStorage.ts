@@ -10,14 +10,22 @@ import {
 
 export class ExtensionStorage implements StorageInterface {
   private hashchainChangeListeners: Set<() => void> = new Set();
+  private authStatusListeners: Set<() => void> = new Set();
   private messageBus: MessageBus;
 
   constructor() {
-    this.messageBus = new MessageBus('WEBSITE');
-    
+    this.messageBus = new MessageBus("WEBSITE");
+
     // Register hashchain change listener
-    this.messageBus.registerHandler('HASHCHAIN_SELECTION_CHANGED', async () => {
+    this.messageBus.registerHandler("HASHCHAIN_SELECTION_CHANGED", async () => {
       this.notifyHashchainChangeListeners();
+      return null;
+    });
+
+    // Register auth status listener
+    this.messageBus.registerHandler("AUTH_STATUS_CHANGED", async (payload) => {
+      console.log("Browser: received auth status change with payload:", payload);
+      this.notifyAuthStatusListeners();
       return null;
     });
   }
@@ -26,27 +34,29 @@ export class ExtensionStorage implements StorageInterface {
     vendorData: VendorData,
     secret: string
   ): Promise<HashchainId> {
-    return this.messageBus.sendMessage<HashchainId>('CREATE_HASHCHAIN', {
+    return this.messageBus.sendMessage<HashchainId>("CREATE_HASHCHAIN", {
       vendorData,
-      secret
+      secret,
     });
   }
 
-    async requestConnection(): Promise<void> {
-      return this.messageBus.sendMessage<void>('REQUEST_CONNECTION', {});
-    }
-  
+  async requestConnection(): Promise<void> {
+    return this.messageBus.sendMessage<void>("REQUEST_CONNECTION", {});
+  }
+
   async getHashchain(
     hashchainId: HashchainId
   ): Promise<PublicHashchainData | null> {
     return this.messageBus.sendMessage<PublicHashchainData | null>(
-      'GET_HASHCHAIN',
+      "GET_HASHCHAIN",
       { hashchainId }
     );
   }
 
   async selectHashchain(hashchainId: HashchainId | null): Promise<void> {
-    return this.messageBus.sendMessage<void>('SELECT_HASHCHAIN', { hashchainId });
+    return this.messageBus.sendMessage<void>("SELECT_HASHCHAIN", {
+      hashchainId,
+    });
   }
 
   async getSelectedHashchain(): Promise<{
@@ -56,23 +66,34 @@ export class ExtensionStorage implements StorageInterface {
     return this.messageBus.sendMessage<{
       hashchainId: HashchainId;
       data: PublicHashchainData;
-    } | null>('GET_SELECTED_HASHCHAIN', {});
+    } | null>("GET_SELECTED_HASHCHAIN", {});
   }
 
+  async getAuthStatus(): Promise<{
+    basicAuth: boolean;
+    secretAuth: boolean;
+  } | null> {
+    const res = await this.messageBus.sendMessage<{
+      basicAuth: boolean;
+      secretAuth: boolean;
+    } | null>("GET_AUTH_STATUS", {});
+
+    return res
+  }
   async getSecret(hashchainId: HashchainId): Promise<string | null> {
-    return this.messageBus.sendMessage<string | null>('GET_SECRET', {
+    return this.messageBus.sendMessage<string | null>("GET_SECRET", {
       hashchainId,
     });
   }
 
   async getNextHash(hashchainId: HashchainId): Promise<string | null> {
-    return this.messageBus.sendMessage<string | null>('GET_NEXT_HASH', {
+    return this.messageBus.sendMessage<string | null>("GET_NEXT_HASH", {
       hashchainId,
     });
   }
 
   async getFullHashchain(hashchainId: HashchainId): Promise<string[]> {
-    return this.messageBus.sendMessage<string[]>('GET_FULL_HASHCHAIN', {
+    return this.messageBus.sendMessage<string[]>("GET_FULL_HASHCHAIN", {
       hashchainId,
     });
   }
@@ -81,7 +102,7 @@ export class ExtensionStorage implements StorageInterface {
     hashchainId: HashchainId,
     newIndex: number
   ): Promise<void> {
-    return this.messageBus.sendMessage<void>('SYNC_HASHCHAIN_INDEX', {
+    return this.messageBus.sendMessage<void>("SYNC_HASHCHAIN_INDEX", {
       hashchainId,
       newIndex,
     });
@@ -91,14 +112,14 @@ export class ExtensionStorage implements StorageInterface {
     hashchainId: HashchainId,
     data: Partial<HashchainData>
   ): Promise<void> {
-    return this.messageBus.sendMessage<void>('UPDATE_HASHCHAIN', {
+    return this.messageBus.sendMessage<void>("UPDATE_HASHCHAIN", {
       hashchainId,
       data,
     });
   }
 
   async importHashchain(data: ImportHashchainData): Promise<HashchainId> {
-    return this.messageBus.sendMessage<HashchainId>('IMPORT_HASHCHAIN', {
+    return this.messageBus.sendMessage<HashchainId>("IMPORT_HASHCHAIN", {
       data,
     });
   }
@@ -110,8 +131,19 @@ export class ExtensionStorage implements StorageInterface {
     };
   }
 
+  onAuthStatusChange(listener: () => void): () => void {
+    this.authStatusListeners.add(listener);
+    return () => {
+      this.authStatusListeners.delete(listener);
+    };
+  }
+
   private notifyHashchainChangeListeners(): void {
     this.hashchainChangeListeners.forEach((listener) => listener());
+  }
+
+  private notifyAuthStatusListeners(): void {
+    this.authStatusListeners.forEach((listener) => listener());
   }
 
   public destroy(): void {

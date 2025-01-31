@@ -86,6 +86,18 @@ const secretAuthMiddleware = async (
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   const handleRequest = async () => {
     // Handle basic auth first
+
+    switch (message.type) {
+      case "GET_AUTH_STATUS":
+        const res = await authRepository.getAuthStatus(sender.url ?? "");
+        return res;
+      case "AUTH_STATUS_RESPONSE":
+        // TODO
+        // The event of this type event is send FROM the extension
+        // TO the page to notify that the hashchain selection was
+        // changed. This behavior can be useful in the future
+        return true;
+    }
     if (await basicAuthMiddleware(message, sender, sendResponse)) return;
 
     // Process basic-authed requests
@@ -115,20 +127,28 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         return repository.importHashchain(message.payload.data);
       case "AUTH_SITE":
         return repository.importHashchain(message.payload.data);
+      case "HASHCHAIN_SELECTION_CHANGED_RESPONSE":
+        // TODO
+        // The event of this type event is send FROM the extension
+        // TO the page to notify that the hashchain selection was
+        // changed. This behavior can be useful in the future
+        return true;
     }
-
-    // Handle secret auth if basic auth didn't match
-    if (await secretAuthMiddleware(message, sender, sendResponse)) return;
 
     // Process secret-authed requests
     switch (message.type) {
       case "GET_SECRET":
+        if (await secretAuthMiddleware(message, sender, sendResponse)) return;
         return repository.getSecret(message.payload.hashchainId);
       case "GET_NEXT_HASH":
+        if (await secretAuthMiddleware(message, sender, sendResponse)) return;
         return repository.getNextHash(message.payload.hashchainId);
       case "GET_FULL_HASHCHAIN":
+        if (await secretAuthMiddleware(message, sender, sendResponse)) return;
         return repository.getFullHashchain(message.payload.hashchainId);
     }
+
+    return { error: `Unknown message type: ${message.type}` };
   };
 
   handleRequest()
