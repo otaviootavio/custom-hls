@@ -7,8 +7,7 @@ export const ConnectMiniMoniWallet = () => {
   if (authStatus?.secretAuth) {
     return (
       <Button
-        variant="ghost"
-        className="font-bold text-green-600"
+        variant="default"
         size="sm"
         disabled
       >
