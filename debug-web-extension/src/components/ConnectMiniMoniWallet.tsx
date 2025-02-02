@@ -3,7 +3,6 @@ import { Button } from "@/components/ui/button";
 
 export const ConnectMiniMoniWallet = () => {
   const { requestConnection, authStatus } = useHashchain();
-
   if (authStatus?.secretAuth) {
     return (
       <Button

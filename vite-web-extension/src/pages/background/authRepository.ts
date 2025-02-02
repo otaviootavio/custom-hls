@@ -116,8 +116,9 @@ export class AuthRepository {
    * @returns true if valid basic access exists
    */
   async hasValidBasicAccess(url: string): Promise<boolean> {
-    const remaining = await this.getRemainingBasicAccessTime(url);
-    return remaining !== null && remaining > 0;
+    const auth = await this.db.get<WebsiteAuth>(url);
+    const updatedAuth = await this.checkAndUpdateExpiration(auth);
+    return updatedAuth?.basicAuth ?? false;
   }
 
   /**
@@ -178,7 +179,12 @@ export class AuthRepository {
    */
   async getAllActiveAuth(): Promise<WebsiteAuth[]> {
     const allAuth = await this.db.getAll<WebsiteAuth>();
-    return allAuth.filter((auth) => auth.basicAuth || auth.secretAuth);
+    const updatedAuths = await Promise.all(
+      allAuth.map((auth) => this.checkAndUpdateExpiration(auth))
+    );
+    return updatedAuths.filter(
+      (auth) => auth?.basicAuth || auth?.secretAuth
+    ) as WebsiteAuth[];
   }
 
   /**
@@ -197,12 +203,55 @@ export class AuthRepository {
   async getAuthStatus(
     url: string
   ): Promise<{ basicAuth: boolean; secretAuth: boolean }> {
-    console.log("Getting auth status for", url);
     const auth = await this.db.get<WebsiteAuth>(url);
+    const updatedAuth = await this.checkAndUpdateExpiration(auth);
     return {
-      basicAuth: auth?.basicAuth ?? false,
-      secretAuth: auth?.secretAuth ?? false,
+      basicAuth: updatedAuth?.basicAuth ?? false,
+      secretAuth: updatedAuth?.secretAuth ?? false,
     };
+  }
+
+  private async checkAndUpdateExpiration(
+    auth: WebsiteAuth | null
+  ): Promise<WebsiteAuth | null> {
+    if (!auth) return null;
+
+    const now = Date.now();
+    let needsUpdate = false;
+    const originalState = { basic: auth.basicAuth, secret: auth.secretAuth };
+
+    // Check basic access expiration
+    if (auth.basicAuth) {
+      const basicExpiration = auth.startTime + auth.basicAccessDuration;
+      if (now >= basicExpiration) {
+        auth.basicAuth = false;
+        needsUpdate = true;
+      }
+    }
+
+    // Check secret access expiration
+    if (auth.secretAuth) {
+      const secretExpiration = auth.startTime + auth.secretAccessDuration;
+      if (now >= secretExpiration) {
+        auth.secretAuth = false;
+        needsUpdate = true;
+      }
+    }
+
+    // Only update and notify if there's a state change
+    if (needsUpdate) {
+      await this.db.put(auth.id, auth);
+
+      // Notify listeners if either state changed
+      if (
+        originalState.basic !== auth.basicAuth ||
+        originalState.secret !== auth.secretAuth
+      ) {
+        await this.notifyAuthStatusChangeListeners(auth.id);
+      }
+    }
+
+    return auth;
   }
 
   notifyAuthStatusChangeListeners = async (url: string) => {
