@@ -30,6 +30,14 @@ export const baseBuildOptions: BuildOptions = {
 }
 
 export default defineConfig({
+  build: {
+    rollupOptions: {
+      input: {
+        authBasic: 'src/pages/auth/basic/index.html',
+        authSecrets: 'src/pages/auth/secret/index.html',
+      },
+    },
+  },
   plugins: [
     tsconfigPaths(),
     react(),

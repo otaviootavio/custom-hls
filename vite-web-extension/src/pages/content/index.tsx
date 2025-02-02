@@ -1,5 +1,8 @@
 const targetOrigin = window.location.origin;
-console.log("[ContentScript] Content script initialized with origin:", targetOrigin);
+console.log(
+  "[ContentScript] Content script initialized with origin:",
+  targetOrigin
+);
 
 // Helper function to send messages to webpage
 const sendToWebpage = (message: any) => {
@@ -9,7 +12,10 @@ const sendToWebpage = (message: any) => {
 
 // Helper function to handle messages to background
 const sendToBackground = async (type: string, payload: any) => {
-  console.log("[ContentScript] Content script -> Background:", { type, payload });
+  console.log("[ContentScript] Content script -> Background:", {
+    type,
+    payload,
+  });
   try {
     const response = await chrome.runtime.sendMessage({ type, payload });
     console.log("[ContentScript] Background -> Content script:", response);
@@ -52,12 +58,26 @@ window.addEventListener("message", async (event) => {
 
 // Handle messages from extension
 chrome.runtime.onMessage.addListener((message) => {
-  if (message.type === "HASHCHAIN_SELECTION_CHANGED") {
-    sendToWebpage({
-      source: "CONTENT_SCRIPT",
-      type: "HASHCHAIN_SELECTION_CHANGED",
-      hashchainId: message.hashchainId,
-    });
+  switch (message.type) {
+    
+    case "HASHCHAIN_SELECTION_CHANGED":
+      console.log("[ContentScript] Received message from extension:", message);
+      sendToWebpage({
+        source: "CONTENT_SCRIPT",
+        type: "HASHCHAIN_SELECTION_CHANGED",
+        hashchainId: message.hashchainId,
+      });
+      return;
+    case "AUTH_STATUS_CHANGED":
+      console.log("[ContentScript] Auth status changed:", message.authStatus);
+      sendToWebpage({
+        source: "CONTENT_SCRIPT",
+        type: "AUTH_STATUS_CHANGED",
+        authStatus: message.authStatus,
+      });
+      return;
+    default:
+      console.log("[ContentScript] Unhandled message from extension:", message);
   }
 });
 
@@ -78,7 +98,10 @@ channel.onmessage = async (event) => {
       timestamp,
     });
 
-    const selectedHashchain = await sendToBackground("GET_SELECTED_HASHCHAIN", {});
+    const selectedHashchain = await sendToBackground(
+      "GET_SELECTED_HASHCHAIN",
+      {}
+    );
     const nextHash = await sendToBackground("GET_NEXT_HASH", {
       hashchainId: selectedHashchain.hashchainId,
     });

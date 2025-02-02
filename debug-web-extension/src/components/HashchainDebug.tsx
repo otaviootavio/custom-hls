@@ -7,6 +7,7 @@ import { HashStreaming } from "./HashStreaming";
 import { CloseChannel } from "./CloseChannel";
 import { AdminPanel } from "./AdminPanel";
 import DownloadLinks from "./DownloadLinks";
+import { ConnectMiniMoniWallet } from "./ConnectMiniMoniWallet";
 
 export const HashchainDebug = () => {
   return (
@@ -18,6 +19,9 @@ export const HashchainDebug = () => {
 
         <div className="mb-6">
           <DownloadLinks />
+        </div>
+        <div className="mb-6">
+          <ConnectMiniMoniWallet />
         </div>
 
         <SelectedHashchainDisplay />

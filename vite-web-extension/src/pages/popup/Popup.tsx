@@ -9,6 +9,7 @@ import GenerateHash from "./components/GenerateHash";
 import HashManagement from "./components/HashManagement";
 import HashChainDetail from "./components/HashChainDetail";
 import { HashchainProvider } from "./context/HashChainContext";
+import WebsiteList from "./components/WebsiteList";
 
 export default function Popup() {
   return (
@@ -27,6 +28,11 @@ export default function Popup() {
                   Manage Hash
                 </Link>
               </li>
+              <li>
+                <Link to="/authorized" className="hover:text-indigo-400">
+                  Authorized Websites
+                </Link>
+              </li>
             </ul>
           </nav>
           <div className="p-4">
@@ -34,6 +40,7 @@ export default function Popup() {
               <Route path="/generate" element={<GenerateHash />} />
               <Route path="/manage" element={<HashManagement />} />
               <Route path="/hashchain/:key" element={<HashChainDetail />} />
+              <Route path="/authorized" element={<WebsiteList />} />
               <Route path="*" element={<Navigate to="/manage" />} />
             </Routes>
           </div>

@@ -5,23 +5,48 @@ import {
   PublicHashchainData,
   VendorData,
 } from "@/types";
-import React, { createContext, useContext, useState, useCallback, useRef } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  useRef,
+} from "react";
 
 export interface StorageInterface {
-  createHashchain: (vendorData: VendorData, secret: string) => Promise<HashchainId>;
-  getHashchain: (hashchainId: HashchainId) => Promise<PublicHashchainData | null>;
+  createHashchain: (
+    vendorData: VendorData,
+    secret: string
+  ) => Promise<HashchainId>;
+  getHashchain: (
+    hashchainId: HashchainId
+  ) => Promise<PublicHashchainData | null>;
   selectHashchain: (hashchainId: HashchainId | null) => Promise<void>;
   getSelectedHashchain: () => Promise<{
     hashchainId: HashchainId;
     data: PublicHashchainData;
   } | null>;
+  // NEED SECRET AUTH
   getSecret: (hashchainId: HashchainId) => Promise<string | null>;
   getNextHash: (hashchainId: HashchainId) => Promise<string | null>;
   getFullHashchain: (hashchainId: HashchainId) => Promise<string[]>;
-  syncHashchainIndex: (hashchainId: HashchainId, newIndex: number) => Promise<void>;
-  updateHashchain: (hashchainId: HashchainId, data: Partial<HashchainData>) => Promise<void>;
+  // END OF SECRET AUTH
+  syncHashchainIndex: (
+    hashchainId: HashchainId,
+    newIndex: number
+  ) => Promise<void>;
+  updateHashchain: (
+    hashchainId: HashchainId,
+    data: Partial<HashchainData>
+  ) => Promise<void>;
   importHashchain: (data: ImportHashchainData) => Promise<HashchainId>;
   onHashchainChange: (listener: () => void) => () => void;
+  onAuthStatusChange: (listener: () => void) => () => void;
+  requestConnection: () => Promise<void>;
+  getAuthStatus: () => Promise<{
+    basicAuth: boolean;
+    secretAuth: boolean;
+  } | null>;
 }
 
 interface HashchainContextType {
@@ -47,6 +72,11 @@ interface HashchainContextType {
     totalAmount: string;
   }) => Promise<void>;
   importHashchain: (data: ImportHashchainData) => Promise<void>;
+  requestConnection: () => Promise<void>;
+  authStatus: {
+    basicAuth: boolean;
+    secretAuth: boolean;
+  } | null;
 }
 
 const HashchainContext = createContext<HashchainContextType | null>(null);
@@ -68,6 +98,10 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
   const [error, setError] = useState<Error | null>(null);
   const initializationAttempted = useRef(false);
   const initializationTimeoutId = useRef<NodeJS.Timeout>();
+  const [authStatus, setAuthStatus] = useState<{
+    basicAuth: boolean;
+    secretAuth: boolean;
+  } | null>(null);
 
   const withLoadingAndError = async <T,>(
     operation: () => Promise<T>,
@@ -78,7 +112,8 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     try {
       return await operation();
     } catch (err) {
-      const error = err instanceof Error ? err : new Error("Unknown error occurred");
+      const error =
+        err instanceof Error ? err : new Error("Unknown error occurred");
       setError(error);
       throw error;
     } finally {
@@ -86,15 +121,35 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     }
   };
 
+  const requestConnection = useCallback(async () => {
+    return withLoadingAndError(async () => {
+      await storage.requestConnection();
+    });
+  }, [storage]);
+
   const refreshSelectedHashchain = useCallback(async () => {
     try {
       const stored = await storage.getSelectedHashchain();
       setSelectedHashchain(stored);
     } catch (error) {
       console.error("Failed to refresh selected hashchain:", error);
-      if (error instanceof Error && !error.message.includes('timeout')) {
+      if (error instanceof Error && !error.message.includes("timeout")) {
         setSelectedHashchain(null);
       }
+    }
+  }, [storage]);
+
+  const refreshAuthStatus = useCallback(async () => {
+    try {
+      const status = await storage.getAuthStatus();
+      // ✅ Always create new object
+      setAuthStatus(
+        status
+          ? { basicAuth: status.basicAuth, secretAuth: status.secretAuth }
+          : { basicAuth: false, secretAuth: false }
+      );
+    } catch (error) {
+      setAuthStatus({ basicAuth: false, secretAuth: false });
     }
   }, [storage]);
 
@@ -207,7 +262,8 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
         const updatedHashchain = await storage.getHashchain(
           selectedHashchain.hashchainId
         );
-        if (!updatedHashchain) throw new Error("Failed to update contract details");
+        if (!updatedHashchain)
+          throw new Error("Failed to update contract details");
 
         setSelectedHashchain({
           hashchainId: selectedHashchain.hashchainId,
@@ -249,6 +305,14 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     [storage]
   );
 
+  const getAuthStatus = useCallback(async () => {
+    return withLoadingAndError(async () => {
+      const status = await storage.getAuthStatus();
+      setAuthStatus(status);
+      return status;
+    });
+  }, [storage]);
+
   React.useEffect(() => {
     let mounted = true;
 
@@ -256,12 +320,20 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
       if (initializationAttempted.current) return;
       initializationAttempted.current = true;
 
+      const auth = await getAuthStatus();
+      if (!auth?.basicAuth) return;
+
       try {
-        await new Promise(resolve => setTimeout(resolve, 100));
+        await new Promise((resolve) => setTimeout(resolve, 100));
         await refreshSelectedHashchain();
+        await refreshAuthStatus();
       } catch (error) {
         console.error("Failed initial hashchain load:", error);
-        if (mounted && error instanceof Error && error.message.includes('timeout')) {
+        if (
+          mounted &&
+          error instanceof Error &&
+          error.message.includes("timeout")
+        ) {
           if (initializationTimeoutId.current) {
             clearTimeout(initializationTimeoutId.current);
           }
@@ -275,26 +347,39 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
     initialize();
 
-    const unsubscribe = storage.onHashchainChange(() => {
+    const unsubscribeFromHashchainChange = storage.onHashchainChange(() => {
       if (mounted) {
         console.log("Hashchain change detected, refreshing state");
         refreshSelectedHashchain();
       }
     });
 
+    const unsubscribeFromAuthStatusChange = storage.onAuthStatusChange(
+      async () => {
+        if (mounted) {
+          // Reset initialization flag to allow re-initialization
+          initializationAttempted.current = false;
+          await refreshAuthStatus();
+          await refreshSelectedHashchain();
+        }
+      }
+    );
+
     return () => {
       mounted = false;
-      unsubscribe();
+      unsubscribeFromHashchainChange();
+      unsubscribeFromAuthStatusChange();
       if (initializationTimeoutId.current) {
         clearTimeout(initializationTimeoutId.current);
       }
     };
-  }, [storage, refreshSelectedHashchain]);
+  }, [storage, refreshSelectedHashchain, refreshAuthStatus, getAuthStatus]);
 
   const value: HashchainContextType = {
     selectedHashchain,
     loading,
     error,
+    authStatus,
     initializeHashchain,
     selectHashchain,
     getNextHash,
@@ -304,6 +389,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     importHashchain,
     getSelectedHashchain,
     getSecret,
+    requestConnection
   };
 
   return (
