@@ -5,14 +5,26 @@ declare const self: ServiceWorkerGlobalScope & typeof globalThis;
 
 const channel = new BroadcastChannel("fetch-intercept-channel");
 
-// Listen for fetch events
+self.addEventListener("install", (event) => {
+  console.log("SW: Installing...", event);
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("SW: Activated", event);
+  event.waitUntil(self.clients.claim());
+});
+
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
+  const baseUrl = new URL(import.meta.env.VITE_CDN_BASE_URL);
+  
+  if (url.hostname.startsWith(baseUrl.hostname)) {
+    console.log(
+      "[Page Service Worker]: Intercepting request",
+      event.request.url
+    );
 
-  // TODO
-  // CHANGE WITH YOUR OWN URLw
-  // Check if this is the specific request we want to intercept
-  if (url.pathname.startsWith("/todos/1")) {
     event.respondWith(
       (async () => {
         try {
@@ -36,6 +48,17 @@ self.addEventListener("fetch", async (event) => {
             };
           });
 
+          if (!response.nextHash) {
+            console.error("SW: No next hash received from background");
+            return new Response(
+              JSON.stringify({ error: "No next hash received" }),
+              {
+                status: 400,
+                headers: { "Content-Type": "application/json" },
+              }
+            );
+          }
+
           const existingHeaders = Object.fromEntries(
             event.request.headers.entries()
           );
@@ -46,11 +69,36 @@ self.addEventListener("fetch", async (event) => {
             },
           });
 
-          const responseData = await fetchResponse.clone().json();
-          
-          return new Response(JSON.stringify(responseData), {
-            headers: { "Content-Type": "application/json" },
-          });
+          // Get content type from response
+          const contentType = fetchResponse.headers.get("Content-Type") || "";
+
+          // Handle different content types
+          if (contentType.includes("application/json")) {
+            // For JSON responses
+            const jsonData = await fetchResponse.json();
+            return new Response(JSON.stringify(jsonData), {
+              status: fetchResponse.status,
+              statusText: fetchResponse.statusText,
+              headers: fetchResponse.headers,
+            });
+          } else if (
+            url.pathname.endsWith(".m3u8") ||
+            contentType.includes("application/vnd.apple.mpegurl")
+          ) {
+            // For M3U8 files
+            const playlist = await fetchResponse.text();
+            return new Response(playlist, {
+              status: fetchResponse.status,
+              statusText: fetchResponse.statusText,
+              headers: new Headers({
+                ...Object.fromEntries(fetchResponse.headers.entries()),
+                "Content-Type": "application/vnd.apple.mpegurl",
+              }),
+            });
+          } else {
+            // For other content types (binary data, etc.)
+            return fetchResponse;
+          }
         } catch (error) {
           console.error("SW: Error intercepting request", error);
           return new Response(JSON.stringify({ error: "Internal error" }), {

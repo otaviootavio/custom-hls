@@ -27,7 +27,7 @@ const generateInitialData = (): VendorData => ({
 });
 
 export const VendorMockSetup: React.FC = () => {
-  const { initializeHashchain, loading, error } = useHashchain();
+  const { initializeHashchain, loading } = useHashchain();
   const { toast } = useToast();
   const [vendorData] = React.useState<VendorData>(generateInitialData);
 
@@ -99,33 +99,17 @@ export const VendorMockSetup: React.FC = () => {
         </Card>
 
         {/* Initialization Section */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-lg">
-              3. Hashchain Initialization
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Button
-              className="w-full"
-              onClick={handleSubmit}
-              disabled={loading}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Initializing...
-                </>
-              ) : (
-                "Initialize Hashchain"
-              )}
-            </Button>
 
-            {error && (
-              <div className="mt-4 text-sm text-red-500">{error.message}</div>
-            )}
-          </CardContent>
-        </Card>
+        <Button className="w-full" onClick={handleSubmit} disabled={loading}>
+          {loading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Initializing...
+            </>
+          ) : (
+            "Initialize Hashchain"
+          )}
+        </Button>
       </CardContent>
     </Card>
   );

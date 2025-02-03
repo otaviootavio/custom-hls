@@ -29,7 +29,7 @@ export class HashchainRepository {
 
   private toPublicData(data: HashchainData): PublicHashchainData {
     const {  hashes, secret, ...publicData } = data;
-    return { ...publicData, hasSecret: !!secret , hashes };
+    return { ...publicData, hasSecret: !!secret };
   }
 
   async createHashchain(

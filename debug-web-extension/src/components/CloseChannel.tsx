@@ -23,7 +23,7 @@ const simulateTransaction = async () => {
 
 export const CloseChannel = () => {
   const { toast } = useToast();
-  const { loading, getSelectedHashchain } = useHashchain();
+  const { loading, getSelectedHashchain, getAllHashes } = useHashchain();
   const [isClosing, setIsClosing] = useState(false);
   const [hashValue, setHashValue] = useState("");
   const [hashIndex, setHashIndex] = useState("");
@@ -31,22 +31,22 @@ export const CloseChannel = () => {
   const [totalAmount, setTotalAmount] = useState("");
   const [transactionComplete, setTransactionComplete] = useState(false);
   const [txHash] = useState(generateMockHash());
+  const [numberOfHashes, setNumberOfHashes] = useState("");
 
   const handleFetchFromStorage = async () => {
     try {
       const hashchainData = await getSelectedHashchain();
-      if (!hashchainData) throw new Error("No hashchain found in storage");
+      if (!hashchainData?.hashchainId)
+        throw new Error("No hashchain found in storage");
 
-      const allHashes = hashchainData.data.hashes;
       const currentIndex = hashchainData.data.lastIndex;
+      const fullHashchain = await getAllHashes();
 
-      if (!allHashes?.length)
-        throw new Error("No hashes found in the hashchain");
-
-      setHashValue(allHashes[0] || generateMockHash());
+      setHashValue(fullHashchain[0]);
       setHashIndex(currentIndex.toString());
       setContractAddress(hashchainData.data.contractAddress ?? "");
       setTotalAmount(hashchainData.data.totalAmount ?? "");
+      setNumberOfHashes(hashchainData.data.numHashes ?? "");
 
       toast({
         title: "Success",
@@ -98,9 +98,30 @@ export const CloseChannel = () => {
         {/* Hash Input Section */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-lg">1. Hash Information</CardTitle>
+            <CardTitle>
+              <div className="flex flex-row justify-between items-center">
+                <p className="text-lg">1. Hash Information</p>
+                <Button
+                  variant="outline"
+                  onClick={handleFetchFromStorage}
+                  disabled={loading || isClosing}
+                >
+                  {loading ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Fetching...
+                    </>
+                  ) : (
+                    <>
+                      <Download className="mr-2 h-4 w-4" />
+                      Fetch Hashes
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-4 flex flex-col">
             <div className="flex justify-between items-center">
               <div className="space-y-1">
                 <Label>Fetch from Storage</Label>
@@ -108,37 +129,24 @@ export const CloseChannel = () => {
                   Retrieve latest hash from persistent storage
                 </p>
               </div>
-              <Button
-                variant="outline"
-                onClick={handleFetchFromStorage}
-                disabled={loading || isClosing}
-              >
-                {loading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Fetching...
-                  </>
-                ) : (
-                  <>
-                    <Download className="mr-2 h-4 w-4" />
-                    Fetch Hashes
-                  </>
-                )}
-              </Button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted rounded-lg">
+            <div className="flex flex-wrap justify-start items-center gap-2">
+              <div className="p-4 bg-muted rounded-lg max-w-full">
                 <div className="text-sm text-muted-foreground mb-1">
                   Raw Hash
                 </div>
-                <div className="font-mono text-sm truncate">{hashValue}</div>
+                <div className="font-mono text-sm truncate w-full">
+                  {hashValue}
+                </div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground mb-1">
                   Hash Index
                 </div>
-                <div className="font-mono text-sm">{hashIndex}</div>
+                <div className="flex-fill text-truncate font-mono text-sm">
+                  {hashIndex}
+                </div>
               </div>
             </div>
           </CardContent>
@@ -151,18 +159,24 @@ export const CloseChannel = () => {
             <CardTitle className="text-lg">2. Channel Details</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="p-4 bg-muted rounded-lg">
+            <div className="flex flex-wrap justify-start items-center gap-2">
+              <div className="p-4 bg-muted rounded-lg max-w-full">
                 <div className="text-sm text-muted-foreground mb-1">
                   Contract Address
                 </div>
-                <div className="font-mono text-sm truncate">
+                <div className="font-mono text-sm truncate w-full">
                   {contractAddress}
                 </div>
               </div>
+              <div className=" p-4 bg-muted rounded-lg">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Number of hashes
+                </div>
+                <div className="font-mono text-sm">{numberOfHashes}</div>
+              </div>
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground mb-1">
-                  Total Amount
+                  Amount per hash
                 </div>
                 <div className="font-mono text-sm">{totalAmount} ETH</div>
               </div>
@@ -176,25 +190,37 @@ export const CloseChannel = () => {
             <CardTitle className="text-lg">3. Channel Closure</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <Button
-              className="w-full"
-              onClick={handleCloseChannel}
-              disabled={isClosing || !hashValue || !hashIndex}
-            >
-              {isClosing ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Closing Channel...
-                </>
-              ) : (
-                "Confirm Channel Closure"
-              )}
-            </Button>
+            <div className="flex justify-between w-full gap-4 items-center">
+              <div className="p-4 bg-muted rounded-lg">
+                <div className="text-sm text-muted-foreground mb-1">
+                  Withdraw amount
+                </div>
+                <div className="font-mono text-sm">
+                  {(parseFloat(hashIndex) / parseFloat(numberOfHashes)) *
+                    parseFloat(totalAmount)}{" "}
+                  ETH
+                </div>
+              </div>
+
+              <Button
+                onClick={handleCloseChannel}
+                disabled={isClosing || !hashValue || !hashIndex}
+              >
+                {isClosing ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Closing Channel...
+                  </>
+                ) : (
+                  "Close Channel"
+                )}
+              </Button>
+            </div>
 
             {transactionComplete && (
               <div className="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                 <AlertCircle className="h-5 w-5 text-blue-500 mr-2" />
-                <div className="text-sm space-y-1">
+                <div className="text-sm space-y-1 truncate w-full ">
                   <p>Channel closed successfully!</p>
                   <p className="font-mono text-xs truncate">
                     TX Hash: {txHash}

@@ -73,7 +73,8 @@ export interface StorageData {
   selectedHashchainId: HashchainId | null;
 }
 
-export interface PublicHashchainData extends Omit<HashchainData, 'secret'> {
+export interface PublicHashchainData
+  extends Omit<HashchainData, "secret" | "hashes"> {
   hasSecret: boolean;
 }
 

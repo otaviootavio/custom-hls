@@ -7,45 +7,6 @@ export interface ChannelData {
   totalAmount: string;
 }
 
-export interface VendorInfoProps {
-  channelData: ChannelData;
-  vendorInfoFetched: boolean;
-  onFetchVendorInfo: () => void;
-}
-
-export interface ChannelConfigProps {
-  channelData: ChannelData;
-  vendorInfoFetched: boolean;
-  onHashCountChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
-}
-
-export interface ContractDeploymentProps {
-  channelData: ChannelData;
-  vendorInfoFetched: boolean;
-  onDeployContract: () => void;
-}
-
-export interface VendorDataPanelProps {
-  channelData: ChannelData;
-}
-
-export interface HashStreamingProps {
-  paymentMode: string;
-  lastHashIndex: number;
-  channelData: ChannelData;
-  onPaymentModeChange: (mode: string) => void;
-  onRequestHash: () => void;
-}
-
-export interface ChannelCloseProps {
-  channelData: ChannelData;
-  lastHashIndex: number;
-}
-
-export interface HashchainInfo {
-  vendorAddress: string;
-  chainId: string;
-}
 
 export type HashchainId = string;
 
@@ -66,14 +27,8 @@ export interface HashchainData {
   createdAt: number;
 }
 
-export interface StorageData {
-  hashchains: {
-    [hashchainId: HashchainId]: HashchainData;
-  };
-  selectedHashchainId: HashchainId | null;
-}
 
-export interface PublicHashchainData extends Omit<HashchainData, 'secret'> {
+export interface PublicHashchainData extends Omit<HashchainData, 'secret' | 'hashes'> {
   hasSecret: boolean;
 }
 

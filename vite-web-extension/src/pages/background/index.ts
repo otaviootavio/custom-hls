@@ -52,16 +52,7 @@ const openSecretAuthSite = (url: string) => {
   });
 };
 
-const basicAuthMiddleware = async (
-  message: any,
-  sender: any,
-  sendResponse: any
-) => {
-  if (message.type === "REQUEST_CONNECTION") {
-    await openBasicAuthSite(sender.url ?? "");
-    return true;
-  }
-
+const basicAuthMiddleware = async (sender: any, sendResponse: any) => {
   if (!(await authRepository.hasValidBasicAccess(sender.url))) {
     sendResponse({ error: "Basic authentication required" });
     return true;
@@ -74,7 +65,6 @@ const secretAuthMiddleware = async (
   sender: any,
   sendResponse: any
 ) => {
-  
   if (!(await authRepository.hasValidSecretAccess(sender.url))) {
     await openSecretAuthSite(sender.url ?? "");
     sendResponse({ error: "Secret authentication required" });
@@ -97,8 +87,14 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         // TO the page to notify that the hashchain selection was
         // changed. This behavior can be useful in the future
         return true;
+      case "REQUEST_CONNECTION":
+        await openBasicAuthSite(sender.url ?? "");
+        return true;
+      case "REQUEST_SECRET_CONNECTION":
+        await openSecretAuthSite(sender.url ?? "");
+        return true;
     }
-    if (await basicAuthMiddleware(message, sender, sendResponse)) return;
+    if (await basicAuthMiddleware(sender, sendResponse)) return;
 
     // Process basic-authed requests
     switch (message.type) {
