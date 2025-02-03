@@ -130,15 +130,15 @@ export const CloseChannel = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground mb-1">
-                  Contract Address
+                  Raw Hash
                 </div>
                 <div className="font-mono text-sm truncate">{hashValue}</div>
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground mb-1">
-                  Total Amount
+                  Hash Index
                 </div>
-                <div className="font-mono text-sm">{hashIndex} ETH</div>
+                <div className="font-mono text-sm">{hashIndex}</div>
               </div>
             </div>
           </CardContent>
