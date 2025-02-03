@@ -7,6 +7,18 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { useHashchain } from '@/context/HashchainProvider';
 import { useToast } from '@/hooks/use-toast';
 
+const generateMockAddress = () => {
+  const hexChars = '0123456789abcdef';
+  let address = '0x';
+  for (let i = 0; i < 40; i++) {
+    address += hexChars[Math.floor(Math.random() * 16)];
+    // Add occasional uppercase letters to mimic checksum addresses
+    if (Math.random() < 0.3) address = address.slice(0, -1) + address.slice(-1).toUpperCase();
+  }
+  return address;
+};
+
+
 export const OpenChannel = () => {
   const { toast } = useToast();
   
@@ -51,7 +63,7 @@ export const OpenChannel = () => {
 
     try {
       // Mock contract deployment
-      const contractAddress = '0x' + Math.random().toString(16).slice(2).padEnd(40, '0');
+      const contractAddress = generateMockAddress();
       setLocalContractAddress(contractAddress);
       
       // Calculate total amount
