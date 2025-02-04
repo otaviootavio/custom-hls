@@ -2,7 +2,6 @@ import { useState } from "react";
 import { useHashchain } from "@/context/HashchainProvider";
 import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Label } from "./ui/label";
 import { Button } from "./ui/button";
 import { AlertCircle, Loader2, Download } from "lucide-react";
 
@@ -114,7 +113,7 @@ export const CloseChannel = () => {
                   ) : (
                     <>
                       <Download className="mr-2 h-4 w-4" />
-                      Fetch Hashes
+                      Import from wallet
                     </>
                   )}
                 </Button>
@@ -122,15 +121,6 @@ export const CloseChannel = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4 flex flex-col">
-            <div className="flex justify-between items-center">
-              <div className="space-y-1">
-                <Label>Fetch from Storage</Label>
-                <p className="text-sm text-muted-foreground">
-                  Retrieve latest hash from persistent storage
-                </p>
-              </div>
-            </div>
-
             <div className="flex flex-wrap justify-start items-center gap-2">
               <div className="p-4 bg-muted rounded-lg max-w-full">
                 <div className="text-sm text-muted-foreground mb-1">
@@ -176,7 +166,7 @@ export const CloseChannel = () => {
               </div>
               <div className="p-4 bg-muted rounded-lg">
                 <div className="text-sm text-muted-foreground mb-1">
-                  Amount per hash
+                  Total amount
                 </div>
                 <div className="font-mono text-sm">{totalAmount} ETH</div>
               </div>
@@ -191,14 +181,27 @@ export const CloseChannel = () => {
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex justify-between w-full gap-4 items-center">
-              <div className="p-4 bg-muted rounded-lg">
-                <div className="text-sm text-muted-foreground mb-1">
-                  Withdraw amount
+              <div className="flex flex-row gap-2">
+                <div className="p-4 bg-muted rounded-lg ">
+                  <div className="flex flex-row items-center gap-2 text-sm text-muted-foreground mb-1">
+                    Amount payed to vendor
+                  </div>
+                  <div className="font-mono text-sm">
+                    {(parseFloat(hashIndex) / parseFloat(numberOfHashes)) *
+                      parseFloat(totalAmount)}{" "}
+                    ETH
+                  </div>
                 </div>
-                <div className="font-mono text-sm">
-                  {(parseFloat(hashIndex) / parseFloat(numberOfHashes)) *
-                    parseFloat(totalAmount)}{" "}
-                  ETH
+                <div className="p-4 bg-muted rounded-lg">
+                  <div className="text-sm text-muted-foreground mb-1 flex flex-row items-center gap-2">
+                    Amount to returned to user
+                  </div>
+                  <div className="font-mono text-sm">
+                    {parseFloat(totalAmount) -
+                      (parseFloat(hashIndex) / parseFloat(numberOfHashes)) *
+                        parseFloat(totalAmount)}{" "}
+                    ETH
+                  </div>
                 </div>
               </div>
 

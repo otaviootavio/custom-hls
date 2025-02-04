@@ -284,10 +284,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
   const getSelectedHashchain = useCallback(async () => {
     return withLoadingAndError(async () => {
-      if (selectedHashchain?.hashchainId && selectedHashchain?.data) {
-        return selectedHashchain;
-      }
-
       const hashchain = await storage.getSelectedHashchain();
       if (!hashchain) {
         setSelectedHashchain(null);

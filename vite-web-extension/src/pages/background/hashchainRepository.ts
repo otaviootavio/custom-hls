@@ -28,7 +28,7 @@ export class HashchainRepository {
   }
 
   private toPublicData(data: HashchainData): PublicHashchainData {
-    const {  hashes, secret, ...publicData } = data;
+    const { hashes, secret, ...publicData } = data;
     return { ...publicData, hasSecret: !!secret };
   }
 
@@ -60,7 +60,10 @@ export class HashchainRepository {
     chrome.tabs.query({}, (tabs) => {
       tabs.forEach((tab) => {
         if (tab.id) {
-          console.log("Background: sending hashchain selection change to tab", tab.id);
+          console.log(
+            "Background: sending hashchain selection change to tab",
+            tab.id
+          );
           chrome.tabs.sendMessage(
             tab.id,
             {
@@ -144,6 +147,14 @@ export class HashchainRepository {
     const existingData = await this.db.get<HashchainData>(hashchainId);
     if (!existingData) return;
 
+    // if there exists a contract address, we can't update it
+    if (!!existingData.contractAddress && !!updateData.contractAddress) {
+      throw new Error("Contract address already exists");
+    }
+
+    // TODO: Here we are storing all data
+    // In the future we may just store the secret and then
+    // compute the hashes on the fly
     if (updateData.numHashes) {
       updateData.hashes = this.generateHashChain(
         existingData.secret,

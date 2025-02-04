@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useHashchain } from "../context/HashChainContext";
 import type { HashchainId, PublicHashchainData } from "@src/pages/background/types";
-import FullHashchain from "./FullHashchain";
+import FullHashchain from './FullHashchain';
 
 interface DetailFieldProps {
   label: string;
@@ -27,6 +27,7 @@ const HashChainDetail: React.FC = () => {
     deleteHashchain,
     allHashchains,
     getSecret,
+    getFullHashchain,
     loading: contextLoading 
   } = useHashchain();
 
@@ -35,6 +36,7 @@ const HashChainDetail: React.FC = () => {
     data: PublicHashchainData;
   } | null>(null);
   const [secret, setSecret] = useState<string | null>(null);
+  const [fullHashchain, setFullHashchain] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -45,6 +47,9 @@ const HashChainDetail: React.FC = () => {
         setLoading(false);
         return;
       }
+
+      const fullHashchain = await getFullHashchain(key);
+      setFullHashchain(fullHashchain);
 
       try {
         const hashchain = allHashchains.find(h => h.id === key);
@@ -153,7 +158,7 @@ const HashChainDetail: React.FC = () => {
           label="Created At" 
           value={formatDate(data.createdAt)}
         />
-        <FullHashchain label="Full Hashchain" value={data.hashes} />
+        <FullHashchain label="Full Hashchain" value={fullHashchain} />
       </div>
 
       <div className="flex flex-col gap-2 mt-6">
