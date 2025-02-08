@@ -9,234 +9,48 @@ import { Slider } from "../ui/slider";
 import { channelApi } from "@/clients/api";
 import { useSmartContract } from "@/hooks/useSmartContract";
 import { parseEther } from "viem";
-import type { Abi } from "viem";
-
-// Types
-interface CompiledContract {
-  abi: Abi;
-  bytecode: string;
-}
-
-interface ConfirmHashesProps {
-  isDisabled: boolean;
-  numHashes: string;
-  onConfirm: () => void;
-  isConfirmed: boolean;
-}
-
-interface CompileContractProps {
-  isDisabled: boolean;
-  onCompileSuccess: (contract: CompiledContract) => void;
-  isHashesConfirmed: boolean;
-}
-
-interface DeployContractProps {
-  isDisabled: boolean;
-  compiledContract: CompiledContract | null;
-  numHashes: string;
-  onDeploySuccess: (address: string) => void;
-  isHashesConfirmed: boolean;
-}
 
 interface HashSliderProps {
   value: string;
   onChange: (values: number[]) => void;
   isDisabled: boolean;
-  isConfirmed: boolean;
-}interface CompiledContract {
-  abi: Abi;
-  bytecode: string;
+  isLocked: boolean;
 }
 
-interface ConfirmHashesProps {
-  isDisabled: boolean;
-  numHashes: string;
-  totalAmount: string;
-  onConfirm: () => void;
-  isConfirmed: boolean;
-  isConfirming: boolean;
+type StepStatus = "pending" | "loading" | "completed" | "error";
+
+interface StepIndicatorProps {
+  stepNumber: number;
+  status: StepStatus;
+  label: string;
 }
 
-// Confirm Hashes Component
-const ConfirmHashes = ({ 
-  isDisabled, 
-  numHashes, 
-  onConfirm, 
-  isConfirmed,
-  isConfirming 
-}: ConfirmHashesProps) => {
+// Step Indicator Component
+const StepIndicator = ({ stepNumber, status, label }: StepIndicatorProps) => {
   return (
-    <Button 
-      onClick={onConfirm}
-      disabled={isDisabled || isConfirmed || !numHashes || isConfirming}
-      className="flex-1"
-      variant={isConfirmed ? "outline" : "default"}
-    >
-      {isConfirming ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Confirming...
-        </>
-      ) : isConfirmed ? (
-        <>
-          <Check className="mr-2 h-4 w-4" />
-          Hashes Confirmed: {numHashes}
-        </>
-      ) : (
-        "1. Confirm Hashes"
-      )}
-    </Button>
-  );
-};
-
-// Compile Contract Component
-const CompileContract = ({
-  isDisabled,
-  onCompileSuccess,
-  isHashesConfirmed,
-}: CompileContractProps) => {
-  const { toast } = useToast();
-  const { isCompiling, compileContract } = useSmartContract();
-
-  const handleCompile = async () => {
-    try {
-      const { abi, bytecode } = await compileContract();
-      onCompileSuccess({ abi, bytecode });
-      toast({
-        title: "Success",
-        description: "Contract compiled successfully",
-      });
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to compile contract";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-    }
-  };
-
-  return (
-    <Button
-      onClick={handleCompile}
-      disabled={isDisabled || isCompiling || !isHashesConfirmed}
-      className="flex-1"
-    >
-      {isCompiling ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Compiling...
-        </>
-      ) : (
-        "2. Compile Contract"
-      )}
-    </Button>
-  );
-};
-
-// Deploy Contract Component
-const DeployContract = ({
-  isDisabled,
-  compiledContract,
-  numHashes,
-  onDeploySuccess,
-  isHashesConfirmed,
-}: DeployContractProps) => {
-  const { toast } = useToast();
-  const [isDeploying, setIsDeploying] = useState(false);
-  const { deployContract } = useSmartContract();
-  const { selectedHashchain, updateContractDetails, getSelectedHashchain } =
-    useHashchain();
-
-  const handleDeploy = async () => {
-    if (
-      !selectedHashchain?.data?.vendorData ||
-      !numHashes ||
-      !compiledContract
-    ) {
-      toast({
-        title: "Error",
-        description: "Missing required data or contract not compiled",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsDeploying(true);
-
-    try {
-      let hashchain = await getSelectedHashchain();
-      if (!hashchain) throw new Error("No hashchain selected");
-
-      const amountPerHash = hashchain.data.vendorData.amountPerHash;
-      const totalAmount = parseFloat(numHashes) * parseFloat(amountPerHash);
-      const amountInWei = parseEther(totalAmount.toString());
-
-      const contractAddress = await deployContract({
-        amountEthInWei: amountInWei,
-        numersOfToken: parseInt(numHashes),
-        toAddress: hashchain.data.vendorData.vendorAddress as `0x${string}`,
-        tail: hashchain.data.tail,
-        abi: compiledContract.abi,
-        bytecode: compiledContract.bytecode,
-      });
-
-      const response = await channelApi.createChannel({
-        contractAddress: contractAddress as `0x${string}`,
-        numHashes: parseInt(numHashes),
-        lastIndex: 0,
-        lastHash:
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-        totalAmount,
-        vendorId: import.meta.env.VITE_VENDOR_ID as string,
-      });
-
-      if (response.success) {
-        await updateContractDetails({
-          contractAddress: response.data.contractAddress,
-          numHashes: response.data.numHashes.toString(),
-          totalAmount: response.data.totalAmount.toString(),
-        });
-
-        onDeploySuccess(contractAddress);
-
-        toast({
-          title: "Success",
-          description: "Channel opened successfully",
-        });
-      }
-    } catch (err) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Failed to open channel";
-      toast({
-        title: "Error",
-        description: errorMessage,
-        variant: "destructive",
-      });
-      console.error("Error opening channel:", err);
-    } finally {
-      setIsDeploying(false);
-    }
-  };
-
-  return (
-    <Button
-      onClick={handleDeploy}
-      disabled={
-        isDisabled || isDeploying || !compiledContract || !isHashesConfirmed
-      }
-      className="flex-1"
-    >
-      {isDeploying ? (
-        <>
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-          Deploying...
-        </>
-      ) : (
-        "3. Deploy Contract"
-      )}
-    </Button>
+    <div className="flex items-center gap-2">
+      <div
+        className={`rounded-full w-6 h-6 flex items-center justify-center
+        ${
+          status === "completed"
+            ? "bg-green-500 text-white"
+            : status === "loading"
+            ? "bg-blue-500 text-white"
+            : status === "error"
+            ? "bg-red-500 text-white"
+            : "bg-gray-200 text-gray-600"
+        }`}
+      >
+        {status === "loading" ? (
+          <Loader2 className="h-4 w-4 animate-spin" />
+        ) : status === "completed" ? (
+          <Check className="h-4 w-4" />
+        ) : (
+          stepNumber
+        )}
+      </div>
+      <span className="text-sm">{label}</span>
+    </div>
   );
 };
 
@@ -245,7 +59,7 @@ const HashSlider = ({
   value,
   onChange,
   isDisabled,
-  isConfirmed,
+  isLocked,
 }: HashSliderProps) => (
   <div>
     <Label htmlFor="numHashes" className="text-sm text-gray-500">
@@ -258,7 +72,7 @@ const HashSlider = ({
       step={100}
       value={[parseInt(value) || 0]}
       onValueChange={onChange}
-      disabled={isDisabled || isConfirmed}
+      disabled={isDisabled || isLocked}
     />
   </div>
 );
@@ -267,19 +81,34 @@ const HashSlider = ({
 export const OpenChannel = () => {
   const { toast } = useToast();
   const [numHashes, setNumHashes] = useState("");
-  const [isHashesConfirmed, setIsHashesConfirmed] = useState(false);
-  const [isConfirmingHashes, setIsConfirmingHashes] = useState(false);
   const [deployedContract, setDeployedContract] = useState("");
-  const [compiledContract, setCompiledContract] = useState<CompiledContract | null>(null);
-  const { selectedHashchain, error, updateContractDetails } = useHashchain();
+  const {
+    selectedHashchain,
+    error,
+    updateContractDetails,
+    getSelectedHashchain, // Add this
+  } = useHashchain();
+  const { compileContract, deployContract } = useSmartContract();
+
+  // Step statuses
+  const [hashStatus, setHashStatus] = useState<StepStatus>("pending");
+  const [compileStatus, setCompileStatus] = useState<StepStatus>("pending");
+  const [deployStatus, setDeployStatus] = useState<StepStatus>("pending");
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleNumHashesChange = (values: number[]) => {
-    if (!isHashesConfirmed) {
+    if (!isProcessing) {
       setNumHashes(values[0].toString());
     }
   };
 
-  const handleConfirmHashes = async () => {
+  const amountPerHash = selectedHashchain?.data.vendorData.amountPerHash ?? "0";
+  const totalAmount =
+    selectedHashchain?.data?.vendorData && numHashes
+      ? (parseFloat(numHashes) * parseFloat(amountPerHash)).toFixed(6)
+      : "0";
+
+  const handleOpenChannel = async () => {
     if (!numHashes) {
       toast({
         title: "Error",
@@ -289,39 +118,97 @@ export const OpenChannel = () => {
       return;
     }
 
-    setIsConfirmingHashes(true);
+    setIsProcessing(true);
 
     try {
-      // Update the hashchain with the number of hashes
+      // Step 1: Confirm Hashes
+      setHashStatus("loading");
       await updateContractDetails({
         numHashes: numHashes,
-        totalAmount: totalAmount,
+        totalAmount: totalAmount.toString(),
+      });
+      setHashStatus("completed");
+
+      // Step 2: Compile Contract
+      setCompileStatus("loading");
+      const { abi, bytecode } = await compileContract();
+      setCompileStatus("completed");
+
+      // Step 3: Deploy Contract
+      setDeployStatus("loading");
+
+      // Get latest hashchain state after updates
+      const updatedHashchain = await getSelectedHashchain();
+
+      if (!updatedHashchain) {
+        throw new Error("No hashchain selected");
+      }
+
+      console.log("Updated hashchain before deploy:", updatedHashchain); // Debug log
+
+      const amountInWei = parseEther(totalAmount);
+
+      if (!updatedHashchain.data.tail) {
+        throw new Error("Tail is not defined. Please try again.");
+      }
+
+      const contractAddress = await deployContract({
+        amountEthInWei: amountInWei,
+        numersOfToken: parseInt(numHashes),
+        toAddress: updatedHashchain.data.vendorData
+          .vendorAddress as `0x${string}`,
+        tail: updatedHashchain.data.tail, // Using updated tail
+        abi,
+        bytecode,
       });
 
-      setIsHashesConfirmed(true);
-      toast({
-        title: "Success",
-        description: `Number of hashes confirmed: ${numHashes}`,
+      const response = await channelApi.createChannel({
+        contractAddress: contractAddress as `0x${string}`,
+        numHashes: parseInt(numHashes),
+        lastIndex: 0,
+        lastHash:
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
+        totalAmount: parseFloat(totalAmount),
+        vendorId: import.meta.env.VITE_VENDOR_ID as string,
       });
+
+      if (response.success) {
+        await updateContractDetails({
+          contractAddress: response.data.contractAddress,
+          numHashes: response.data.numHashes.toString(),
+          totalAmount: response.data.totalAmount.toString(),
+        });
+
+        setDeployedContract(contractAddress);
+        setDeployStatus("completed");
+
+        toast({
+          title: "Success",
+          description: "Channel opened successfully",
+        });
+      }
     } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to confirm hashes";
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to process";
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
       });
-      setIsHashesConfirmed(false);
+
+      // Set error status for the current step
+      if (hashStatus === "loading") setHashStatus("error");
+      if (compileStatus === "loading") setCompileStatus("error");
+      if (deployStatus === "loading") setDeployStatus("error");
+
+      console.error("Error in handleOpenChannel:", err);
     } finally {
-      setIsConfirmingHashes(false);
+      setIsProcessing(false);
     }
   };
 
-  const amountPerHash = selectedHashchain?.data.vendorData.amountPerHash ?? "0";
-  const totalAmount = selectedHashchain?.data?.vendorData && numHashes
-    ? (parseFloat(numHashes) * parseFloat(amountPerHash)).toFixed(6)
-    : "0";
-
-  const isDisabled = !selectedHashchain?.data?.vendorData?.chainId || 
+  const isDisabled =
+    !selectedHashchain?.data?.vendorData?.chainId ||
     !!selectedHashchain.data.contractAddress;
 
   return (
@@ -333,17 +220,15 @@ export const OpenChannel = () => {
       </CardHeader>
       <CardContent>
         <div className="flex flex-col gap-4">
-          <HashSlider 
+          <HashSlider
             value={numHashes}
             onChange={handleNumHashesChange}
             isDisabled={isDisabled}
-            isConfirmed={isHashesConfirmed}
+            isLocked={isProcessing}
           />
 
           <div>
-            <Label className="text-sm text-gray-500">
-              Total Amount (ETH)
-            </Label>
+            <Label className="text-sm text-gray-500">Total Amount (ETH)</Label>
             <div className="flex flex-row items-center gap-2">
               <div className="flex-1 p-2 bg-gray-100 dark:bg-gray-800 rounded border">
                 {totalAmount} ETH
@@ -351,29 +236,37 @@ export const OpenChannel = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-2">
-            <ConfirmHashes 
-              isDisabled={isDisabled}
-              numHashes={numHashes}
-              totalAmount={totalAmount}
-              onConfirm={handleConfirmHashes}
-              isConfirmed={isHashesConfirmed}
-              isConfirming={isConfirmingHashes}
-            />
+          <div className="flex flex-col gap-4">
+            <Button
+              onClick={handleOpenChannel}
+              disabled={isDisabled || isProcessing || !numHashes}
+              className="w-full"
+            >
+              {isProcessing ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                "Open Channel"
+              )}
+            </Button>
 
-            <div className="flex flex-row gap-2">
-              <CompileContract 
-                isDisabled={isDisabled}
-                onCompileSuccess={setCompiledContract}
-                isHashesConfirmed={isHashesConfirmed}
+            <div className="space-y-2">
+              <StepIndicator
+                stepNumber={1}
+                status={hashStatus}
+                label="Confirm Hashes"
               />
-
-              <DeployContract 
-                isDisabled={isDisabled}
-                compiledContract={compiledContract}
-                numHashes={numHashes}
-                onDeploySuccess={setDeployedContract}
-                isHashesConfirmed={isHashesConfirmed}
+              <StepIndicator
+                stepNumber={2}
+                status={compileStatus}
+                label="Compile Contract"
+              />
+              <StepIndicator
+                stepNumber={3}
+                status={deployStatus}
+                label="Deploy Contract"
               />
             </div>
           </div>
@@ -393,16 +286,6 @@ export const OpenChannel = () => {
             </div>
           )}
 
-          {compiledContract && !deployedContract && (
-            <div className="flex items-center p-4 bg-green-50 dark:bg-green-900/20 rounded-lg mb-4">
-              <AlertCircle className="h-5 w-5 text-green-500 mr-2" />
-              <div className="text-sm">
-                <p className="font-bold">Contract compiled successfully!</p>
-                <p>You can now deploy the contract.</p>
-              </div>
-            </div>
-          )}
-
           {deployedContract && (
             <div className="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <AlertCircle className="h-5 w-5 text-blue-500 mr-2" />
@@ -419,6 +302,5 @@ export const OpenChannel = () => {
     </Card>
   );
 };
-
 
 export default OpenChannel;
