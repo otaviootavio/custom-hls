@@ -3,6 +3,7 @@ import Hls from "hls.js";
 import { useToast } from "@/hooks/use-toast";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Loader2 } from "lucide-react";
+import { useHashchain } from "@/context/HashchainProvider";
 
 const VideoPlayer = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
@@ -10,17 +11,24 @@ const VideoPlayer = () => {
   const [showOverlay, setShowOverlay] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const { selectedHashchain } = useHashchain();
   const { toast } = useToast();
 
   useEffect(() => {
     const video = videoRef.current;
 
-    if (Hls.isSupported() && video) {
+    if (Hls.isSupported() && video && !!selectedHashchain?.data.contractAddress) {
+      const smartContractAddress = selectedHashchain?.data.contractAddress.toString();
       const hls = new Hls({
         maxBufferLength: 1,
         maxMaxBufferLength: 1,
         lowLatencyMode: true,
         backBufferLength: 0,
+        xhrSetup: xhr => {
+          xhr.withCredentials = true;
+          xhr.setRequestHeader('x-smart-contract-address', smartContractAddress);
+          xhr.setRequestHeader('x-vendor-id', import.meta.env.VITE_VENDOR_ID);
+        }      
       });
 
       hlsRef.current = hls;
@@ -60,7 +68,7 @@ const VideoPlayer = () => {
       };
     } else if (video?.canPlayType("application/vnd.apple.mpegurl")) {
       video.src =
-        import.meta.env.VITE_CDN_BASE_URL+"/playlist.m3u8";
+        import.meta.env.VITE_CDN_BASE_URL+"/stream/"+import.meta.env.VITE_VIDEO_ID+"/playlist.m3u8";
       setIsLoading(false);
     } else {
       setError("Your browser doesn't support HLS video playback.");

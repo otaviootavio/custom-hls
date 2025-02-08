@@ -1,14 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, Hash, CircleXIcon, ShieldCheck } from "lucide-react";
-import { VendorMockSetup } from "./VendorMockSetup";
+import { Store, Hash, ShieldCheck } from "lucide-react";
 import { OpenChannel } from "./OpenChannel";
 import { HashStreaming } from "./HashStreaming";
-import { CloseChannel } from "./CloseChannel";
 import { AdminPanel } from "./AdminPanel";
 import ConnectMiniMoniWalletWithDropdown from "./ConnectMiniMoniWalletWithDropdown";
 import { useHashchain } from "@/context/HashchainProvider";
 import { ConnectOrDownloadCard } from "./ConnectOrDownloadCard";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
+import { VendorRealData } from "./VendorRealData";
 
 export const HashchainDebug = () => {
   const { authStatus } = useHashchain();
@@ -72,19 +71,10 @@ export const HashchainDebug = () => {
                       <span>Admin</span>
                     </div>
                   </TabsTrigger>
-                  <TabsTrigger
-                    value="close"
-                    className="flex items-center justify-center"
-                  >
-                    <div className="flex items-center">
-                      <CircleXIcon className="h-4 w-4 mr-2" />
-                      <span>Close Channel</span>
-                    </div>
-                  </TabsTrigger>
                 </TabsList>
                 <TabsContent value="vendor">
                   <div className="grid justify-items-stretch grid-cols-2 gap-2 mt-4">
-                    <VendorMockSetup />
+                    <VendorRealData />
                     <OpenChannel />
                   </div>
                 </TabsContent>
@@ -93,9 +83,6 @@ export const HashchainDebug = () => {
                 </TabsContent>
                 <TabsContent value="admin">
                   <AdminPanel />
-                </TabsContent>
-                <TabsContent value="close">
-                  <CloseChannel />
                 </TabsContent>
               </Tabs>
             </div>

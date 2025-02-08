@@ -6,94 +6,114 @@ import { AlertCircle, Loader2 } from "lucide-react";
 import { useHashchain } from "@/context/HashchainProvider";
 import { useToast } from "@/hooks/use-toast";
 import { Slider } from "./ui/slider";
-
-const generateMockAddress = () => {
-  const hexChars = "0123456789abcdef";
-  let address = "0x";
-  for (let i = 0; i < 40; i++) {
-    address += hexChars[Math.floor(Math.random() * 16)];
-    // Add occasional uppercase letters to mimic checksum addresses
-    if (Math.random() < 0.3)
-      address = address.slice(0, -1) + address.slice(-1).toUpperCase();
-  }
-  return address;
-};
+import { channelApi } from "@/clients/api";
 
 export const OpenChannel = () => {
   const { toast } = useToast();
 
   // Local state
   const [numHashes, setNumHashes] = useState("");
-  const [localContractAddress, setLocalContractAddress] = useState("");
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployedContract, setDeployedContract] = useState("");
 
-  // Using new context
-  const { selectedHashchain, loading, error, updateContractDetails } =
-    useHashchain();
+  // Using context
+  const { selectedHashchain, error, updateContractDetails } = useHashchain();
 
   const handleNumHashesChange = (values: number[]) => {
     setNumHashes(values[0].toString());
   };
 
   const handleDeployContract = async () => {
-    if (!selectedHashchain || !numHashes) return;
+    if (!selectedHashchain?.data?.vendorData || !numHashes) {
+      toast({
+        title: "Error",
+        description: "Missing required data",
+        variant: "destructive",
+      });
+      return;
+    }
 
-    // if (!!selectedHashchain?.data.totalAmount) {
-    //   toast({
-    //     title: "Error",
-    //     description: "Channel already opened",
-    //     variant: "destructive",
-    //   });
-    //   return;
-    // }
+    setIsDeploying(true);
 
     try {
-      // Mock contract deployment
-      const contractAddress = generateMockAddress();
-      setLocalContractAddress(contractAddress);
+      // First step: Deploy contract (this would be replaced with actual contract deployment)
+      const contractAddress = await deploySmartContract();
+      setDeployedContract(contractAddress);
 
       // Calculate total amount
-      const totalAmount = (
-        parseFloat(numHashes) *
-        parseFloat(selectedHashchain.data.vendorData.amountPerHash)
-      ).toString();
+      const amountPerHash = selectedHashchain.data.vendorData.amountPerHash;
+      const totalAmount = parseFloat(numHashes) * parseFloat(amountPerHash);
 
-      // Update contract details
-      await updateContractDetails({
-        contractAddress,
-        numHashes,
+      // Create channel in the backend
+      const response = await channelApi.createChannel({
+        contractAddress: contractAddress as `0x${string}`,
+        numHashes: parseInt(numHashes),
+        lastIndex: 0,
+        lastHash:
+          "0x0000000000000000000000000000000000000000000000000000000000000000",
         totalAmount,
+        vendorId: import.meta.env.VITE_VENDOR_ID as string,
       });
 
-      toast({
-        title: "Success",
-        description: "Contract deployed and channel opened successfully",
-      });
+      // Update local state with new channel data
+      if (response.success) {
+        await updateContractDetails({
+          contractAddress: response.data.contractAddress,
+          numHashes: response.data.numHashes.toString(),
+          totalAmount: response.data.totalAmount.toString(),
+        });
+
+        toast({
+          title: "Success",
+          description: "Channel opened successfully",
+        });
+      }
     } catch (err) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to deploy contract";
+        err instanceof Error ? err.message : "Failed to open channel";
       toast({
         title: "Error",
         description: errorMessage,
         variant: "destructive",
       });
-      console.error("Error deploying contract:", err);
-      setLocalContractAddress("");
+      console.error("Error opening channel:", err);
+      setDeployedContract("");
+    } finally {
+      setIsDeploying(false);
     }
   };
 
+  // Mock function to simulate contract deployment
+  // This would be replaced with actual contract deployment logic
+  const deploySmartContract = async (): Promise<string> => {
+    // Simulate contract deployment delay
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    // Generate a valid contract address
+    const address = `0x${Array.from({ length: 40 }, () =>
+      Math.floor(Math.random() * 16).toString(16)
+    ).join("")}`;
+
+    return address;
+  };
+
+  const amountPerHash = selectedHashchain?.data.vendorData.amountPerHash ?? "0";
+
   const totalAmount =
-    selectedHashchain && numHashes
-      ? (
-          parseFloat(numHashes) *
-          parseFloat(selectedHashchain.data.vendorData.amountPerHash)
-        ).toFixed(6)
+    selectedHashchain?.data?.vendorData && numHashes
+      ? (parseFloat(numHashes) * parseFloat(amountPerHash)).toFixed(6)
       : "0";
 
+  const isDisabled =
+    !selectedHashchain?.data?.vendorData?.chainId ||
+    isDeploying ||
+    !!selectedHashchain.data.contractAddress;
+
   return (
-    <Card>
+    <Card className={isDisabled ? "opacity-25" : ""}>
       <CardHeader>
         <CardTitle>
-          <p className="font-bold text-xl">Open the channel!</p>
+          <p className="font-bold text-md">2. Open the channel!</p>
         </CardTitle>
       </CardHeader>
       <CardContent>
@@ -109,9 +129,9 @@ export const OpenChannel = () => {
                 min={100}
                 max={1000}
                 step={100}
-                value={[parseInt(numHashes)]}
+                value={[parseInt(numHashes) || 0]}
                 onValueChange={handleNumHashesChange}
-                disabled={!selectedHashchain?.data.vendorData.chainId}
+                disabled={isDisabled}
               />
             </div>
             <div>
@@ -124,17 +144,14 @@ export const OpenChannel = () => {
                 </div>
 
                 <div>
-                  <Button
-                    onClick={handleDeployContract}
-                    disabled={!selectedHashchain?.data.vendorData.chainId}
-                  >
-                    {loading ? (
+                  <Button onClick={handleDeployContract} disabled={isDisabled}>
+                    {isDeploying ? (
                       <>
                         <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Deploying...
+                        Opening Channel...
                       </>
                     ) : (
-                      "Deploy Smart Contract"
+                      "Open Channel"
                     )}
                   </Button>
                 </div>
@@ -142,27 +159,28 @@ export const OpenChannel = () => {
             </div>
             <p className="text-sm">
               You will be able to watch up to{" "}
-              <span className=" font-bold">
-                {parseFloat(numHashes) / 4 || 0} minutes.
+              <span className="font-bold">
+                {(parseFloat(numHashes) / 4 || 0).toFixed(0)} minutes
               </span>
             </p>
           </div>
         </div>
-        {/* Deploy Contract Section */}
-        <div className="self-place-end">
+
+        {/* Error and Success Messages */}
+        <div className="mt-4">
           {error && (
-            <div className="text-sm text-red-500 mt-4">
+            <div className="text-sm text-red-500 mb-4">
               Error: {error.message}
             </div>
           )}
 
-          {localContractAddress && (
+          {deployedContract && (
             <div className="flex items-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
               <AlertCircle className="h-5 w-5 text-blue-500 mr-2" />
               <div className="text-sm space-y-1 w-full">
-                <p className="font-bold">Contract deployed successfully!</p>
+                <p className="font-bold">Channel opened successfully!</p>
                 <p className="font-mono text-xs truncate">
-                  Address: {localContractAddress}
+                  Contract Address: {deployedContract}
                 </p>
               </div>
             </div>
@@ -172,3 +190,5 @@ export const OpenChannel = () => {
     </Card>
   );
 };
+
+export default OpenChannel;

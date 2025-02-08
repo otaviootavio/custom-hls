@@ -8,10 +8,11 @@ import { ChannelNotOpened } from "./ChannelNotOpened";
 export const HashStreaming: React.FC = () => {
   const { authStatus, selectedHashchain } = useHashchain();
   console.log(authStatus, selectedHashchain);
-  const isChannelOpened = !!selectedHashchain?.data.contractAddress;
+  const isChannelOpened = (selectedHashchain?.data.contractAddress?.toString() ?? "").length > 0
   const isSecretAuth = authStatus?.secretAuth;
-  console.log(isChannelOpened, isSecretAuth);
+  console.log(!!selectedHashchain?.data.contractAddress, isSecretAuth);
 
+  console.log(selectedHashchain?.data.contractAddress?.toString())
   return (
     <Card>
       <CardHeader>
@@ -19,8 +20,8 @@ export const HashStreaming: React.FC = () => {
       </CardHeader>
       <CardContent>
         {isSecretAuth && isChannelOpened ? <VideoPlayer /> : null}
-        {!isSecretAuth ? <RequestSecretConnection /> : null}
-        {isChannelOpened && !isSecretAuth ? <ChannelNotOpened /> : null}
+        {!isChannelOpened ? <ChannelNotOpened/> : null}
+        {!isSecretAuth ? <RequestSecretConnection /> : null}      
       </CardContent>
     </Card>
   );

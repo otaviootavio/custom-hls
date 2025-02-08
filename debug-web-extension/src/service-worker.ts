@@ -18,8 +18,9 @@ self.addEventListener("activate", (event) => {
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
   const baseUrl = new URL(import.meta.env.VITE_CDN_BASE_URL);
+
   
-  if (url.hostname.startsWith(baseUrl.hostname)) {
+  if (url.href.startsWith(baseUrl.href)) {
     console.log(
       "[Page Service Worker]: Intercepting request",
       event.request.url
@@ -65,7 +66,7 @@ self.addEventListener("fetch", async (event) => {
           const fetchResponse = await fetch(event.request, {
             headers: {
               ...existingHeaders,
-              "X-Hash": response.nextHash, // Changed from nextHeader.nextHash
+              "X-Hash": response.nextHash
             },
           });
 
