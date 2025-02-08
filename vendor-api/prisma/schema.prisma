@@ -46,7 +46,7 @@ model Payment {
   xHash     String   @unique
   amount    Float
   index     Int
-  channel   Channel  @relation(fields: [channelId], references: [id])
+  channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId String
   vendor    Vendor   @relation(fields: [vendorId], references: [id])
   vendorId  String
