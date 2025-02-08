@@ -146,6 +146,11 @@ const HashChainDetail: React.FC = () => {
           label="Last Index" 
           value={data.lastIndex}
         />
+
+        <DetailField 
+          label="Tail" 
+          value={data.tail}
+        />
         
         {data.totalAmount && (
           <DetailField 

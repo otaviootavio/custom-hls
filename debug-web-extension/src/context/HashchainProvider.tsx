@@ -68,7 +68,7 @@ interface HashchainContextType {
   syncIndex: (newIndex: number) => Promise<void>;
   getSecret: () => Promise<string | null>;
   updateContractDetails: (details: {
-    contractAddress: string;
+    contractAddress?: string;
     numHashes: string;
     totalAmount: string;
   }) => Promise<void>;
@@ -258,7 +258,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
   const updateContractDetails = useCallback(
     async (details: {
-      contractAddress: string;
+      contractAddress?: string;
       numHashes: string;
       totalAmount: string;
     }) => {
@@ -266,7 +266,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
         if (!selectedHashchain) throw new Error("No hashchain selected");
 
         await storage.updateHashchain(selectedHashchain.hashchainId, details);
-
+        
         const updatedHashchain = await storage.getHashchain(
           selectedHashchain.hashchainId
         );

@@ -25,6 +25,7 @@ export interface HashchainData {
   numHashes?: string;
   totalAmount?: string;
   createdAt: number;
+  tail: string;
 }
 
 

@@ -161,8 +161,10 @@ export class HashchainRepository {
         parseInt(updateData.numHashes.toString())
       );
       updateData.lastIndex = 0;
+      updateData.tail = updateData.hashes[0];
     }
 
+    console.log("Updating hashchain", hashchainId, updateData);
     await this.db.put(hashchainId, {
       ...existingData,
       ...updateData,

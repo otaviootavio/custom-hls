@@ -5,6 +5,7 @@ export interface ChannelData {
   numHashes: string;
   contractAddress: string;
   totalAmount: string;
+  tail: string;
 }
 
 export interface VendorInfoProps {
@@ -64,6 +65,7 @@ export interface HashchainData {
   numHashes?: string;
   totalAmount?: string;
   createdAt: number;
+  tail: string;
 }
 
 export interface StorageData {
