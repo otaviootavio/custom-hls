@@ -1,13 +1,13 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Store, Hash, ShieldCheck } from "lucide-react";
-import { OpenChannel } from "./OpenChannel";
-import { HashStreaming } from "./HashStreaming";
-import { AdminPanel } from "./AdminPanel";
+import { OpenChannel } from "./VendorSetup/OpenChannel";
+import { HashStreaming } from "./streaming/HashStreaming";
+import { AdminPanel } from "./admin/AdminPanel";
 import ConnectMiniMoniWalletWithDropdown from "./ConnectMiniMoniWalletWithDropdown";
 import { useHashchain } from "@/context/HashchainProvider";
 import { ConnectOrDownloadCard } from "./ConnectOrDownloadCard";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { VendorRealData } from "./VendorRealData";
+import { VendorRealData } from "./VendorSetup/VendorRealData";
 
 export const HashchainDebug = () => {
   const { authStatus } = useHashchain();

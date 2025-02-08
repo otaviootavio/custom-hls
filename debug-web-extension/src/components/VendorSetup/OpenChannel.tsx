@@ -1,11 +1,11 @@
 import { useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Label } from "./ui/label";
-import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Label } from "../ui/label";
+import { Button } from "../ui/button";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useHashchain } from "@/context/HashchainProvider";
 import { useToast } from "@/hooks/use-toast";
-import { Slider } from "./ui/slider";
+import { Slider } from "../ui/slider";
 import { channelApi } from "@/clients/api";
 
 export const OpenChannel = () => {

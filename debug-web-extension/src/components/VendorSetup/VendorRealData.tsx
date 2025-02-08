@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
-import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
+import { Button } from "../ui/button";
 import { useHashchain } from "@/context/HashchainProvider";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";

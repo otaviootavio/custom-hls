@@ -40,24 +40,6 @@ contract EthWord is ReentrancyGuard {
         totalWordCount = totalWordCount - _wordCount;
     }
 
-    function simulateCloseChannel(
-        bytes32 _word,
-        uint _wordCount
-    ) public view returns (bool, uint) {
-        require(
-            msg.sender == channelRecipient,
-            "Only the recipient can simulate closing the channel"
-        );
-
-        bool isValid = validateChannelClosure(_word, _wordCount);
-        if (!isValid) {
-            return (false, 0);
-        }
-
-        uint amountToWithdraw = calculateWithdrawAmount(_wordCount);
-        return (true, amountToWithdraw);
-    }
-
     function validateChannelClosure(
         bytes32 _word,
         uint _wordCount

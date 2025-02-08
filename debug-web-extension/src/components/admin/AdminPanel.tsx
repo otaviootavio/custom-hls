@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { vendorApi, channelApi } from "../clients/api";
+import { vendorApi, channelApi } from "../../clients/api";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
@@ -18,8 +18,8 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
   AlertDialogTrigger,
-} from "./ui/alert-dialog";
-import { Badge } from "./ui/badge";
+} from "../ui/alert-dialog";
+import { Badge } from "../ui/badge";
 
 type Vendor = z.infer<typeof VendorDataSchema>;
 type Channel = z.infer<typeof ChannelDataSchema>;
