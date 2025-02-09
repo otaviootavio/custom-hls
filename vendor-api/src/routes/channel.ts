@@ -4,6 +4,7 @@ import { z } from "zod";
 import { prisma } from "../lib/prisma";
 import { ChannelService } from "../services/channelService";
 import { paginationSchema } from "../schemas/base";
+import { BlockchainService } from '../services/blockchainService';
 import {
   channelSchema,
   channelListResponse,
@@ -16,7 +17,8 @@ import {
   channelDeleteSuccessResponse,
 } from "../schemas/channel";
 
-const channelService = new ChannelService(prisma);
+const blockchainService = new BlockchainService();
+const channelService = new ChannelService(prisma, blockchainService);
 export const channelRouter = new OpenAPIHono();
 
 // Create channel route

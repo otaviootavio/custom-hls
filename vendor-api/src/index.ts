@@ -23,7 +23,6 @@ app.use(
       "Content-Type",
       "Authorization",
       "x-hash",
-      "X-Vendor-Id",
       "x-smart-contract-address",
     ],
     exposeHeaders: ["Content-Length", "X-Request-Id"],

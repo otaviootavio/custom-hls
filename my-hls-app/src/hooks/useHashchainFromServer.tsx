@@ -2,7 +2,7 @@ import { useState, useCallback } from "react";
 import axios from "axios";
 
 export interface Hashchain {
-  lastHash: string;
+  tail: string;
   chainSize: number;
   mostRecentHashIndex: number;
   mostRecentHash: string;

@@ -29,8 +29,8 @@ model Channel {
   contractAddress String        @unique
   numHashes       Int
   lastIndex       Int
-  lastHash        String
-  totalAmount     Float
+  tail            String
+  totalAmount     String
   vendor          Vendor        @relation(fields: [vendorId], references: [id])
   vendorId        String
   createdAt       DateTime      @default(now())

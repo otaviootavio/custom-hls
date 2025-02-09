@@ -1,24 +1,24 @@
 import { MiddlewareHandler } from "hono";
-import { isHash, type Hash } from "viem";
+import { isHash, keccak256, type Hash } from "viem";
 import { PaymentService } from "../services/paymentService";
 import { VendorService } from "../services/vendorService";
 import { ChannelService } from "../services/channelService";
 import { PrismaClient } from "@prisma/client";
+import { BlockchainService } from "../services/blockchainService";
 
 const prisma = new PrismaClient();
 const paymentService = new PaymentService(prisma);
 const vendorService = new VendorService(prisma);
-const channelService = new ChannelService(prisma);
+const blokchainService = new BlockchainService();
+const channelService = new ChannelService(prisma, blokchainService);
 
 export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
   try {
     const xHash = c.req.header("x-hash");
-    const xVendorId = c.req.header("x-vendor-id");
     const xSmartContractAddress = c.req.header("x-smart-contract-address");
 
     // Log incoming request details
     console.log(`Incoming request x-hash: ${xHash || "not provided"}`);
-    console.log(`Incoming request x-vendor-id: ${xVendorId || "not provided"}`);
     console.log(
       `Incoming request x-smart-contract-address: ${
         xSmartContractAddress || "not provided"
@@ -26,16 +26,17 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
     );
 
     // Validate required headers
-    if (!xHash || !xVendorId || !xSmartContractAddress) {
+    if (!xHash || !xSmartContractAddress) {
       return c.json(
         {
           success: false,
           message:
-            "Missing required headers: x-hash, x-vendor-id, x-smart-contract-address",
+            "Missing required headers: x-hash, x-smart-contract-address",
         },
         400
       );
     }
+
 
     // Validate and convert hash format
     if (!isHash(xHash)) {
@@ -51,22 +52,12 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
     // The hash is already validated by isHash, so we can safely cast it
     const normalizedHash = xHash as Hash;
 
-    // Verify vendor exists
-    const vendor = await vendorService.findById(xVendorId);
-    if (!vendor) {
-      return c.json(
-        {
-          success: false,
-          message: "Vendor not found",
-        },
-        404
-      );
-    }
 
     // Verify channel exists and belongs to vendor
     const channel = await channelService.findByContractAddress(
       xSmartContractAddress
     );
+    
     if (!channel) {
       return c.json(
         {
@@ -77,13 +68,15 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
       );
     }
 
-    if (channel.vendorId !== xVendorId) {
+    // Verify vendor exists
+    const vendor = await vendorService.findById(channel.vendor.id);
+    if (!vendor) {
       return c.json(
         {
           success: false,
-          message: "Channel does not belong to the specified vendor",
+          message: "Vendor not found",
         },
-        403
+        404
       );
     }
 
@@ -93,7 +86,7 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
       amount: vendor.amountPerHash,
       index: channel.lastIndex + 1,
       contractAddress: xSmartContractAddress,
-      vendorId: xVendorId,
+      vendorId: channel.vendorId,
     });
 
     if (!result.success) {
@@ -137,7 +130,7 @@ declare module "hono" {
         contractAddress: `0x${string}`;
         numHashes: number;
         lastIndex: number;
-        lastHash: Hash;
+        tail: Hash;
         totalAmount: number;
         vendorId: string;
         createdAt: string;

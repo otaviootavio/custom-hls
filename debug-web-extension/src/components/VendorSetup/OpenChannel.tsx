@@ -166,9 +166,8 @@ export const OpenChannel = () => {
         contractAddress: contractAddress as `0x${string}`,
         numHashes: parseInt(numHashes),
         lastIndex: 0,
-        lastHash:
-          "0x0000000000000000000000000000000000000000000000000000000000000000",
-        totalAmount: parseFloat(totalAmount),
+        tail: updatedHashchain.data.tail as `0x${string}`,
+        totalAmount: parseEther(totalAmount).toString(),
         vendorId: import.meta.env.VITE_VENDOR_ID as string,
       });
 

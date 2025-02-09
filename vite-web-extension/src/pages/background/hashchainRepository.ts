@@ -15,7 +15,10 @@ export class HashchainRepository {
     this.db = new IndexedDBClient("hashchain_db", "hashchains", 1);
   }
 
-  private generateHashChain(secret: string, length: number): string[] {
+  private generateHashChain(
+    secret: string,
+    length: number
+  ): { chain: string[]; tail: string } {
     const chain: string[] = [];
     let currentHash = toHex(secret);
 
@@ -24,7 +27,9 @@ export class HashchainRepository {
       chain.unshift(currentHash);
     }
 
-    return chain;
+    const tail = keccak256(currentHash);
+
+    return { chain, tail };
   }
 
   private toPublicData(data: HashchainData): PublicHashchainData {
@@ -156,12 +161,13 @@ export class HashchainRepository {
     // In the future we may just store the secret and then
     // compute the hashes on the fly
     if (updateData.numHashes) {
-      updateData.hashes = this.generateHashChain(
+      const { chain, tail } = this.generateHashChain(
         existingData.secret,
         parseInt(updateData.numHashes.toString())
       );
+      updateData.hashes = chain;
       updateData.lastIndex = 0;
-      updateData.tail = updateData.hashes[0];
+      updateData.tail = tail;
     }
 
     console.log("Updating hashchain", hashchainId, updateData);

@@ -74,14 +74,7 @@ export class PaymentService {
         this.prisma.channel.update({
           where: { id: channel.id },
           data: {
-            lastHash: data.xHash,
             lastIndex: data.index,
-            totalAmount: {
-              increment: data.amount,
-            },
-            numHashes: {
-              increment: 1,
-            },
           },
         }),
       ]);

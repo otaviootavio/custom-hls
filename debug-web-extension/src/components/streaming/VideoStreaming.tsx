@@ -27,7 +27,6 @@ const VideoPlayer = () => {
         xhrSetup: xhr => {
           xhr.withCredentials = true;
           xhr.setRequestHeader('x-smart-contract-address', smartContractAddress);
-          xhr.setRequestHeader('x-vendor-id', import.meta.env.VITE_VENDOR_ID);
         }      
       });
 

@@ -77,15 +77,15 @@ export const ChannelCreateRequestSchema = z.object({
     .describe("Contract address for the channel"),
   numHashes: z.number().int().min(1).describe("Number of hashes"),
   lastIndex: z.number().int().min(0).describe("Last index processed"),
-  lastHash: z
+  tail: z
     .string()
     .trim()
     .refine((hash) => isHash(hash), {
-      message: "Invalid hash format",
+      message: "Invalid tail format",
     })
     .transform(toHexHash)
     .describe("Last hash processed"),
-  totalAmount: z.number().min(0).describe("Total amount in ETH"),
+  totalAmount: z.string().min(0).describe("Total amount in ETH"),
   vendorId: z.string().uuid().describe("UUID of the associated vendor"),
 });
 
@@ -108,8 +108,8 @@ export const ChannelDataSchema = z.object({
   contractAddress: z.string().transform(toHexAddress),
   numHashes: z.number(),
   lastIndex: z.number(),
-  lastHash: z.string().transform(toHexHash),
-  totalAmount: z.number(),
+  tail: z.string().transform(toHexHash),
+  totalAmount: z.string(),
   vendorId: z.string(),
   status: ChannelStatus.default("OPEN"),
   closedAt: z.string().nullable(),

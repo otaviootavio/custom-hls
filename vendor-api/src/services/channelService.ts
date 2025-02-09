@@ -4,9 +4,25 @@ import {
   type CreateChannelInput,
   type UpdateChannelInput,
 } from "../schemas/channel";
+import { type BlockchainService } from "./blockchainService";
+import { formatEther, isHex } from "viem";
+import { bigint } from "zod";
+
+interface ContractData {
+  channelRecipient: `0x${string}`;
+  channelSender: `0x${string}`;
+  channelTip: `0x${string}`;
+  totalWordCount: bigint;
+  balance: bigint;
+}
+
+
 
 export class ChannelService {
-  constructor(private readonly prisma: PrismaClient) {}
+  constructor(
+    private readonly prisma: PrismaClient,
+    private readonly blockchain: BlockchainService
+  ) {}
 
   async create(data: CreateChannelInput) {
     // First verify the vendor exists
@@ -16,6 +32,25 @@ export class ChannelService {
 
     if (!vendor) {
       throw new Error("Vendor not found");
+    }
+
+    if (!isHex(data.contractAddress)) {
+      throw new Error("Contract address is not a contract address");
+    }
+
+    console.log(data);
+
+    const smartContract = await this.blockchain.getContractData(
+      data.contractAddress
+    );
+    console.log(smartContract);
+    console.log(vendor);
+
+    if (
+      smartContract.channelRecipient.toLowerCase() !==
+      vendor.address.toLowerCase()
+    ) {
+      throw new Error("Vendor address does not match contract recipient");
     }
 
     const channel = await this.prisma.channel.create({

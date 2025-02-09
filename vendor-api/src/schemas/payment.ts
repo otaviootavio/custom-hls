@@ -98,8 +98,8 @@ export const paymentResponseSchema = z.object({
       contractAddress: baseAddressSchema,
       numHashes: z.number(),
       lastIndex: z.number(),
-      lastHash: baseHashSchema,
-      totalAmount: z.number(),
+      tail: baseHashSchema,
+      totalAmount: z.string(),
       vendorId: z.string().uuid(),
       createdAt: z.date().transform(transformDate),
       updatedAt: z.date().transform(transformDate),
@@ -138,7 +138,6 @@ export const transformPaymentResponse = (
     channel: {
       ...payment.channel,
       contractAddress: toHexAddress(payment.channel.contractAddress),
-      lastHash: toHexHash(payment.channel.lastHash),
     },
     vendor: {
       ...payment.vendor,

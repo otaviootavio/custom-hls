@@ -130,7 +130,7 @@ export const useSmartContract = () => {
     const hash: Hash = await deployContractAsync({
       abi: props.abi,
       bytecode: `0x${props.bytecode}`,
-      args: [props.toAddress, props.numersOfToken - 1, props.tail],
+      args: [props.toAddress, props.numersOfToken, props.tail],
       value: props.amountEthInWei,
     });
 
