@@ -1,3 +1,5 @@
+import { HashchainId, PublicHashchainData } from "../background/types";
+
 const targetOrigin = window.location.origin;
 console.log(
   "[ContentScript] Content script initialized with origin:",
@@ -98,10 +100,11 @@ channel.onmessage = async (event) => {
       timestamp,
     });
 
-    const selectedHashchain = await sendToBackground(
-      "GET_SELECTED_HASHCHAIN",
-      {}
-    );
+    const selectedHashchain: {
+      hashchainId: HashchainId;
+      data: PublicHashchainData;
+    } = await sendToBackground("GET_SELECTED_HASHCHAIN", {});
+
     const nextHash = await sendToBackground("GET_NEXT_HASH", {
       hashchainId: selectedHashchain.hashchainId,
     });
@@ -113,6 +116,7 @@ channel.onmessage = async (event) => {
       data: {
         hashchainId: selectedHashchain.hashchainId,
         nextHash,
+        index: selectedHashchain.data.lastIndex + 1,
       },
     };
 

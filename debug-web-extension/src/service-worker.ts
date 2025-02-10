@@ -19,7 +19,9 @@ self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
   const baseUrl = new URL(import.meta.env.VITE_CDN_BASE_URL);
 
-  
+  // Known issue:
+  // The current approach intercets all requests to the CDN, including files like m3u8 playlists.
+  // This is not ideal, as we only want to intercept the requests for the video segments (.ts).
   if (url.href.startsWith(baseUrl.href)) {
     console.log(
       "[Page Service Worker]: Intercepting request",
@@ -40,6 +42,7 @@ self.addEventListener("fetch", async (event) => {
           const response = await new Promise<{
             hashchainId: string;
             nextHash: string;
+            index: number;
           }>((resolve) => {
             channel.onmessage = (event) => {
               const { type, data } = event.data;
@@ -66,7 +69,8 @@ self.addEventListener("fetch", async (event) => {
           const fetchResponse = await fetch(event.request, {
             headers: {
               ...existingHeaders,
-              "X-Hash": response.nextHash
+              "X-Hash": response.nextHash,
+              "x-hash-index": response.index.toString(),
             },
           });
 

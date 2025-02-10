@@ -1,42 +1,41 @@
 import { MiddlewareHandler } from "hono";
-import { isHash, keccak256, type Hash } from "viem";
+import { Address, isAddress, isHash, type Hash } from "viem";
 import { PaymentService } from "../services/paymentService";
-import { VendorService } from "../services/vendorService";
-import { ChannelService } from "../services/channelService";
 import { PrismaClient } from "@prisma/client";
+import { validateHashChain } from "../lib/hashchain";
+import { ChannelService } from "../services/channelService";
 import { BlockchainService } from "../services/blockchainService";
 
 const prisma = new PrismaClient();
 const paymentService = new PaymentService(prisma);
-const vendorService = new VendorService(prisma);
-const blokchainService = new BlockchainService();
-const channelService = new ChannelService(prisma, blokchainService);
+const blockchainService = new BlockchainService();
+const channelService = new ChannelService(prisma, blockchainService);
 
+/*
+Known issues:
+The web extension might run out of sync.
+For instance, the video player can withdraw one Hash, and for some reason
+the hash does not react the api. So the api is seeing the token N while the
+extension has the hash n+1. This can be solved by adding a new endpoint of sync.
+But for now, we are just getting the n+1 hash, computing if they belong to the same hashchain,
+and then update the api database with the incomming hash.
+*/
 export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
   try {
     const xHash = c.req.header("x-hash");
     const xSmartContractAddress = c.req.header("x-smart-contract-address");
-
-    // Log incoming request details
-    console.log(`Incoming request x-hash: ${xHash || "not provided"}`);
-    console.log(
-      `Incoming request x-smart-contract-address: ${
-        xSmartContractAddress || "not provided"
-      }`
-    );
+    const xIndex = c.req.header("x-hash-index");
 
     // Validate required headers
-    if (!xHash || !xSmartContractAddress) {
+    if (!xHash || !xSmartContractAddress || !xIndex) {
       return c.json(
         {
           success: false,
-          message:
-            "Missing required headers: x-hash, x-smart-contract-address",
+          message: "Missing required headers: x-hash, x-smart-contract-address",
         },
         400
       );
     }
-
 
     // Validate and convert hash format
     if (!isHash(xHash)) {
@@ -49,15 +48,27 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
       );
     }
 
+    if (!isAddress(xSmartContractAddress)) {
+      return c.json(
+        {
+          success: false,
+          message:
+            "Invalid smart contract address format in x-smart-contract-address header",
+        },
+        400
+      );
+    }
+
     // The hash is already validated by isHash, so we can safely cast it
     const normalizedHash = xHash as Hash;
+    const normalizedSmartContractAddress = xSmartContractAddress as Address;
+    const normailizedIndex = parseInt(xIndex);
 
-
-    // Verify channel exists and belongs to vendor
+    // Verify if the incomming hash follows the channel's hash sequence
     const channel = await channelService.findByContractAddress(
-      xSmartContractAddress
+      normalizedSmartContractAddress
     );
-    
+
     if (!channel) {
       return c.json(
         {
@@ -68,32 +79,62 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
       );
     }
 
-    // Verify vendor exists
-    const vendor = await vendorService.findById(channel.vendor.id);
-    if (!vendor) {
+    const payment = await paymentService.getLatestPaymentBySmartContractAddress(
+      normalizedSmartContractAddress
+    );
+
+    if (!payment) {
+      const isValid = validateHashChain(
+        {
+          hash: channel?.tail,
+          index: 0,
+        },
+        { hash: normalizedHash, index: normailizedIndex }
+      );
+      const result = await paymentService.create({
+        xHash: normalizedHash,
+        amount: channel.vendor.amountPerHash,
+        index: normailizedIndex,
+        contractAddress: xSmartContractAddress,
+        vendorId: channel.vendorId,
+      });
+
+      console.log("isValid", isValid);
+      await next();
+      return;
+    }
+
+    if (payment.index > normailizedIndex) {
       return c.json(
         {
           success: false,
-          message: "Vendor not found",
+          message: "Index out of order",
         },
-        404
+        400
       );
     }
 
-    // Create payment using normalized hash
+    validateHashChain(
+      {
+        hash: normalizedHash,
+        index: normailizedIndex,
+      },
+      { hash: payment.xHash as Hash, index: payment.index }
+    );
+
     const result = await paymentService.create({
       xHash: normalizedHash,
-      amount: vendor.amountPerHash,
-      index: channel.lastIndex + 1,
+      amount: payment.vendor.amountPerHash,
+      index: normailizedIndex,
       contractAddress: xSmartContractAddress,
-      vendorId: channel.vendorId,
+      vendorId: payment.vendorId,
     });
 
-    if (!result.success) {
+    if (!result) {
       return c.json(
         {
           success: false,
-          message: result.message,
+          message: "Failed to create payment",
         },
         400
       );
