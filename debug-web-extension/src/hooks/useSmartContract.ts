@@ -123,10 +123,6 @@ export const useSmartContract = () => {
   };
 
   const deployContract = async (props: SmartContractProps) => {
-    console.log("to address", props.toAddress);
-    console.log("numersOfToken", props.numersOfToken);
-    console.log("tail", props.tail);
-
     const hash: Hash = await deployContractAsync({
       abi: props.abi,
       bytecode: `0x${props.bytecode}`,

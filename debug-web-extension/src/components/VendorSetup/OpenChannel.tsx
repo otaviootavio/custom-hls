@@ -125,7 +125,7 @@ export const OpenChannel = () => {
       setHashStatus("loading");
       await updateContractDetails({
         numHashes: numHashes,
-        totalAmount: totalAmount.toString(),
+        totalAmount: parseEther(totalAmount).toString(),
       });
       setHashStatus("completed");
 

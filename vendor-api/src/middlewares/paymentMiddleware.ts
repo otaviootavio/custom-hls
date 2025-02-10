@@ -79,6 +79,16 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
       );
     }
 
+    if (channel.status == "CLOSED") {
+      return c.json(
+        {
+          success: false,
+          message: "Channel is closed",
+        },
+        400
+      );
+    }
+
     const payment = await paymentService.getLatestPaymentBySmartContractAddress(
       normalizedSmartContractAddress
     );
