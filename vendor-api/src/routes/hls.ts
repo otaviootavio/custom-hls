@@ -188,10 +188,6 @@ async function handleProxy(
   filename: string
 ) {
   try {
-    // Log the request
-    console.log(
-      `Request - Stream ID: ${streamId}, Quality: ${quality}, File: ${filename}`
-    );
 
     // Construct CDN URL based on whether quality is provided
     const cdnBaseUrl = "https://vz-94bd9e7b-393.b-cdn.net";
@@ -199,7 +195,6 @@ async function handleProxy(
       ? `${cdnBaseUrl}/${streamId}/${quality}/${filename}`
       : `${cdnBaseUrl}/${streamId}/${filename}`;
 
-    console.log(`Proxying to CDN URL: ${cdnUrl}`);
 
     // Fetch the content from CDN
     const response = await fetch(cdnUrl);
