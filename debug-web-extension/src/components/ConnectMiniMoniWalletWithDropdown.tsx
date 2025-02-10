@@ -6,6 +6,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { AlertCircle, Check, CheckCheck } from "lucide-react";
+import { formatEther } from "viem";
 
 export const ConnectMiniMoniWalletWithDropdown = () => {
   const { requestConnection, authStatus, selectedHashchain, error } =
@@ -122,7 +123,9 @@ export const ConnectMiniMoniWalletWithDropdown = () => {
             <p className="text-sm font-medium text-muted-foreground">
               Total Amount
             </p>
-            <p className="text-sm font-mono">{totalAmount || "0"} ETH</p>
+            <p className="text-sm font-mono">
+              {formatEther(BigInt(totalAmount || "0"))} ETH
+            </p>
           </div>
 
           <div>

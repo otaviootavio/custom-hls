@@ -10,11 +10,11 @@ export function validateHashChain(node1: HashNode, node2: HashNode): boolean {
     node1.index < node2.index ? [node1, node2] : [node2, node1];
 
   const hashSteps = later.index - earlier.index;
-  let currentHash = earlier.hash;
+  let currentHash = later.hash;
 
   for (let i = 0; i < hashSteps; i++) {
     currentHash = keccak256(currentHash);
   }
 
-  return currentHash.toLowerCase() === later.hash.toLowerCase();
+  return currentHash.toLowerCase() === earlier.hash.toLowerCase();
 }

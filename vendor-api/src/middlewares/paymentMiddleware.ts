@@ -84,13 +84,24 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
     );
 
     if (!payment) {
-      const isValid = validateHashChain(
-        {
-          hash: channel?.tail,
-          index: 0,
-        },
-        { hash: normalizedHash, index: normailizedIndex }
-      );
+      if (
+        !validateHashChain(
+          {
+            hash: channel?.tail,
+            index: 0,
+          },
+          { hash: normalizedHash, index: normailizedIndex }
+        )
+      ) {
+        return c.json(
+          {
+            success: false,
+            message: "Invalid hash chain",
+          },
+          400
+        );
+      }
+
       const result = await paymentService.create({
         xHash: normalizedHash,
         amount: channel.vendor.amountPerHash,
@@ -99,7 +110,16 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
         vendorId: channel.vendorId,
       });
 
-      console.log("isValid", isValid);
+      if (!result) {
+        return c.json(
+          {
+            success: false,
+            message: "Failed to create payment",
+          },
+          400
+        );
+      }
+
       await next();
       return;
     }
@@ -114,13 +134,23 @@ export const paymentMiddleware: MiddlewareHandler = async (c, next) => {
       );
     }
 
-    validateHashChain(
-      {
-        hash: normalizedHash,
-        index: normailizedIndex,
-      },
-      { hash: payment.xHash as Hash, index: payment.index }
-    );
+    if (
+      !validateHashChain(
+        {
+          hash: normalizedHash,
+          index: normailizedIndex,
+        },
+        { hash: payment.xHash as Hash, index: payment.index }
+      )
+    ) {
+      return c.json(
+        {
+          success: false,
+          message: "Invalid hash chain",
+        },
+        400
+      );
+    }
 
     const result = await paymentService.create({
       xHash: normalizedHash,

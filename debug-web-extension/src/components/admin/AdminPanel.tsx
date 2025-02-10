@@ -20,6 +20,7 @@ import {
   AlertDialogTrigger,
 } from "../ui/alert-dialog";
 import { Badge } from "../ui/badge";
+import { formatEther } from "viem";
 
 type Vendor = z.infer<typeof VendorDataSchema>;
 type Channel = z.infer<typeof ChannelDataSchema>;
@@ -126,7 +127,9 @@ const CloseChannelDialog: React.FC<CloseChannelDialogProps> = ({
               <div className="text-sm text-muted-foreground mb-1">
                 Total Amount
               </div>
-              <div className="font-mono text-sm">{channel.totalAmount} ETH</div>
+              <div className="font-mono text-sm">
+                {formatEther(BigInt(channel.totalAmount))} ETH
+              </div>
             </div>
           </div>
 
@@ -245,7 +248,9 @@ const DeleteChannelDialog: React.FC<DeleteChannelDialogProps> = ({
               <div className="text-sm text-muted-foreground mb-1">
                 Total Amount
               </div>
-              <div className="font-mono text-sm">{channel.totalAmount} ETH</div>
+              <div className="font-mono text-sm">
+                {formatEther(BigInt(channel.totalAmount))} ETH
+              </div>
             </div>
           </div>
         </div>
@@ -345,7 +350,9 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
             <div className="text-sm text-muted-foreground mb-1">
               Total Amount
             </div>
-            <div className="font-mono text-sm">{channel.totalAmount} ETH</div>
+            <div className="font-mono text-sm">
+              {formatEther(BigInt(channel.totalAmount))} ETH
+            </div>
           </div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -361,9 +368,7 @@ const ChannelCard: React.FC<ChannelCardProps> = ({
           </div>
           <div className="p-4 bg-muted rounded-lg">
             <div className="text-sm text-muted-foreground mb-1">Last Hash</div>
-            <div className="font-mono text-sm break-all">
-              {channel.tail}
-            </div>
+            <div className="font-mono text-sm break-all">{channel.tail}</div>
           </div>
         </div>
       </CardContent>
