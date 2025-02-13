@@ -57,6 +57,11 @@ export const useSmartContract = () => {
               (bool sent, ) = channelRecipient.call{value: amountToWithdraw}("");
               require(sent, "Failed to send Ether");
 
+              // Send remaining balance to the sender
+              uint remainingBalance = address(this).balance;
+              (bool sentToSender, ) = channelSender.call{value: remainingBalance}("");
+              require(sentToSender, "Failed to send remaining Ether to sender");
+
               channelTip = _word;
               totalWordCount = totalWordCount - _wordCount;
           }

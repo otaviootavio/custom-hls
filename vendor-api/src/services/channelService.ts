@@ -5,18 +5,7 @@ import {
   type UpdateChannelInput,
 } from "../schemas/channel";
 import { type BlockchainService } from "./blockchainService";
-import { formatEther, isHex } from "viem";
-import { bigint } from "zod";
-
-interface ContractData {
-  channelRecipient: `0x${string}`;
-  channelSender: `0x${string}`;
-  channelTip: `0x${string}`;
-  totalWordCount: bigint;
-  balance: bigint;
-}
-
-
+import { isHex } from "viem";
 
 export class ChannelService {
   constructor(

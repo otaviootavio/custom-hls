@@ -99,7 +99,7 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
             <div className="font-mono text-sm">{channel.lastIndex}</div>
           </div>
           <div className="p-4 bg-muted rounded-lg">
-            <div className="text-sm text-muted-foreground mb-1">Last Hash</div>
+            <div className="text-sm text-muted-foreground mb-1">Tail</div>
             <div className="font-mono text-sm break-all">{channel.tail}</div>
           </div>
         </div>

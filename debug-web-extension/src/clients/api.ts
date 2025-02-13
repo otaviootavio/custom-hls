@@ -11,6 +11,10 @@ import {
   VendorUpdateRequestSchema,
   ErrorResponseSchema,
   CloseChannelRequestSchema,
+  PaymentResponseSchema,
+  PaymentVerifyHashResponseSchema,
+  PaymentListResponseSchema,
+  PaymentCreateRequestSchema,
 } from "./schemas";
 import { z } from "zod";
 
@@ -184,6 +188,117 @@ export const channelApi = {
         data || {}
       );
       return ChannelResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+};
+
+export const paymentApi = {
+  createPayment: async (data: z.infer<typeof PaymentCreateRequestSchema>) => {
+    try {
+      const response = await apiClient.post("/api/payments", data);
+      return PaymentResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  listPayments: async (page: number = 1, limit: number = 10) => {
+    try {
+      const response = await apiClient.get("/api/payments", {
+        params: { page, limit },
+      });
+      return PaymentListResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  getPayment: async (id: string) => {
+    try {
+      const response = await apiClient.get(`/api/payments/${id}`);
+      return PaymentResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  listPaymentsByVendor: async (
+    vendorId: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/vendors/${vendorId}/payments`,
+        {
+          params: { page, limit },
+        }
+      );
+      return PaymentListResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  listPaymentsByChannel: async (
+    channelId: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/channels/${channelId}/payments`,
+        {
+          params: { page, limit },
+        }
+      );
+      return PaymentListResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  listPaymentsBySmartContract: async (
+    smartContractAddress: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/payments/contract/${smartContractAddress}`,
+        {
+          params: { page, limit },
+        }
+      );
+      return PaymentListResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  verifyHash: async (xHash: string, channelId: string) => {
+    try {
+      const response = await apiClient.post(`/api/payments/verify-hash`, {
+        xHash,
+        channelId,
+      });
+      return PaymentVerifyHashResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  getLatestPaymentBySmartContractAddress: async (
+    smartContractAddress: string
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/payments/contract/${smartContractAddress}/latest`
+      );
+
+      return PaymentResponseSchema.parse(response.data);
     } catch (error) {
       return handleError(error);
     }
