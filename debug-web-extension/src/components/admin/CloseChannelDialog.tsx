@@ -139,7 +139,7 @@ export const CloseChannelDialog: React.FC<CloseChannelDialogProps> = ({
               Latest Payment Hash
             </div>
             <div className="font-mono text-sm break-all">
-              {latestPayment.data.xHash.slice(0, 15)}...
+              {latestPayment.data.xHash}
             </div>
           </div>
           <div className="p-4 bg-muted rounded-lg">
