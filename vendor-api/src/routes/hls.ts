@@ -190,10 +190,10 @@ async function handleProxy(
   try {
 
     // Construct CDN URL based on whether quality is provided
-    const cdnBaseUrl = process.env.CDN_BASE_URL;
+    const CDN_BASE_URL = process.env.CDN_BASE_URL;
     const cdnUrl = quality
-      ? `${cdnBaseUrl}/${streamId}/${quality}/${filename}`
-      : `${cdnBaseUrl}/${streamId}/${filename}`;
+      ? `${CDN_BASE_URL}/${streamId}/${quality}/${filename}`
+      : `${CDN_BASE_URL}/${streamId}/${filename}`;
 
 
     // Fetch the content from CDN
