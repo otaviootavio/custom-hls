@@ -9,6 +9,7 @@ import { Slider } from "../ui/slider";
 import { channelApi } from "@/clients/api";
 import { useSmartContract } from "@/hooks/useSmartContract";
 import { parseEther } from "viem";
+import { useAccount } from "wagmi";
 
 interface HashSliderProps {
   value: string;
@@ -89,6 +90,7 @@ export const OpenChannel = () => {
     getSelectedHashchain, // Add this
   } = useHashchain();
   const { compileContract, deployContract } = useSmartContract();
+  const { isConnected } = useAccount()
 
   // Step statuses
   const [hashStatus, setHashStatus] = useState<StepStatus>("pending");
@@ -96,6 +98,17 @@ export const OpenChannel = () => {
   const [deployStatus, setDeployStatus] = useState<StepStatus>("pending");
   const [isProcessing, setIsProcessing] = useState(false);
 
+
+  if(!isConnected){
+    return <div className="bg-gray-100 border border-gray-300 rounded-2xl flex flex-col justify-center items-center">
+      <h1 className="font-bold text-xl text-gray-400">
+        Not avaliable.
+      </h1>
+      <p className="text-gray-400">
+        Please connect a wallet
+      </p>
+    </div>
+  }
   const handleNumHashesChange = (values: number[]) => {
     if (!isProcessing) {
       setNumHashes(values[0].toString());
@@ -209,6 +222,7 @@ export const OpenChannel = () => {
   const isDisabled =
     !selectedHashchain?.data?.vendorData?.chainId ||
     !!selectedHashchain.data.contractAddress;
+    
 
   return (
     <Card className={isDisabled ? "opacity-25" : ""}>

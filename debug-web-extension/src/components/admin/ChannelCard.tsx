@@ -19,6 +19,11 @@ export const ChannelCard: React.FC<ChannelCardProps> = ({
   channel,
   onChannelClose,
 }) => {
+  // TODO
+  // Add here a link to blockchain explorer
+  // Showing the 1.closing transaction 2.smartcontract 
+  // This enable the user to manually validate the datas (e.g, is the channel closed?)
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("en-US", {
       year: "numeric",
