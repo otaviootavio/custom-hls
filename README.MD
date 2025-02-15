@@ -8,27 +8,27 @@ Eth-PayWord is a decentralized video streaming platform that implements micropay
 
 The project is divided into several main components:
 
-1. **eth-payword**: Contains the smart contract and frontend for the PayWord protocol implementation.
-2. **extension**: A browser extension for managing hash chains.
-3. **mp4-to-hls**: A utility for converting MP4 files to HLS format.
-4. **my-hls-app**: The main application for video streaming and payment processing.
+1. **debug-web-extension**: Contains the smart contract and frontend for the PayWord protocol implementation.
+2. **vite-web-extension**: A browser extension for managing hash chains.
+3. **vendor-api**: A utility for converting MP4 files to HLS format.
+4. **hardhat**: The main application for video streaming and payment processing.
 
 ```bash
 .
 ├── docker-compose.yml
-├── eth-payword
+├── debug-web-extension
 │   ├── frontend
 │   │   └── [...] // dApp file (static frontend)
 │   └──── hardhat
 │       ├── [...] // All the smart contract development files
 │       └──README.MD
-├── extension
+├── vite-web-extension
 │   ├── README.md
 │   └──── src
 │         └── [...] // Extension files
-├── mp4-to-hls
+├── hardhat
 │   └── [...] // Extension files
-├── my-hls-app
+├── vendor-api
 │   ├── hls
 |   |   └── [...] // All the HLS video segments
 │   └── README.md
@@ -57,23 +57,23 @@ docker-compose up -d
 3. Navigate to each project directory and install dependencies:
 
 ```bash
-cd eth-payword/frontend
+cd debug-web-extension
 pnpm install
 cd ../hardhat
 pnpm install
-cd ../../extension
+cd vite-web-extension
 pnpm install
-cd ../my-hls-app
+cd vendor-api
 pnpm install
 ```
 
 ## Usage
 
-Setup the environment variables in the `.env` file.
+Setup the environment variables in the `.env` file in debug-web-extension and vendor-api directorys
 
 ### Smart Contract Deployment
 
-1. Navigate to the `eth-payword/hardhat` directory.
+1. Navigate to the `hardhat` directory.
 2. Run tests and deploy the contract:
 
 ```bash
@@ -83,7 +83,7 @@ pnpm run deploy
 
 ### Frontend Development
 
-1. Navigate to the `eth-payword/frontend` directory.
+1. Navigate to the `debug-web-extension` directory.
 2. Start the development server:
 
 ```bash
@@ -92,7 +92,7 @@ pnpm dev
 
 ### Browser Extension ( currently Chrome only )
 
-1. Navigate to the `extension` directory.
+1. Navigate to the `vite-web-extension` directory.
 2. Build the extension:
 
 ```bash
@@ -101,10 +101,32 @@ pnpm build
 
 3. Load the built extension in your browser's developer mode.
 
-### Video Streaming Application
+### Server API
 
-1. Navigate to the `my-hls-app` directory.
-2. Start the development server:
+1. Navigate to the `vendor-api` directory.
+2. Generate the database tables:
+
+```bash
+npx prisma generate
+```
+
+3. Push the tables to the database
+
+```bash
+npx prisma db push
+```
+
+4. Go to the prisma studio and add a vendor record
+
+```bash
+npx prisma studio
+```
+
+-- add a metamask address in the address section
+-- add a value for each hash
+-- add the chain ID
+
+5. Start the route for the API
 
 ```bash
 pnpm dev
