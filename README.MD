@@ -69,7 +69,16 @@ pnpm install
 
 ## Usage
 
-Setup the environment variables in the `.env` file in debug-web-extension and vendor-api directorys
+
+### Environment variables
+
+1. Setup a CDN that supports video stream, example : "https://bunny.net/".
+2. Deactivate security measurements in the configurations to run in the local host.
+3. update a low resolution video to stream.
+4. Get the videoID and HLS Playlist URL to put in the frontend and API .env .
+5. Setup the rest of the variables that depends of the database route and vendorID
+
+
 
 ### Smart Contract Deployment
 
