@@ -2,11 +2,8 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { swaggerUI } from "@hono/swagger-ui";
 import { cors } from "hono/cors";
 import { secureHeaders } from "hono/secure-headers";
-import { vendorRouter } from "./routes/vendor";
-import { channelRouter } from "./routes/channel";
-import hlsRouter from "./routes/hls";
 import { serve } from "@hono/node-server";
-import paymentRouter from "./routes/payment";
+import router from "./routes";
 
 const app = new OpenAPIHono();
 
@@ -14,10 +11,7 @@ const app = new OpenAPIHono();
 app.use(
   "/*",
   cors({
-    origin: [
-      "http://localhost:3000",
-      "http://localhost:5173"
-    ],
+    origin: ["http://localhost:3000", "http://localhost:5173"],
     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowHeaders: [
       "Content-Type",
@@ -34,11 +28,8 @@ app.use(
 
 app.use("/*", secureHeaders());
 
-// Routes
-app.route("/api", vendorRouter);
-app.route("/api", channelRouter);
-app.route("/api", paymentRouter);
-app.route("/", hlsRouter);
+// Mount the main router
+app.route("/", router);
 
 // OpenAPI docs
 app.doc("/docs", {
