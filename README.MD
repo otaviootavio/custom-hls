@@ -8,9 +8,9 @@ Eth-PayWord is a decentralized video streaming platform that implements micropay
 
 The project is divided into several main components:
 
-1. **debug-web-extension**: Contains the smart contract and frontend for the PayWord protocol implementation.
+1. **debug-web-extension**: Contains the frontend for the PayWord protocol implementation.
 2. **vite-web-extension**: A browser extension for managing hash chains.
-3. **vendor-api**: A utility for converting MP4 files to HLS format.
+3. **vendor-api**: Contains the routes of the VendorApi and Middleware.
 4. **hardhat**: The main application for video streaming and payment processing.
 
 ```bash
@@ -19,20 +19,17 @@ The project is divided into several main components:
 ├── debug-web-extension
 │   ├── frontend
 │   │   └── [...] // dApp file (static frontend)
-│   └──── hardhat
-│       ├── [...] // All the smart contract development files
 │       └──README.MD
 ├── vite-web-extension
 │   ├── README.md
 │   └──── src
 │         └── [...] // Extension files
 ├── hardhat
-│   └── [...] // Extension files
+│   └── [...] // Contract files and tests
 ├── vendor-api
-│   ├── hls
-|   |   └── [...] // All the HLS video segments
+│   ├── src
+|      └── [...] // API Files
 │   └── README.md
-|       └── [...] // All the HLS video segments
 └── README.MD
 ```
 
@@ -75,9 +72,8 @@ pnpm install
 1. Setup a CDN that supports video stream, example : "https://bunny.net/".
 2. Deactivate security measurements in the configurations to run in the local host.
 3. update a low resolution video to stream.
-4. Get the videoID and HLS Playlist URL to put in the frontend and API .env .
+4. Get the videoID and HLS Playlist URL to put in the frontend and vendor-api .env .
 5. Setup the rest of the variables that depends of the database route and vendorID
-
 
 
 ### Smart Contract Deployment
@@ -132,7 +128,7 @@ npx prisma studio
 ```
 
 -- add a metamask address in the address section
--- add a value for each hash
+-- add a value in ETH for each hash
 -- add the chain ID
 
 5. Start the route for the API
