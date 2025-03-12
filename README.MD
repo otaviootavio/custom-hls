@@ -28,7 +28,7 @@ The project is divided into several main components:
 │   └── [...] // Contract files and tests
 ├── vendor-api
 │   ├── src
-|      └── [...] // API Files
+|       └── [...] // API Files
 │   └── README.md
 └── README.MD
 ```
@@ -37,18 +37,19 @@ The project is divided into several main components:
 
 ### Prerequisites
 
-- Node.js (v18 or later)
-- pnpm
-- Docker and Docker Compose
+- Node.js (v20.17.0 or later)
+- pnpm (v9.11.0 or later) or npm (v10.8.2 or later)
+- Docker and Docker Compose (v28.0.0 or later, build f9ced58)
 
 ### Installation Steps
 
 1. Clone the repository.
 
-2. Start the Docker containers:
+2. Start the Docker containers: (This will be the postgres database, ensure that the port 5432 is free)
 
 ```bash
-docker-compose up -d
+cd vendor-api
+docker compose up -d 
 ```
 
 3. Navigate to each project directory and install dependencies:
@@ -67,7 +68,7 @@ pnpm install
 ## Usage
 
 
-### Environment variables
+### Environment variables (In the folders exists a .env.example that you can copy)
 
 1. Setup a CDN that supports video stream, example : "https://bunny.net/".
 2. Deactivate security measurements in the configurations to run in the local host.
@@ -76,12 +77,13 @@ pnpm install
 5. Setup the rest of the variables that depends of the database route and vendorID
 
 
-### Smart Contract Deployment
+### Smart Contract Development
 
 1. Navigate to the `hardhat` directory.
 2. Run tests and deploy the contract:
 
 ```bash
+pnpm i
 pnpm test
 pnpm run deploy
 ```
@@ -137,17 +139,3 @@ npx prisma studio
 pnpm dev
 ```
 
-## Features
-
-- Video streaming using HLS
-- Micropayments implementation with PayWord protocol
-- Browser extension for managing hash chains
-- Smart contract for handling payments
-
-## To dos
-
-- [] Store hls video segment to a bucket
-- [] Create a monorepo
-- [] Add chadcn/ui( or other ui components )
-- [] Add dark and light mode
-- [] Perhaps there is no need to use background + content script
