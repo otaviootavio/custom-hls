@@ -19,6 +19,9 @@ export const createVendorRouter = new OpenAPIHono();
 const createVendorRoute = createRoute({
   method: "post",
   path: "/vendors",
+  tags: ["Vendors"],
+  summary: "Create a new vendor",
+  description: "Creates a new vendor with the provided information",
   request: {
     body: {
       content: {

@@ -18,6 +18,9 @@ export const getPaymentRouter = new OpenAPIHono();
 const getPaymentByIdRoute = createRoute({
   method: "get",
   path: "/payments/{id}",
+  tags: ["Payments"],
+  summary: "Get payment by ID",
+  description: "Retrieves detailed information about a specific payment transaction",
   request: {
     params: z.object({ id: z.string().uuid() }),
   },

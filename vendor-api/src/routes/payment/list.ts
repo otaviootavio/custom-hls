@@ -19,6 +19,9 @@ export const listPaymentsRouter = new OpenAPIHono();
 const getAllPaymentsRoute = createRoute({
   method: "get",
   path: "/payments",
+  tags: ["Payments"],
+  summary: "List all payments",
+  description: "Returns a paginated list of all payment transactions",
   request: {
     query: paginationSchema,
   },

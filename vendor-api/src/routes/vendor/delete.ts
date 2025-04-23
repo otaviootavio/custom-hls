@@ -24,6 +24,9 @@ type VendorDeleteSuccessResponse = z.infer<typeof vendorDeleteSuccessResponse>;
 const deleteVendorRoute = createRoute({
   method: "delete",
   path: "/vendors/{id}",
+  tags: ["Vendors"],
+  summary: "Delete a vendor",
+  description: "Permanently removes a vendor from the system",
   request: {
     params: getVendorParamsSchema,
   },

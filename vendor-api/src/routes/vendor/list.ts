@@ -19,6 +19,9 @@ export const listVendorsRouter = new OpenAPIHono();
 const getAllVendorsRoute = createRoute({
   method: "get",
   path: "/vendors",
+  tags: ["Vendors"],
+  summary: "List all vendors",
+  description: "Returns a paginated list of vendors with optional filtering",
   request: {
     query: paginationSchema,
   },

@@ -20,6 +20,9 @@ export const updateVendorRouter = new OpenAPIHono();
 const updateVendorRoute = createRoute({
   method: "put",
   path: "/vendors/{id}",
+  tags: ["Vendors"],
+  summary: "Update a vendor",
+  description: "Updates an existing vendor with the provided information",
   request: {
     params: getVendorParamsSchema,
     body: {

@@ -21,6 +21,9 @@ export const createChannelRouter = new OpenAPIHono();
 const createChannelRoute = createRoute({
   method: "post",
   path: "/channels",
+  tags: ["Channels"],
+  summary: "Create a new channel",
+  description: "Creates a new streaming channel with the provided information",
   request: {
     body: {
       content: {

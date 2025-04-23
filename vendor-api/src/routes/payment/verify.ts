@@ -2,60 +2,63 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { createRoute } from "@hono/zod-openapi";
 import { z } from "zod";
 import { prisma } from "../../lib/prisma";
-import { VendorService } from "../../services/vendorService";
+import { PaymentService } from "../../services/paymentService";
 import {
-  getVendorParamsSchema,
-  vendorErrorResponse,
-  type VendorErrorResponse,
-} from "../../schemas/vendor";
+  paymentErrorResponse,
+  type PaymentErrorResponse,
+} from "../../schemas/payment";
 
-const vendorService = new VendorService(prisma);
-export const deleteVendorRouter = new OpenAPIHono();
+const paymentService = new PaymentService(prisma);
+export const verifyHashRouter = new OpenAPIHono();
 
-// Define success response schema for delete operation
-const vendorDeleteSuccessResponse = z.object({
+// Define success response schema for hash verification
+const verifyHashSuccessResponse = z.object({
   success: z.literal(true),
+  isValid: z.boolean(),
   message: z.string(),
 });
 
-type VendorDeleteSuccessResponse = z.infer<typeof vendorDeleteSuccessResponse>;
+type VerifyHashSuccessResponse = z.infer<typeof verifyHashSuccessResponse>;
 
-// Delete vendor route
-const deleteVendorRoute = createRoute({
-  method: "delete",
-  path: "/vendors/{id}",
+// Verify hash route
+const verifyHashRoute = createRoute({
+  method: "post",
+  path: "/payments/verify",
+  tags: ["Payments"],
+  summary: "Verify payment hash",
+  description: "Checks if a payment hash is valid and hasn't been used before",
   request: {
-    params: getVendorParamsSchema,
+    body: {
+      content: {
+        "application/json": {
+          schema: z.object({
+            hash: z.string(),
+          }),
+        },
+      },
+    },
   },
   responses: {
     200: {
       content: {
         "application/json": {
-          schema: vendorDeleteSuccessResponse,
+          schema: verifyHashSuccessResponse,
         },
       },
-      description: "Vendor deleted successfully",
+      description: "Hash verification result",
     },
     400: {
       content: {
         "application/json": {
-          schema: vendorErrorResponse,
+          schema: paymentErrorResponse,
         },
       },
-      description: "Invalid vendor ID",
-    },
-    404: {
-      content: {
-        "application/json": {
-          schema: vendorErrorResponse,
-        },
-      },
-      description: "Vendor not found",
+      description: "Invalid input data",
     },
     500: {
       content: {
         "application/json": {
-          schema: vendorErrorResponse,
+          schema: paymentErrorResponse,
         },
       },
       description: "Internal server error",
@@ -63,36 +66,28 @@ const deleteVendorRoute = createRoute({
   },
 });
 
-deleteVendorRouter.openapi(deleteVendorRoute, async (c) => {
+verifyHashRouter.openapi(verifyHashRoute, async (c) => {
   try {
-    const { id } = c.req.valid("param");
-    await vendorService.delete(id);
+    const { hash } = c.req.valid("json");
+    const isValid = await paymentService.verifyHash(hash);
 
-    const response: VendorDeleteSuccessResponse = {
+    const response: VerifyHashSuccessResponse = {
       success: true,
-      message: "Vendor deleted successfully",
+      isValid,
+      message: isValid ? "Hash is valid and has not been used" : "Hash has already been used",
     };
 
     return c.json(response, 200);
   } catch (error) {
     if (error instanceof z.ZodError) {
-      const errorResponse: VendorErrorResponse = {
+      const errorResponse: PaymentErrorResponse = {
         success: false,
-        message: "Invalid vendor ID",
+        message: "Invalid input data",
       };
       return c.json(errorResponse, 400);
     }
 
-    // Handle Prisma errors for record not found
-    if (error instanceof Error && (error as any).code === "P2025") {
-      const errorResponse: VendorErrorResponse = {
-        success: false,
-        message: "Vendor not found",
-      };
-      return c.json(errorResponse, 404);
-    }
-
-    const errorResponse: VendorErrorResponse = {
+    const errorResponse: PaymentErrorResponse = {
       success: false,
       message: "Internal server error",
     };
@@ -100,4 +95,4 @@ deleteVendorRouter.openapi(deleteVendorRoute, async (c) => {
   }
 });
 
-export default deleteVendorRouter;
+export default verifyHashRouter;

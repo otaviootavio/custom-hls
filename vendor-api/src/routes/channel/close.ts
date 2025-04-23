@@ -20,6 +20,9 @@ export const closeChannelRouter = new OpenAPIHono();
 const closeChannelRoute = createRoute({
   method: "post",
   path: "/channels/{channelId}/close",
+  tags: ["Channels"],
+  summary: "Close a channel",
+  description: "Finalizes a streaming channel and marks it as closed, with optional settlement transaction",
   request: {
     params: z.object({
       channelId: z.string().uuid(),

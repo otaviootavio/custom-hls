@@ -31,15 +31,7 @@ app.use("/*", secureHeaders());
 // Mount the main router
 app.route("/", router);
 
-// OpenAPI docs
-app.doc("/docs", {
-  openapi: "3.0.0",
-  info: {
-    title: "Vendor and Channel API",
-    version: "1.0.0",
-  },
-});
-
+// OpenAPI docs - usando a documentação definida no router
 app.get("/swagger", swaggerUI({ url: "/docs" }));
 
 serve(app, (info) => {

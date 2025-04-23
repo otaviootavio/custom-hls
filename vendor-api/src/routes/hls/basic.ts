@@ -17,6 +17,9 @@ export const basicHlsRouter = new OpenAPIHono();
 const getHLSStreamRoute = createRoute({
   method: "get",
   path: "/stream/{streamId}/{filename}",
+  tags: ["HLS"],
+  summary: "Get basic HLS stream",
+  description: "Retrieve basic HLS stream content without quality specification",
   request: {
     params: z.object({
       streamId: z.string(),

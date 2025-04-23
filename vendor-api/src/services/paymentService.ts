@@ -225,33 +225,13 @@ export class PaymentService {
     };
   }
 
-  async verifyHash(xHash: string, channelId: string) {
+  async verifyHash(xHash: string): Promise<boolean> {
     const existingPayment = await this.prisma.payment.findFirst({
       where: { xHash },
     });
 
-    if (existingPayment) {
-      return {
-        isValid: false,
-        message: "Hash has already been used",
-      };
-    }
-
-    const channel = await this.prisma.channel.findUnique({
-      where: { id: channelId },
-    });
-
-    if (!channel) {
-      return {
-        isValid: false,
-        message: "Channel not found",
-      };
-    }
-
-    return {
-      isValid: true,
-      message: "Hash is valid for use",
-    };
+    // Se existir um pagamento com esse hash, ele não é válido (já foi usado)
+    return !existingPayment;
   }
 
   async getLatestPaymentBySmartContractAddress(smartContractAddress: Address) {

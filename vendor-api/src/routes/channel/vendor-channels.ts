@@ -21,6 +21,9 @@ export const vendorChannelsRouter = new OpenAPIHono();
 const getChannelsByVendorRoute = createRoute({
   method: "get",
   path: "/vendors/{vendorId}/channels",
+  tags: ["Channels", "Vendors"],
+  summary: "List channels by vendor",
+  description: "Returns all channels associated with a specific vendor",
   request: {
     params: z.object({ vendorId: z.string().uuid() }),
     query: paginationSchema,

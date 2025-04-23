@@ -19,6 +19,9 @@ export const channelPaymentsRouter = new OpenAPIHono();
 const getPaymentsByChannelRoute = createRoute({
   method: "get",
   path: "/channels/{channelId}/payments",
+  tags: ["Payments", "Channels"],
+  summary: "List payments by channel",
+  description: "Returns all payment transactions associated with a specific channel",
   request: {
     params: z.object({ channelId: z.string().uuid() }),
     query: paginationSchema,

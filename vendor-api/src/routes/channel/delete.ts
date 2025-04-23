@@ -18,6 +18,9 @@ export const deleteChannelRouter = new OpenAPIHono();
 const deleteChannelRoute = createRoute({
   method: "delete",
   path: "/channels/{id}",
+  tags: ["Channels"],
+  summary: "Delete a channel",
+  description: "Permanently removes a streaming channel from the system",
   request: {
     params: z.object({ id: z.string().uuid() }),
   },

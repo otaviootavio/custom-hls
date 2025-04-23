@@ -1,5 +1,4 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
-import { swaggerUI } from "@hono/swagger-ui";
 import vendorRouter from "./vendor";
 import channelRouter from "./channel";
 import paymentRouter from "./payment";
@@ -22,11 +21,20 @@ router.doc("/docs", {
     version: "1.0.0",
     description:
       "API for managing vendors, channels, payments, and HLS streams.",
-  }
+  },
+  tags: [
+    { name: "Vendors", description: "Operations related to vendors" },
+    { name: "Channels", description: "Operations related to channels" },
+    { name: "Payments", description: "Operations related to payments" },
+    { name: "HLS", description: "Operations related to HLS streaming" }
+  ],
+  servers: [
+    {
+      url: "/",
+      description: "Development server"
+    }
+  ]
 });
-
-// Swagger UI
-router.get("/swagger", swaggerUI({ url: "/docs" }));
 
 // Global error handling
 router.notFound((c) => {

@@ -21,6 +21,9 @@ export const listChannelsRouter = new OpenAPIHono();
 const getAllChannelsRoute = createRoute({
   method: "get",
   path: "/channels",
+  tags: ["Channels"],
+  summary: "List all channels",
+  description: "Returns a paginated list of channels with optional filtering",
   request: {
     query: paginationSchema,
   },

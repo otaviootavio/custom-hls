@@ -20,6 +20,9 @@ export const getChannelRouter = new OpenAPIHono();
 const getChannelByIdRoute = createRoute({
   method: "get",
   path: "/channels/{id}",
+  tags: ["Channels"],
+  summary: "Get channel by ID",
+  description: "Retrieves detailed information about a specific streaming channel",
   request: {
     params: z.object({ id: z.string().uuid() }),
   },

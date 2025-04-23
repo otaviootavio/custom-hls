@@ -19,6 +19,9 @@ export const latestContractPaymentRouter = new OpenAPIHono();
 const getLatestPaymentByContractRoute = createRoute({
   method: "get",
   path: "/payments/contract/{smartContractAddress}/latest",
+  tags: ["Payments"],
+  summary: "Get latest payment by smart contract",
+  description: "Retrieves the most recent payment transaction for a specific smart contract address",
   request: {
     params: z.object({
       smartContractAddress: z.string(),

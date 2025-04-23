@@ -19,6 +19,9 @@ export const createPaymentRouter = new OpenAPIHono();
 const createPaymentRoute = createRoute({
   method: "post",
   path: "/payments",
+  tags: ["Payments"],
+  summary: "Create a new payment",
+  description: "Records a new payment transaction for a channel or vendor",
   request: {
     body: {
       content: {

@@ -18,6 +18,9 @@ export const qualityHlsRouter = new OpenAPIHono();
 const getQualityHLSStreamRoute = createRoute({
   method: "get",
   path: "/stream/{streamId}/{quality}/{filename}",
+  tags: ["HLS"],
+  summary: "Get quality-specific HLS stream",
+  description: "Retrieve video content for a specific quality level of an HLS stream",
   middleware: [paymentMiddleware],
   request: {
     params: z.object({

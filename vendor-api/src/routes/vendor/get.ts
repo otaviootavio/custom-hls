@@ -19,6 +19,9 @@ export const getVendorRouter = new OpenAPIHono();
 const getVendorByIdRoute = createRoute({
   method: "get",
   path: "/vendors/{id}",
+  tags: ["Vendors"],
+  summary: "Get vendor by ID",
+  description: "Retrieves detailed information for a specific vendor by its ID",
   request: {
     params: getVendorParamsSchema,
   },

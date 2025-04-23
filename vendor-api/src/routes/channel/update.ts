@@ -21,6 +21,9 @@ export const updateChannelRouter = new OpenAPIHono();
 const updateChannelRoute = createRoute({
   method: "put",
   path: "/channels/{id}",
+  tags: ["Channels"],
+  summary: "Update a channel",
+  description: "Updates an existing streaming channel with new information",
   request: {
     params: z.object({ id: z.string().uuid() }),
     body: {

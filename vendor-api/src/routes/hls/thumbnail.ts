@@ -14,6 +14,9 @@ export const thumbnailRouter = new OpenAPIHono();
 const getThumbnailRoute = createRoute({
   method: "get",
   path: "/stream/{streamId}/thumbnail.{ext}",
+  tags: ["HLS"],
+  summary: "Get stream thumbnail",
+  description: "Retrieve the thumbnail image for a specific stream",
   request: {
     params: z.object({
       streamId: z.string(),

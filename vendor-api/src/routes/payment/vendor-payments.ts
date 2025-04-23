@@ -19,6 +19,9 @@ export const vendorPaymentsRouter = new OpenAPIHono();
 const getPaymentsByVendorRoute = createRoute({
   method: "get",
   path: "/vendors/{vendorId}/payments",
+  tags: ["Payments", "Vendors"],
+  summary: "List payments by vendor",
+  description: "Returns all payment transactions associated with a specific vendor",
   request: {
     params: z.object({ vendorId: z.string().uuid() }),
     query: paginationSchema,
