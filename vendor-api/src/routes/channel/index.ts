@@ -6,16 +6,28 @@ import updateChannelRouter from "./update";
 import deleteChannelRouter from "./delete";
 import listChannelsRouter from "./list";
 import vendorChannelsRouter from "./vendor-channels";
+import { authMiddleware } from "../../middlewares/authMiddleware";
 
 export const channelRouter = new OpenAPIHono();
 
-// Mount all channel routes
-channelRouter.route("/", createChannelRouter);
+// Register security scheme at the channel router level
+channelRouter.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
+  type: "http",
+  scheme: "bearer",
+  bearerFormat: "API Token", 
+  description: "Enter your API token (required for POST, PUT, DELETE operations)"
+});
+
+// GET routes don't use authentication middleware
 channelRouter.route("/", getChannelRouter);
-channelRouter.route("/", updateChannelRouter);
-channelRouter.route("/", deleteChannelRouter);
 channelRouter.route("/", listChannelsRouter);
 channelRouter.route("/", vendorChannelsRouter);
+
+// Non-GET routes use authentication middleware
+channelRouter.use("/channels", authMiddleware);
+channelRouter.route("/", createChannelRouter);
+channelRouter.route("/", updateChannelRouter);
+channelRouter.route("/", deleteChannelRouter);
 channelRouter.route("/", closeChannelRouter);
 
 // Global error handling

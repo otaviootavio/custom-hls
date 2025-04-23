@@ -23,6 +23,7 @@ const updateVendorRoute = createRoute({
   tags: ["Vendors"],
   summary: "Update a vendor",
   description: "Updates an existing vendor with the provided information",
+  security: [{ BearerAuth: [] }],
   request: {
     params: getVendorParamsSchema,
     body: {
@@ -49,6 +50,14 @@ const updateVendorRoute = createRoute({
         },
       },
       description: "Invalid input data",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: vendorErrorResponse,
+        },
+      },
+      description: "Authentication required",
     },
     404: {
       content: {

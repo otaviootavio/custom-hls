@@ -31,7 +31,7 @@ model Channel {
   lastIndex       Int
   tail            String
   totalAmount     String
-  vendor          Vendor        @relation(fields: [vendorId], references: [id])
+  vendor          Vendor        @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   vendorId        String
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
@@ -48,7 +48,7 @@ model Payment {
   index     Int
   channel   Channel  @relation(fields: [channelId], references: [id], onDelete: Cascade)
   channelId String
-  vendor    Vendor   @relation(fields: [vendorId], references: [id])
+  vendor    Vendor   @relation(fields: [vendorId], references: [id], onDelete: Cascade)
   vendorId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt

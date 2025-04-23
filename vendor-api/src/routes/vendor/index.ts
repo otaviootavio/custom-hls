@@ -4,13 +4,26 @@ import listVendorsRouter from "./list";
 import getVendorRouter from "./get";
 import updateVendorRouter from "./update";
 import deleteVendorRouter from "./delete";
+import { authMiddleware } from "../../middlewares/authMiddleware";
 
 export const vendorRouter = new OpenAPIHono();
 
+// Register security scheme at the vendor router level
+vendorRouter.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
+  type: "http",
+  scheme: "bearer",
+  bearerFormat: "API Token", 
+  description: "Enter your API token (required for POST, PUT, DELETE operations)"
+});
+
 // Mount all vendor routes
-vendorRouter.route("/", createVendorRouter);
+// GET routes don't use authentication middleware
 vendorRouter.route("/", listVendorsRouter);
 vendorRouter.route("/", getVendorRouter);
+
+// Non-GET routes use authentication middleware
+vendorRouter.use("/vendors", authMiddleware);
+vendorRouter.route("/", createVendorRouter);
 vendorRouter.route("/", updateVendorRouter);
 vendorRouter.route("/", deleteVendorRouter);
 

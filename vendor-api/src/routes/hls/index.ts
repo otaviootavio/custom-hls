@@ -6,7 +6,15 @@ import { type HLSErrorResponse } from "./utils";
 
 export const hlsRouter = new OpenAPIHono();
 
-// Mount all HLS routes
+// Register security scheme at the HLS router level
+hlsRouter.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth", {
+  type: "http",
+  scheme: "bearer",
+  bearerFormat: "API Token", 
+  description: "Enter your API token (required for POST, PUT, DELETE operations)"
+});
+
+// Mount all HLS routes - all routes are GET methods so no auth needed
 hlsRouter.route("/", basicHlsRouter);
 hlsRouter.route("/", thumbnailRouter);
 hlsRouter.route("/", qualityHlsRouter);

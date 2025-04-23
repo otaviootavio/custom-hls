@@ -27,6 +27,7 @@ const deleteVendorRoute = createRoute({
   tags: ["Vendors"],
   summary: "Delete a vendor",
   description: "Permanently removes a vendor from the system",
+  security: [{ BearerAuth: [] }],
   request: {
     params: getVendorParamsSchema,
   },
@@ -46,6 +47,14 @@ const deleteVendorRoute = createRoute({
         },
       },
       description: "Invalid vendor ID",
+    },
+    401: {
+      content: {
+        "application/json": {
+          schema: vendorErrorResponse,
+        },
+      },
+      description: "Authentication required",
     },
     404: {
       content: {

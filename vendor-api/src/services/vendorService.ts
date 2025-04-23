@@ -2,10 +2,25 @@ import { PrismaClient } from "@prisma/client";
 import { z } from "zod";
 import { createVendorSchema, updateVendorSchema } from "../schemas/vendor";
 
+export class VendorAlreadyExistsError extends Error {
+  constructor(address: string) {
+    super(`Vendor with address "${address}" already exists`);
+    this.name = 'VendorAlreadyExistsError';
+  }
+}
+
 export class VendorService {
   constructor(private readonly prisma: PrismaClient) {}
 
   async create(data: z.infer<typeof createVendorSchema>) {
+    const existingVendor = await this.prisma.vendor.findUnique({
+      where: { address: data.address }
+    });
+    
+    if (existingVendor) {
+      throw new VendorAlreadyExistsError(data.address);
+    }
+    
     return this.prisma.vendor.create({
       data,
       include: {

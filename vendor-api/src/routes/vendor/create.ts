@@ -2,7 +2,7 @@ import { OpenAPIHono } from "@hono/zod-openapi";
 import { createRoute } from "@hono/zod-openapi";
 import { z } from "zod";
 import { prisma } from "../../lib/prisma";
-import { VendorService } from "../../services/vendorService";
+import { VendorService, VendorAlreadyExistsError } from "../../services/vendorService";
 import {
   createVendorSchema,
   vendorSuccessResponse,
@@ -22,6 +22,7 @@ const createVendorRoute = createRoute({
   tags: ["Vendors"],
   summary: "Create a new vendor",
   description: "Creates a new vendor with the provided information",
+  security: [{ BearerAuth: [] }],
   request: {
     body: {
       content: {
@@ -46,7 +47,7 @@ const createVendorRoute = createRoute({
           schema: vendorErrorResponse,
         },
       },
-      description: "Invalid input data",
+      description: "Authentication required",
     },
     500: {
       content: {
@@ -76,6 +77,14 @@ createVendorRouter.openapi(createVendorRoute, async (c) => {
       const errorResponse: VendorErrorResponse = {
         success: false,
         message: "Invalid input data",
+      };
+      return c.json(errorResponse, 400);
+    }
+
+    if (error instanceof VendorAlreadyExistsError) {
+      const errorResponse: VendorErrorResponse = {
+        success: false,
+        message: error.message,
       };
       return c.json(errorResponse, 400);
     }
