@@ -89,6 +89,37 @@ export const ChannelCreateRequestSchema = z.object({
   vendorId: z.string().uuid().describe("UUID of the associated vendor"),
 });
 
+// Schema for creating channels by vendor address
+export const ChannelCreateByVendorAddressSchema = z.object({
+  contractAddress: z
+    .string()
+    .trim()
+    .refine((addr) => isAddress(addr), {
+      message: "Invalid contract address",
+    })
+    .transform(toHexAddress)
+    .describe("Contract address for the channel"),
+  numHashes: z.number().int().min(1).describe("Number of hashes"),
+  lastIndex: z.number().int().min(0).describe("Last index processed"),
+  tail: z
+    .string()
+    .trim()
+    .refine((hash) => isHash(hash), {
+      message: "Invalid tail format",
+    })
+    .transform(toHexHash)
+    .describe("Last hash processed"),
+  totalAmount: z.string().min(0).describe("Total amount in ETH"),
+  vendorAddress: z
+    .string()
+    .trim()
+    .refine((addr) => isAddress(addr), {
+      message: "Invalid vendor address",
+    })
+    .transform(toHexAddress)
+    .describe("Ethereum address of the vendor"),
+});
+
 export const ChannelUpdateRequestSchema = ChannelCreateRequestSchema.partial();
 
 export const CloseChannelRequestSchema = z.object({
@@ -195,6 +226,7 @@ export type VendorResponse = z.infer<typeof VendorResponseSchema>;
 export type VendorListResponse = z.infer<typeof VendorListResponseSchema>;
 
 export type ChannelCreateRequest = z.infer<typeof ChannelCreateRequestSchema>;
+export type ChannelCreateByVendorAddressRequest = z.infer<typeof ChannelCreateByVendorAddressSchema>;
 export type ChannelUpdateRequest = z.infer<typeof ChannelUpdateRequestSchema>;
 export type CloseChannelRequest = z.infer<typeof CloseChannelRequestSchema>;
 export type ChannelResponse = z.infer<typeof ChannelResponseSchema>;

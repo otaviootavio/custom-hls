@@ -35,7 +35,7 @@ const VideoPlayer = () => {
       hls.attachMedia(video);
       hls.on(Hls.Events.MEDIA_ATTACHED, () => {
         hls.loadSource(
-          import.meta.env.VITE_CDN_BASE_URL+"/playlist.m3u8"
+          import.meta.env.VITE_API_BASE_URL+"/hls/playlist.m3u8"
         );
       });
 
@@ -67,7 +67,7 @@ const VideoPlayer = () => {
       };
     } else if (video?.canPlayType("application/vnd.apple.mpegurl")) {
       video.src =
-        import.meta.env.VITE_CDN_BASE_URL+"/stream/"+import.meta.env.VITE_VIDEO_ID+"/playlist.m3u8";
+        import.meta.env.VITE_API_BASE_URL+"/hls/playlist.m3u8";
       setIsLoading(false);
     } else {
       setError("Your browser doesn't support HLS video playback.");
@@ -87,17 +87,22 @@ const VideoPlayer = () => {
 
     // Re-initialize the player
     const video = videoRef.current;
-    if (Hls.isSupported() && video) {
+    if (Hls.isSupported() && video && !!selectedHashchain?.data.contractAddress) {
+      const smartContractAddress = selectedHashchain.data.contractAddress.toString();
       const hls = new Hls({
         maxBufferLength: 1,
         maxMaxBufferLength: 1,
         lowLatencyMode: true,
         backBufferLength: 0,
+        xhrSetup: xhr => {
+          xhr.withCredentials = true;
+          xhr.setRequestHeader('x-smart-contract-address', smartContractAddress);
+        }
       });
       hlsRef.current = hls;
       hls.attachMedia(video);
       hls.loadSource(
-        import.meta.env.VITE_CDN_BASE_URL+"/playlist.m3u8"
+        import.meta.env.VITE_API_BASE_URL+"/hls/playlist.m3u8"
       );
     }
   };
@@ -130,15 +135,11 @@ const VideoPlayer = () => {
           ref={videoRef}
           controls
           className="w-full h-auto"
-          poster={import.meta.env.VITE_CDN_BASE_URL+"/thumbnail.jpg"}
         />
 
         {showOverlay && !error && !isLoading && (
           <div
             className="absolute inset-0 bg-cover bg-center cursor-pointer"
-            style={{
-              backgroundImage: `url(${import.meta.env.VITE_CDN_BASE_URL}/thumbnail.jpg)`,
-            }}
             onClick={handlePlay}
             role="button"
             tabIndex={0}

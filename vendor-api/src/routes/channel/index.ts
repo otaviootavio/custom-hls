@@ -1,6 +1,7 @@
 import { OpenAPIHono } from "@hono/zod-openapi";
 import closeChannelRouter from "./close";
 import createChannelRouter from "./create";
+import createChannelByVendorAddressRouter from "./create-vendor-address";
 import getChannelRouter from "./get";
 import updateChannelRouter from "./update";
 import deleteChannelRouter from "./delete";
@@ -23,9 +24,13 @@ channelRouter.route("/", getChannelRouter);
 channelRouter.route("/", listChannelsRouter);
 channelRouter.route("/", vendorChannelsRouter);
 
-// Non-GET routes use authentication middleware
-channelRouter.use("/channels", authMiddleware);
+// The user can create a channel without authentication
 channelRouter.route("/", createChannelRouter);
+channelRouter.route("/", createChannelByVendorAddressRouter);
+
+
+// Non-GET routes use authentication middleware
+channelRouter.use("/", authMiddleware);
 channelRouter.route("/", updateChannelRouter);
 channelRouter.route("/", deleteChannelRouter);
 channelRouter.route("/", closeChannelRouter);

@@ -3,21 +3,19 @@
 
 declare const self: ServiceWorkerGlobalScope & typeof globalThis;
 
-const channel = new BroadcastChannel("fetch-intercept-channel");
-
 self.addEventListener("install", (event) => {
-  console.log("SW: Installing...", event);
+  console.log("[SW]: Installing...", event);
   self.skipWaiting();
 });
 
 self.addEventListener("activate", (event) => {
-  console.log("SW: Activated", event);
+  console.log("[SW]: Activated", event);
   event.waitUntil(self.clients.claim());
 });
 
 self.addEventListener("fetch", async (event) => {
   const url = new URL(event.request.url);
-  const baseUrl = new URL(import.meta.env.VITE_CDN_BASE_URL);
+  const baseUrl = new URL(import.meta.env.VITE_API_BASE_URL + "/hls");
 
   // Known issue:
   // The current approach intercets all requests to the CDN, including files like m3u8 playlists.
@@ -31,29 +29,53 @@ self.addEventListener("fetch", async (event) => {
     event.respondWith(
       (async () => {
         try {
+          // Get all clients
+          const clients = await self.clients.matchAll({ type: "window" });
+          if (clients.length === 0) {
+            throw new Error("No clients available");
+          }
+
+          console.log("[SW]: Found clients:", clients.length);
+
+          // Send message to the page
           const message = {
-            type: "GET_NEXT_REQUEST_HEADER_FROM_BACKGROUND",
+            type: "SW_FETCH_INTERCEPT",
             timestamp: Date.now(),
+            url: url.href,
+            method: event.request.method,
           };
 
-          channel.postMessage(message);
-          console.log("[Page Service Worker]: Sent intercept request", message);
+          // Try each client until we get a response
+          const client = clients[0];
+          console.log("[SW]: Sending message to client:", client.id);
+          client.postMessage(message);
+          console.log("[SW]: Message sent to client:", message);
 
+          // Wait for response from page
           const response = await new Promise<{
             hashchainId: string;
             nextHash: string;
             index: number;
           }>((resolve) => {
-            channel.onmessage = (event) => {
+            // Define the response handler function
+            function responseHandler(event: MessageEvent) {
+              console.log("[SW]: Received response from page:", event.data);
+
               const { type, data } = event.data;
-              if (type === "INTERCEPT_RESPONSE") {
-                resolve(data); // This resolves to { hashchainId, nextHash }
+              if (type === "PAGE_INTERCEPT_RESPONSE") {
+                self.removeEventListener("message", responseHandler);
+                resolve(data);
               }
-            };
+            }
+
+            // Add the event listener
+            self.addEventListener("message", responseHandler);
           });
 
+          console.log("[SW]: Got response with next hash:", response);
+
           if (!response.nextHash) {
-            console.error("SW: No next hash received from background");
+            console.error("[SW]: No next hash received from background");
             return new Response(
               JSON.stringify({ error: "No next hash received" }),
               {
@@ -105,7 +127,7 @@ self.addEventListener("fetch", async (event) => {
             return fetchResponse;
           }
         } catch (error) {
-          console.error("SW: Error intercepting request", error);
+          console.error("[SW]: Error intercepting request", error);
           return new Response(JSON.stringify({ error: "Internal error" }), {
             status: 500,
             headers: { "Content-Type": "application/json" },

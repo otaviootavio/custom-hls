@@ -1,6 +1,7 @@
 import axios, { AxiosInstance } from "axios";
 import {
   ChannelCreateRequestSchema,
+  ChannelCreateByVendorAddressSchema,
   ChannelUpdateRequestSchema,
   ChannelListResponseSchema,
   ChannelResponseSchema,
@@ -114,6 +115,15 @@ export const channelApi = {
   createChannel: async (data: z.infer<typeof ChannelCreateRequestSchema>) => {
     try {
       const response = await apiClient.post("/api/channels", data);
+      return ChannelResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
+  createChannelbyVendorAddress: async (data: z.infer<typeof ChannelCreateByVendorAddressSchema>) => {
+    try {
+      const response = await apiClient.post("/api/channels/by-vendor-address", data);
       return ChannelResponseSchema.parse(response.data);
     } catch (error) {
       return handleError(error);

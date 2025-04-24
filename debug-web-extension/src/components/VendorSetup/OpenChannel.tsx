@@ -175,13 +175,13 @@ export const OpenChannel = () => {
         bytecode,
       });
 
-      const response = await channelApi.createChannel({
+      const response = await channelApi.createChannelbyVendorAddress({
         contractAddress: contractAddress as `0x${string}`,
         numHashes: parseInt(numHashes),
         lastIndex: 0,
         tail: updatedHashchain.data.tail as `0x${string}`,
         totalAmount: parseEther(totalAmount).toString(),
-        vendorId: import.meta.env.VITE_VENDOR_ID as string,
+        vendorAddress: updatedHashchain.data.vendorData.vendorAddress as `0x${string}`,
       });
 
       if (response.success) {

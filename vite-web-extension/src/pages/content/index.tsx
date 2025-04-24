@@ -38,14 +38,76 @@ sendToWebpage({
 window.addEventListener("message", async (event) => {
   // Security: Check origin
   if (event.origin !== targetOrigin) {
-    console.log("Ignored message from different origin:", event.origin);
+    console.log("[ContentScript] Ignored message from different origin:", event.origin);
     return;
   }
 
   const { data } = event;
-  if (data?.source !== "WEBSITE") return;
+  if (data?.source !== "WEBSITE") {
+    console.log("[ContentScript] Ignored message from non-website source:", data?.source);
+    return;
+  }
 
+  console.log("[ContentScript] Received message from webpage:", data);
   const { type, payload } = data;
+  
+  // Handle service worker intercept messages that come through the page
+  if (type === "SW_FETCH_INTERCEPT") {
+    console.log("[ContentScript] Received SW intercept message via page:", payload);
+    
+    try {
+      // Get the selected hashchain
+      const selectedHashchain: {
+        hashchainId: HashchainId;
+        data: PublicHashchainData;
+      } = await sendToBackground("GET_SELECTED_HASHCHAIN", {});
+
+      console.log("[ContentScript] Got selected hashchain:", selectedHashchain);
+
+      if (!selectedHashchain || !selectedHashchain.hashchainId) {
+        console.error("[ContentScript] No hashchain selected");
+        sendToWebpage({
+          source: "CONTENT_SCRIPT",
+          type: "SW_FETCH_INTERCEPT_RESPONSE",
+          payload: { error: "No hashchain selected" },
+        });
+        return;
+      }
+
+      // Get next hash
+      const nextHash = await sendToBackground("GET_NEXT_HASH", {
+        hashchainId: selectedHashchain.hashchainId,
+      });
+
+      console.log("[ContentScript] Got next hash:", nextHash);
+
+      // Send response back to the page
+      const response = {
+        hashchainId: selectedHashchain.hashchainId,
+        nextHash,
+        index: selectedHashchain.data.lastIndex + 1,
+      };
+
+      sendToWebpage({
+        source: "CONTENT_SCRIPT",
+        type: "SW_FETCH_INTERCEPT_RESPONSE",
+        payload: response,
+      });
+      
+      console.log("[ContentScript] Sent hash response to page:", response);
+      return;
+    } catch (err) {
+      console.error("[ContentScript] Error handling SW intercept:", err);
+      sendToWebpage({
+        source: "CONTENT_SCRIPT",
+        type: "SW_FETCH_INTERCEPT_RESPONSE",
+        payload: { error: (err as Error).message },
+      });
+      return;
+    }
+  }
+  
+  // Handle regular messages from webpage to background
   try {
     const response = await sendToBackground(type, payload);
     sendToWebpage({
@@ -54,7 +116,12 @@ window.addEventListener("message", async (event) => {
       payload: response,
     });
   } catch (err) {
-    console.error("Message handling error:", err);
+    console.error("[ContentScript] Message handling error:", err);
+    sendToWebpage({
+      source: "CONTENT_SCRIPT",
+      type: `${type}_RESPONSE`,
+      payload: { error: (err as Error).message },
+    });
   }
 });
 
@@ -82,45 +149,3 @@ chrome.runtime.onMessage.addListener((message) => {
       console.log("[ContentScript] Unhandled message from extension:", message);
   }
 });
-
-const channel = new BroadcastChannel("fetch-intercept-channel");
-
-// Handle messages from service worker
-channel.onmessage = async (event) => {
-  console.log("[ContentScript] Service Worker -> Content script:", event.data);
-
-  const { type, url, method, body, timestamp } = event.data;
-
-  if (type === "GET_NEXT_REQUEST_HEADER_FROM_BACKGROUND") {
-    // Process the intercepted request
-    console.log("[ContentScript] Received intercept request", {
-      url,
-      method,
-      body,
-      timestamp,
-    });
-
-    const selectedHashchain: {
-      hashchainId: HashchainId;
-      data: PublicHashchainData;
-    } = await sendToBackground("GET_SELECTED_HASHCHAIN", {});
-
-    const nextHash = await sendToBackground("GET_NEXT_HASH", {
-      hashchainId: selectedHashchain.hashchainId,
-    });
-
-    // Here you can modify the request or add custom logic for /todos/1
-    const response = {
-      type: "INTERCEPT_RESPONSE",
-      timestamp: Date.now(),
-      data: {
-        hashchainId: selectedHashchain.hashchainId,
-        nextHash,
-        index: selectedHashchain.data.lastIndex + 1,
-      },
-    };
-
-    channel.postMessage(response);
-    console.log("[ContentScript] Content script -> Service Worker:", response);
-  }
-};
