@@ -77,7 +77,7 @@ const validateHlsAccess = async (c: Context, next: Next) => {
     }
 
     // Basic check for payword index (must be a number)
-    const index = parseInt(paywordIndex, -1);
+    const index = parseInt(paywordIndex, 10);
     if (isNaN(index) || index < 0) {
       throw new Error("Invalid payword index format");
     }
