@@ -91,8 +91,7 @@ self.addEventListener("fetch", async (event) => {
           const fetchResponse = await fetch(event.request, {
             headers: {
               ...existingHeaders,
-              //"X-Hash": response.nextHash,
-              "x-hash": "0xbc181daf1b2a5e5539e3b30f50b5e29ad8b6d40725d3c4d3322bef0049672f66",
+              "X-Hash": response.nextHash,
               "x-hash-index": response.index.toString(),
             },
           });
