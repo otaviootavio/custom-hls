@@ -5,7 +5,7 @@ export const DownloadLinks = () => {
     <div className="flex gap-4">
       <Button asChild size="sm">
         <a
-          href="https://do27d9uxrn.ufs.sh/f/g7YqjDR3JjGdpuqGcAztUXHgnMfGEsaAFL4r2ObVQujPw5eq"
+          href="https://do27d9uxrn.ufs.sh/f/g7YqjDR3JjGdeyuD00EQEbWPH7RjywZVxvah1SAIzFmoOQ6u"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -14,7 +14,7 @@ export const DownloadLinks = () => {
       </Button>
       <Button asChild size="sm">
         <a
-          href="https://do27d9uxrn.ufs.sh/f/g7YqjDR3JjGdGtlMjLO8cvpM9VrNC62atdqRI5UP3oxyJmkj"
+          href="https://do27d9uxrn.ufs.sh/f/g7YqjDR3JjGd0Z25yMpUe8l3UcFKBLJhPgz7dupntVkqYSQ6"
           target="_blank"
           rel="noopener noreferrer"
         >
