@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, Hash, ShieldCheck, Users } from "lucide-react";
+import { Store, Hash, ShieldCheck, Users, Wallet } from "lucide-react";
 import { OpenChannel } from "./VendorSetup/OpenChannel";
 import { HashStreaming } from "./streaming/HashStreaming";
 import ConnectMiniMoniWalletWithDropdown from "./ConnectMiniMoniWalletWithDropdown";
@@ -9,9 +9,32 @@ import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { VendorRealData } from "./VendorSetup/VendorRealData";
 import VendorAdminPanel from "./admin/VendorAdminPanel";
 import { VendorManagement } from "./VendorManager/VendorManagement";
+import { UserChannels } from "./UserChannels/UserChannels";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 export const HashchainDebug = () => {
   const { authStatus } = useHashchain();
+  const [mode, setMode] = useState("user"); // "user" or "vendor"
+  const [userActiveTab, setUserActiveTab] = useState("vendor"); // Default tab for user mode
+  const [vendorActiveTab, setVendorActiveTab] = useState("vendors-manage"); // Default tab for vendor mode
+
+  const toggleMode = () => {
+    setMode(mode === "user" ? "vendor" : "user");
+  };
+
+  // Current active tab based on mode
+  const activeTab = mode === "user" ? userActiveTab : vendorActiveTab;
+
+  // Handle tab change
+  const handleTabChange = (value: string) => {
+    if (mode === "user") {
+      setUserActiveTab(value);
+    } else {
+      setVendorActiveTab(value);
+    }
+  };
+
   return (
     <div>
       <div>
@@ -62,44 +85,69 @@ export const HashchainDebug = () => {
           )}
           {!!authStatus?.basicAuth && (
             <div>
-              <Tabs defaultValue="vendor">
+              <div className="mb-4">
+                <Button
+                  onClick={toggleMode}
+                  variant="outline"
+                >
+                  {mode === "user" ? "Switch to Vendor Mode" : "Switch to User Mode"}
+                </Button>
+              </div>
+              <Tabs value={activeTab} onValueChange={handleTabChange}>
                 <TabsList className="flex flex-row">
-                  <TabsTrigger
-                    value="vendor"
-                    className="flex items-center justify-around"
-                  >
-                    <div className="flex items-center">
-                      <Store className="h-4 w-4 mr-2" />
-                      <span>Vendor Setup</span>
-                    </div>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="vendors-manage"
-                    className="flex items-center justify-center"
-                  >
-                    <div className="flex items-center">
-                      <Users className="h-4 w-4 mr-2" />
-                      <span>Manage Vendors</span>
-                    </div>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="stream"
-                    className="flex items-center justify-center"
-                  >
-                    <div className="flex items-center">
-                      <Hash className="h-4 w-4 mr-2" />
-                      <span>Stream Hashes</span>
-                    </div>
-                  </TabsTrigger>
-                  <TabsTrigger
-                    value="admin"
-                    className="flex items-center justify-center"
-                  >
-                    <div className="flex items-center">
-                      <ShieldCheck className="h-4 w-4 mr-2" />
-                      <span>Admin</span>
-                    </div>
-                  </TabsTrigger>
+                  {mode === "user" && (
+                    <>
+                      <TabsTrigger
+                        value="vendor"
+                        className="flex items-center justify-around"
+                      >
+                        <div className="flex items-center">
+                          <Store className="h-4 w-4 mr-2" />
+                          <span>Setup</span>
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="my-channels"
+                        className="flex items-center justify-center"
+                      >
+                        <div className="flex items-center">
+                          <Wallet className="h-4 w-4 mr-2" />
+                          <span>My Channels</span>
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="stream"
+                        className="flex items-center justify-center"
+                      >
+                        <div className="flex items-center">
+                          <Hash className="h-4 w-4 mr-2" />
+                          <span>Video</span>
+                        </div>
+                      </TabsTrigger>
+                    </>
+                  )}
+                  {mode === "vendor" && (
+                    <>
+                      <TabsTrigger
+                        value="vendors-manage"
+                        className="flex items-center justify-center"
+                      >
+                        <div className="flex items-center">
+                          <Users className="h-4 w-4 mr-2" />
+                          <span>Profile</span>
+                        </div>
+                      </TabsTrigger>
+                      <TabsTrigger
+                        value="admin"
+                        className="flex items-center justify-center"
+                      >
+                        <div className="flex items-center">
+                          <ShieldCheck className="h-4 w-4 mr-2" />
+                          <span>Channels</span>
+                        </div>
+                      </TabsTrigger>
+                    </>
+                  )}
                 </TabsList>
                 <TabsContent value="vendor">
                   <div className="grid justify-items-stretch grid-cols-2 gap-2 mt-4">
@@ -110,6 +158,11 @@ export const HashchainDebug = () => {
                 <TabsContent value="vendors-manage">
                   <div className="mt-4">
                     <VendorManagement />
+                  </div>
+                </TabsContent>
+                <TabsContent value="my-channels">
+                  <div className="mt-4">
+                    <UserChannels />
                   </div>
                 </TabsContent>
                 <TabsContent value="stream">

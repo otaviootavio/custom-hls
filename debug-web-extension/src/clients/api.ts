@@ -197,6 +197,25 @@ export const channelApi = {
       return handleError(error);
     }
   },
+
+  listChannelsBySender: async (
+    sender: string,
+    page: number = 1,
+    limit: number = 10
+  ) => {
+    try {
+      const response = await apiClient.get(
+        `/api/senders/${sender}/channels`,
+        {
+          params: { page, limit },
+        }
+      );
+      return ChannelListResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
   closeChannel: async (
     channelId: string,
     data?: z.infer<typeof CloseChannelRequestSchema>

@@ -45,6 +45,7 @@ export class ChannelService {
       data: {
         ...data,
         recipient: smartContract.channelRecipient.toLowerCase(),
+        sender: smartContract.channelSender.toLowerCase(),
       },
       include: {
         vendor: true,
@@ -146,6 +147,39 @@ export class ChannelService {
       }),
       this.prisma.channel.findMany({
         where: { vendorId },
+        skip,
+        take: limit,
+        include: {
+          vendor: true,
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+      }),
+    ]);
+
+    const pages = Math.ceil(total / limit);
+
+    return {
+      channels: channels.map(transformChannelResponse),
+      pagination: {
+        total,
+        page,
+        limit,
+        pages,
+      },
+    };
+  }
+
+  async findBySender(sender: string, page = 1, limit = 10) {
+    const skip = (page - 1) * limit;
+
+    const [total, channels] = await Promise.all([
+      this.prisma.channel.count({
+        where: { sender: sender.toLowerCase() },
+      }),
+      this.prisma.channel.findMany({
+        where: { sender: sender.toLowerCase() },
         skip,
         take: limit,
         include: {

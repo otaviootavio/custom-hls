@@ -7,6 +7,7 @@ import updateChannelRouter from "./update";
 import deleteChannelRouter from "./delete";
 import listChannelsRouter from "./list";
 import vendorChannelsRouter from "./vendor-channels";
+import senderChannelsRouter from "./sender-channels";
 import { authMiddleware } from "../../middlewares/authMiddleware";
 
 export const channelRouter = new OpenAPIHono();
@@ -23,6 +24,7 @@ channelRouter.openAPIRegistry.registerComponent("securitySchemes", "BearerAuth",
 channelRouter.route("/", getChannelRouter);
 channelRouter.route("/", listChannelsRouter);
 channelRouter.route("/", vendorChannelsRouter);
+channelRouter.route("/", senderChannelsRouter);
 
 // The user can create a channel without authentication
 channelRouter.route("/", createChannelRouter);

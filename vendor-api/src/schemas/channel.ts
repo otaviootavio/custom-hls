@@ -126,6 +126,7 @@ export const channelResponseSchema = z.object({
   updatedAt: z.date().transform((date) => date.toISOString()),
   vendor: vendorResponseSchema,
   recipient: z.string(),
+  sender: z.string(),
 });
 
 // Pagination response schema
@@ -198,6 +199,7 @@ export const transformChannelResponse = (
     createdAt: new Date(channel.createdAt),
     updatedAt: new Date(channel.updatedAt),
     recipient: channel.recipient,
+    sender: channel.sender,
     vendor: {
       ...channel.vendor,
       address: toHexAddress(channel.vendor.address),

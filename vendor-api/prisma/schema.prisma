@@ -37,6 +37,7 @@ model Channel {
   updatedAt       DateTime      @updatedAt
   Payment         Payment[]
   recipient       String
+  sender          String
   status          ChannelStatus @default(OPEN)
   closedAt        DateTime?
   settlementTx    String?       @unique
