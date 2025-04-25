@@ -43,6 +43,7 @@ export interface StorageInterface {
   onHashchainChange: (listener: () => void) => () => void;
   onAuthStatusChange: (listener: () => void) => () => void;
   requestConnection: () => Promise<void>;
+  requestSecretConnection: () => Promise<void>;
   getAuthStatus: () => Promise<{
     basicAuth: boolean;
     secretAuth: boolean;
@@ -67,7 +68,7 @@ interface HashchainContextType {
   syncIndex: (newIndex: number) => Promise<void>;
   getSecret: () => Promise<string | null>;
   updateContractDetails: (details: {
-    contractAddress: string;
+    contractAddress?: string;
     numHashes: string;
     totalAmount: string;
   }) => Promise<void>;
@@ -77,6 +78,7 @@ interface HashchainContextType {
     basicAuth: boolean;
     secretAuth: boolean;
   } | null;
+  requestSecretConnection: () => Promise<void>;
 }
 
 const HashchainContext = createContext<HashchainContextType | null>(null);
@@ -124,6 +126,12 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
   const requestConnection = useCallback(async () => {
     return withLoadingAndError(async () => {
       await storage.requestConnection();
+    });
+  }, [storage]);
+
+  const requestSecretConnection = useCallback(async () => {
+    return withLoadingAndError(async () => {
+      await storage.requestSecretConnection();
     });
   }, [storage]);
 
@@ -250,7 +258,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
   const updateContractDetails = useCallback(
     async (details: {
-      contractAddress: string;
+      contractAddress?: string;
       numHashes: string;
       totalAmount: string;
     }) => {
@@ -258,7 +266,7 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
         if (!selectedHashchain) throw new Error("No hashchain selected");
 
         await storage.updateHashchain(selectedHashchain.hashchainId, details);
-
+        
         const updatedHashchain = await storage.getHashchain(
           selectedHashchain.hashchainId
         );
@@ -276,10 +284,6 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
 
   const getSelectedHashchain = useCallback(async () => {
     return withLoadingAndError(async () => {
-      if (selectedHashchain?.hashchainId && selectedHashchain?.data) {
-        return selectedHashchain;
-      }
-
       const hashchain = await storage.getSelectedHashchain();
       if (!hashchain) {
         setSelectedHashchain(null);
@@ -389,7 +393,8 @@ export const HashchainProvider: React.FC<HashchainProviderProps> = ({
     importHashchain,
     getSelectedHashchain,
     getSecret,
-    requestConnection
+    requestConnection,
+    requestSecretConnection,
   };
 
   return (

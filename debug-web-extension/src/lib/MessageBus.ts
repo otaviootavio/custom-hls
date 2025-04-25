@@ -20,6 +20,25 @@ export class MessageBus {
   
   constructor(private source: string = 'WEBSITE') {
     this.setupMessageListener();
+    this.setupServiceWorkerListener();
+    
+    // Register handler for SW intercept response from content script
+    this.registerHandler("SW_FETCH_INTERCEPT_RESPONSE", async (payload) => {
+      console.log('[Page MessageBus]: Received SW intercept response from content script:', payload);
+      
+      // Forward to service worker
+      if (navigator.serviceWorker.controller) {
+        navigator.serviceWorker.controller.postMessage({
+          type: 'PAGE_INTERCEPT_RESPONSE',
+          data: payload
+        });
+        console.log('[Page MessageBus]: Forwarded SW intercept response to service worker');
+      } else {
+        console.warn('[Page MessageBus]: No service worker controller found to forward response');
+      }
+      
+      return { success: true };
+    });
   }
 
   private setupMessageListener() {
@@ -34,6 +53,75 @@ export class MessageBus {
       }
     });
   }
+
+  private setupServiceWorkerListener() {
+    // Ensure service worker is supported
+    if (!('serviceWorker' in navigator)) {
+      console.error('[Page MessageBus]: Service Worker is not supported in this browser');
+      return;
+    }
+
+    // Log service worker state
+    console.log('[Page MessageBus]: Setting up service worker listener. Current controller:', 
+      navigator.serviceWorker.controller ? 'Available' : 'Not available');
+    
+    // Start listening right away if controller exists
+    if (navigator.serviceWorker.controller) {
+      this.addServiceWorkerMessageListener();
+    }
+    
+    // Handle the case when service worker is still being registered/activated
+    navigator.serviceWorker.ready.then(registration => {
+      console.log('[Page MessageBus]: Service Worker is ready:', registration.active?.state);
+      
+      // Ensure listener is attached after service worker is ready
+      this.addServiceWorkerMessageListener();
+    }).catch(err => {
+      console.error('[Page MessageBus]: Error waiting for service worker to be ready:', err);
+    });
+  }
+  
+  private addServiceWorkerMessageListener() {
+    console.log('[Page MessageBus]: Adding service worker message listener');
+    
+    // Remove existing listener to avoid duplicates
+    navigator.serviceWorker.removeEventListener('message', this.handleServiceWorkerMessage);
+    
+    // Add listener again
+    navigator.serviceWorker.addEventListener('message', this.handleServiceWorkerMessage);
+  }
+
+  private handleServiceWorkerMessage = (event: MessageEvent) => {
+    const { type, url, method, timestamp } = event.data;
+    
+    console.log('[Page MessageBus]: Processing service worker message:', event.data);
+    
+    if (type === 'SW_FETCH_INTERCEPT') {
+      console.log('[Page MessageBus]: Received intercept message from service worker:', event.data);
+      
+      try {
+        // Send to content script and wait for response
+        this.sendMessage('SW_FETCH_INTERCEPT', { url, method, timestamp })
+          .then(response => {
+            // Send response back to service worker
+            if (navigator.serviceWorker.controller) {
+              navigator.serviceWorker.controller.postMessage({
+                type: 'PAGE_INTERCEPT_RESPONSE',
+                data: response
+              });
+              console.log('[Page MessageBus]: Sent response to service worker:', response);
+            } else {
+              console.warn('[Page MessageBus]: No service worker controller to respond to');
+            }
+          })
+          .catch(error => {
+            console.error('[Page MessageBus]: Error handling service worker message:', error);
+          });
+      } catch (error) {
+        console.error('[Page MessageBus]: Error initiating service worker message handling:', error);
+      }
+    }
+  };
 
   private handleMessage = async (event: MessageEvent) => {
     const message = event.data as Message;
@@ -138,5 +226,6 @@ export class MessageBus {
 
   public destroy() {
     window.removeEventListener('message', this.handleMessage);
+    navigator.serviceWorker.removeEventListener('message', this.handleServiceWorkerMessage);
   }
 }

@@ -15,7 +15,10 @@ export class HashchainRepository {
     this.db = new IndexedDBClient("hashchain_db", "hashchains", 1);
   }
 
-  private generateHashChain(secret: string, length: number): string[] {
+  private generateHashChain(
+    secret: string,
+    length: number
+  ): { chain: string[]; tail: string } {
     const chain: string[] = [];
     let currentHash = toHex(secret);
 
@@ -24,12 +27,14 @@ export class HashchainRepository {
       chain.unshift(currentHash);
     }
 
-    return chain;
+    const tail = keccak256(currentHash);
+
+    return { chain, tail };
   }
 
   private toPublicData(data: HashchainData): PublicHashchainData {
-    const {  hashes, secret, ...publicData } = data;
-    return { ...publicData, hasSecret: !!secret , hashes };
+    const { hashes, secret, ...publicData } = data;
+    return { ...publicData, hasSecret: !!secret };
   }
 
   async createHashchain(
@@ -60,7 +65,10 @@ export class HashchainRepository {
     chrome.tabs.query({}, (tabs) => {
       tabs.forEach((tab) => {
         if (tab.id) {
-          console.log("Background: sending hashchain selection change to tab", tab.id);
+          console.log(
+            "Background: sending hashchain selection change to tab",
+            tab.id
+          );
           chrome.tabs.sendMessage(
             tab.id,
             {
@@ -144,14 +152,25 @@ export class HashchainRepository {
     const existingData = await this.db.get<HashchainData>(hashchainId);
     if (!existingData) return;
 
+    // if there exists a contract address, we can't update it
+    if (!!existingData.contractAddress && !!updateData.contractAddress) {
+      throw new Error("Contract address already exists");
+    }
+
+    // TODO: Here we are storing all data
+    // In the future we may just store the secret and then
+    // compute the hashes on the fly
     if (updateData.numHashes) {
-      updateData.hashes = this.generateHashChain(
+      const { chain, tail } = this.generateHashChain(
         existingData.secret,
         parseInt(updateData.numHashes.toString())
       );
+      updateData.hashes = chain;
       updateData.lastIndex = 0;
+      updateData.tail = tail;
     }
 
+    console.log("Updating hashchain", hashchainId, updateData);
     await this.db.put(hashchainId, {
       ...existingData,
       ...updateData,

@@ -44,6 +44,10 @@ export class ExtensionStorage implements StorageInterface {
     return this.messageBus.sendMessage<void>("REQUEST_CONNECTION", {});
   }
 
+  async requestSecretConnection(): Promise<void> {
+    return this.messageBus.sendMessage<void>("REQUEST_SECRET_CONNECTION", {});
+  }
+
   async getHashchain(
     hashchainId: HashchainId
   ): Promise<PublicHashchainData | null> {

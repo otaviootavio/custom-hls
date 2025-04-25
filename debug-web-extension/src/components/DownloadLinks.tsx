@@ -5,7 +5,7 @@ export const DownloadLinks = () => {
     <div className="flex gap-4">
       <Button asChild size="sm">
         <a
-          href="https://utfs.io/f/I7zWwfduN6Hq378xB6NDtGduPji54QEgWxl1FMXVZUYBsb87"
+          href="https://do27d9uxrn.ufs.sh/f/g7YqjDR3JjGdeyuD00EQEbWPH7RjywZVxvah1SAIzFmoOQ6u"
           target="_blank"
           rel="noopener noreferrer"
         >
@@ -14,24 +14,12 @@ export const DownloadLinks = () => {
       </Button>
       <Button asChild size="sm">
         <a
-          href="https://utfs.io/f/I7zWwfduN6HqPtcxLuF17DkNBMzcVJOnePdtlYaq2iCyFSWp"
+          href="https://do27d9uxrn.ufs.sh/f/g7YqjDR3JjGd0Z25yMpUe8l3UcFKBLJhPgz7dupntVkqYSQ6"
           target="_blank"
           rel="noopener noreferrer"
         >
           Download for Firefox
         </a>
-      </Button>
-      <Button asChild size="sm" variant={"outline"}>
-        <p
-          onClick={async () => {
-            const data = await fetch(
-              "https://jsonplaceholder.typicode.com/todos/1"
-            );
-            console.log(await data.json());
-          }}
-        >
-          Dummy fetch
-        </p>
       </Button>
     </div>
   );
