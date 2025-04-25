@@ -97,6 +97,15 @@ export const vendorApi = {
     }
   },
 
+  getVendorByAddress: async (address: string) => {
+    try {
+      const response = await apiClient.get(`/api/vendors/by-address/${address}`);
+      return VendorResponseSchema.parse(response.data);
+    } catch (error) {
+      return handleError(error);
+    }
+  },
+
   updateVendor: async (
     id: string,
     data: z.infer<typeof VendorUpdateRequestSchema>

@@ -11,9 +11,7 @@ export const HashStreaming: React.FC = () => {
   const isChannelOpened =
     (selectedHashchain?.data.contractAddress?.toString() ?? "").length > 0;
   const isSecretAuth = authStatus?.secretAuth;
-  console.log(!!selectedHashchain?.data.contractAddress, isSecretAuth);
-
-  console.log(selectedHashchain?.data.contractAddress?.toString());
+  
   return (
     <Card>
       <CardHeader>

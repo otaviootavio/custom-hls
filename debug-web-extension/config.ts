@@ -16,10 +16,6 @@ import { injected } from "wagmi/connectors";
 
 import { defineChain } from "viem";
 
-
-
-
-
 export const xrplEvmSidechain = defineChain({
   id: 1440002,
   name: "XRPL EVM Sidechain Devnet",

@@ -2,12 +2,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Store, Hash, ShieldCheck } from "lucide-react";
 import { OpenChannel } from "./VendorSetup/OpenChannel";
 import { HashStreaming } from "./streaming/HashStreaming";
-import { AdminPanel } from "./admin/AdminPanel";
 import ConnectMiniMoniWalletWithDropdown from "./ConnectMiniMoniWalletWithDropdown";
 import { useHashchain } from "@/context/HashchainProvider";
 import { ConnectOrDownloadCard } from "./ConnectOrDownloadCard";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { VendorRealData } from "./VendorSetup/VendorRealData";
+import VendorAdminPanel from "./admin/VendorAdminPanel";
 
 export const HashchainDebug = () => {
   const { authStatus } = useHashchain();
@@ -93,7 +93,7 @@ export const HashchainDebug = () => {
                   <HashStreaming />
                 </TabsContent>
                 <TabsContent value="admin">
-                  <AdminPanel />
+                  <VendorAdminPanel />
                 </TabsContent>
               </Tabs>
             </div>

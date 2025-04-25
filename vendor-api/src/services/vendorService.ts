@@ -38,6 +38,15 @@ export class VendorService {
     });
   }
 
+  async findByAddress(address: string) {
+    return this.prisma.vendor.findUnique({
+      where: { address },
+      include: {
+        channels: true,
+      },
+    });
+  }
+
   async findAll(page = 1, limit = 10) {
     const skip = (page - 1) * limit;
 
