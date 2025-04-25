@@ -32,8 +32,6 @@ export class ChannelService {
     const smartContract = await this.blockchain.getContractData(
       data.contractAddress
     );
-    console.log(smartContract);
-    console.log(vendor);
 
     if (
       smartContract.channelRecipient.toLowerCase() !==
@@ -41,9 +39,13 @@ export class ChannelService {
     ) {
       throw new Error("Vendor address does not match contract recipient");
     }
+    
 
     const channel = await this.prisma.channel.create({
-      data,
+      data: {
+        ...data,
+        recipient: smartContract.channelRecipient.toLowerCase(),
+      },
       include: {
         vendor: true,
       },

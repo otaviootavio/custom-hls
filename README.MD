@@ -11,7 +11,7 @@ The project consists of four main components:
 1. **debug-web-extension**: A React + TypeScript + Vite frontend application that serves as the user interface for the PayWord protocol implementation
 2. **vite-web-extension**: A browser extension for managing hash chains that implements the PayWord payment scheme in the context of blockchain
 3. **vendor-api**: A backend API server built with Hono.js that handles vendor-related operations and HLS video streaming
-4. **hardhat**: Smart contract development and deployment environment for the Ethereum blockchain
+4. **hardhat**: Smart contract development for the Ethereum blockchain
 
 ```
 .

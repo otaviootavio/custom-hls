@@ -1,5 +1,5 @@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Store, Hash, ShieldCheck } from "lucide-react";
+import { Store, Hash, ShieldCheck, Users } from "lucide-react";
 import { OpenChannel } from "./VendorSetup/OpenChannel";
 import { HashStreaming } from "./streaming/HashStreaming";
 import ConnectMiniMoniWalletWithDropdown from "./ConnectMiniMoniWalletWithDropdown";
@@ -8,6 +8,7 @@ import { ConnectOrDownloadCard } from "./ConnectOrDownloadCard";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
 import { VendorRealData } from "./VendorSetup/VendorRealData";
 import VendorAdminPanel from "./admin/VendorAdminPanel";
+import { VendorManagement } from "./VendorManager/VendorManagement";
 
 export const HashchainDebug = () => {
   const { authStatus } = useHashchain();
@@ -73,6 +74,15 @@ export const HashchainDebug = () => {
                     </div>
                   </TabsTrigger>
                   <TabsTrigger
+                    value="vendors-manage"
+                    className="flex items-center justify-center"
+                  >
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 mr-2" />
+                      <span>Manage Vendors</span>
+                    </div>
+                  </TabsTrigger>
+                  <TabsTrigger
                     value="stream"
                     className="flex items-center justify-center"
                   >
@@ -95,6 +105,11 @@ export const HashchainDebug = () => {
                   <div className="grid justify-items-stretch grid-cols-2 gap-2 mt-4">
                     <VendorRealData />
                     <OpenChannel />
+                  </div>
+                </TabsContent>
+                <TabsContent value="vendors-manage">
+                  <div className="mt-4">
+                    <VendorManagement />
                   </div>
                 </TabsContent>
                 <TabsContent value="stream">
