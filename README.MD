@@ -2,37 +2,48 @@
 
 ## Project Overview
 
-Eth-PayWord is a decentralized video streaming platform that implements micropayments using the PayWord protocol on the Ethereum blockchain. This project aims to provide a secure, efficient, and fair method for content creators to monetize their video content while offering viewers a seamless streaming experience.
+Eth-PayWord is a decentralized video streaming platform that implements micropayments using the PayWord protocol on the Ethereum blockchain. This project provides a secure, efficient, and fair method for content creators to monetize their video content while offering viewers a seamless streaming experience.
 
 ## Repository Structure
 
-The project is divided into several main components:
+The project consists of four main components:
 
-1. **debug-web-extension**: Contains the smart contract and frontend for the PayWord protocol implementation.
-2. **vite-web-extension**: A browser extension for managing hash chains.
-3. **vendor-api**: A utility for converting MP4 files to HLS format.
-4. **hardhat**: The main application for video streaming and payment processing.
+1. **debug-web-extension**: A React + TypeScript + Vite frontend application that serves as the user interface for the PayWord protocol implementation
+2. **vite-web-extension**: A browser extension for managing hash chains that implements the PayWord payment scheme in the context of blockchain
+3. **vendor-api**: A backend API server built with Hono.js that handles vendor-related operations and HLS video streaming
+4. **hardhat**: Smart contract development and deployment environment for the Ethereum blockchain
 
-```bash
+```
 .
 ├── docker-compose.yml
-├── debug-web-extension
-│   ├── frontend
-│   │   └── [...] // dApp file (static frontend)
-│   └──── hardhat
-│       ├── [...] // All the smart contract development files
-│       └──README.MD
-├── vite-web-extension
-│   ├── README.md
-│   └──── src
-│         └── [...] // Extension files
-├── hardhat
-│   └── [...] // Extension files
-├── vendor-api
-│   ├── hls
-|   |   └── [...] // All the HLS video segments
-│   └── README.md
-|       └── [...] // All the HLS video segments
+├── debug-web-extension/
+│   ├── src/
+│   │   ├── components/
+│   │   ├── context/
+│   │   ├── hooks/
+│   │   ├── blockchain/
+│   │   ├── assets/
+│   │   └── ...
+│   ├── public/
+│   └── package.json
+├── vite-web-extension/
+│   ├── src/
+│   ├── public/
+│   ├── dist_chrome/
+│   └── package.json
+├── hardhat/
+│   ├── contracts/
+│   │   └── EthWord.sol
+│   ├── test/
+│   └── package.json
+├── vendor-api/
+│   ├── src/
+│   ├── prisma/
+│   ├── data/
+│   │   ├── playlist.m3u8
+│   │   └── segment*.ts (HLS video segments)
+│   ├── docker-compose.yml
+│   └── package.json
 └── README.MD
 ```
 
@@ -43,115 +54,159 @@ The project is divided into several main components:
 - Node.js (v18 or later)
 - pnpm
 - Docker and Docker Compose
+- ffmpeg (for HLS conversion)
 
 ### Installation Steps
 
-1. Clone the repository.
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/otaviootavio/custom-hls
+   cd custom-hls
+   ```
 
-2. Start the Docker containers:
+2. Install dependencies for each component:
+   ```bash
+   # For debug-web-extension
+   cd debug-web-extension
+   pnpm install
 
-```bash
-docker-compose up -d
-```
+   # For hardhat
+   cd ../hardhat
+   pnpm install
+   npx hardhat compile
 
-3. Navigate to each project directory and install dependencies:
+   # For vendor-api
+   cd ../vendor-api
+   pnpm install
 
-```bash
-cd debug-web-extension
-pnpm install
-cd ../hardhat
-pnpm install
-cd vite-web-extension
-pnpm install
-cd vendor-api
-pnpm install
-```
+   # For vite-web-extension
+   cd ../vite-web-extension
+   pnpm install
+   ```
+
+3. Initialize video for streaming:
+   ```bash
+   cd vendor-api
+   ./init_video.sh
+   ```
+   This script downloads a sample video and converts it to HLS format.
+
+4. Build the browser extension:
+   ```bash
+   cd ../vite-web-extension
+   pnpm build
+   ```
+
+5. Start Docker containers:
+   ```bash
+   cd ..
+   docker-compose up -d
+   ```
 
 ## Usage
 
+### Environment Variables
 
-### Environment variables
+**For debug-web-extension:**
+- Copy the contents of `.env.example` into a new `.env` file
+- This contains the API URL - for local development, set it to your local API URL
 
-1. Setup a CDN that supports video stream, example : "https://bunny.net/".
-2. Deactivate security measurements in the configurations to run in the local host.
-3. update a low resolution video to stream.
-4. Get the videoID and HLS Playlist URL to put in the frontend and API .env .
-5. Setup the rest of the variables that depends of the database route and vendorID
+**For vendor-api:**
+- Copy the contents of `.env.example` into a new `.env` file
+- Contains the admin master key (currently not in use) and the database URL
+- For local development, the database credentials are defined in the `docker-compose.yml` file
 
+### MetaMask Setup
 
+This system is integrated with the MetaMask wallet:
+- Download and install MetaMask from their official website: https://metamask.io/download
+- For development purposes, we use the XRPL EVM Dev Net
+- Obtain free tokens from the XRPL faucet: https://bridge.xrplevm.org/
 
-### Smart Contract Deployment
+### Vendor API Setup
 
-1. Navigate to the `hardhat` directory.
-2. Run tests and deploy the contract:
+1. Navigate to the `vendor-api` directory
 
-```bash
-pnpm test
-pnpm run deploy
-```
+2. Start the database using Docker Compose:
+   ```bash
+   docker-compose up -d
+   ```
 
-### Frontend Development
+3. Generate the database tables:
+   ```bash
+   npx prisma generate
+   npx prisma db push
+   ```
 
-1. Navigate to the `debug-web-extension` directory.
-2. Start the development server:
+4. Add a vendor record using one of these methods:
 
-```bash
-pnpm dev
-```
+   **Option A: Using Prisma Studio**
+   ```bash
+   npx prisma studio
+   ```
+   Then:
+   - Add a MetaMask address in the address section
+   - Add a value for each hash
+   - Add the chain ID
 
-### Browser Extension ( currently Chrome only )
+   **Option B: Using the REST API**
+   Start the API server:
+   ```bash
+   pnpm dev
+   ```
+   
+   ```bash
+   curl -X 'POST' \
+     'localhost:3000/api/vendors' \
+     -H 'accept: application/json' \
+     -H 'Content-Type: application/json' \
+     -d '{
+     "chainId": 1,
+     "address": "0xd069BCEA52c75A7653eC61A344de4B899522fc94",
+     "amountPerHash": 0.01
+   }'
+   ```
 
-1. Navigate to the `vite-web-extension` directory.
-2. Build the extension:
+5. Start the API server:
+   ```bash
+   pnpm dev
+   ```
 
-```bash
-pnpm build
-```
+### Browser Extension Setup (Chrome)
 
-3. Load the built extension in your browser's developer mode.
+1. Open Chrome and navigate to `chrome://extensions/`
+2. Enable "Developer mode" in the top-right corner
+3. Click "Load unpacked" and select the `vite-web-extension/dist_chrome` directory
 
-### Server API
+### Accessing the Application
 
-1. Navigate to the `vendor-api` directory.
-2. Generate the database tables:
+To run the complete system, you need to ensure all components are properly configured and running:
 
-```bash
-npx prisma generate
-```
+1. Database (PostgreSQL):
+   - Make sure the database is running via Docker Compose
+   - Default port: 5432
 
-3. Push the tables to the database
+2. Vendor API:
+   - Ensure proper `.env` configuration is in place
+   - Run in a dedicated terminal:
+     ```bash
+     cd vendor-api
+     pnpm dev
+     ```
+   - Access the API at: http://localhost:3000
+   - Access Swagger documentation at: http://localhost:3000/swagger
 
-```bash
-npx prisma db push
-```
+3. Frontend (debug-web-extension):
+   - Ensure proper `.env` configuration is in place pointing to the vendor API
+   - Run in a separate terminal:
+     ```bash
+     cd debug-web-extension
+     pnpm dev
+     ```
+   - Access the frontend at: http://localhost:5173
 
-4. Go to the prisma studio and add a vendor record
+4. Browser Extension:
+   - Should be loaded in Chrome as described in the Browser Extension Setup section
+   - Make sure it's enabled and active when accessing the frontend
 
-```bash
-npx prisma studio
-```
-
--- add a metamask address in the address section
--- add a value for each hash
--- add the chain ID
-
-5. Start the route for the API
-
-```bash
-pnpm dev
-```
-
-## Features
-
-- Video streaming using HLS
-- Micropayments implementation with PayWord protocol
-- Browser extension for managing hash chains
-- Smart contract for handling payments
-
-## To dos
-
-- [] Store hls video segment to a bucket
-- [] Create a monorepo
-- [] Add chadcn/ui( or other ui components )
-- [] Add dark and light mode
-- [] Perhaps there is no need to use background + content script
+Each component must be running simultaneously in separate terminals for the system to function properly.
