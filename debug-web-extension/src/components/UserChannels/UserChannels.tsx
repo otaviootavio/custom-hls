@@ -10,18 +10,6 @@ import { ChevronDown, ChevronRight, Loader2 } from "lucide-react";
 import { formatEther } from "viem";
 import { Button } from "@/components/ui/button";
 
-// Define interfaces for the payment data
-interface PaymentData {
-  id: string;
-  xHash: string;
-  amount: number;
-  index: number;
-  channelId: string;
-  vendorId: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
 export const UserChannels = () => {
   const { address } = useAccount();
   const [loading, setLoading] = useState(false);
